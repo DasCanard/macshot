@@ -506,6 +506,7 @@
 "Settings" = "Nastavenia";
 "macshot Settings" = "Nastavenia macshot";
 "Also open in Editor" = "Otvorit aj v editore";
+"Close editor after copying" = "Zavrieť editor po skopírovaní";
 "Hide controls" = "Skryt ovladacie prvky";
 "Hide recording controls" = "Skryt ovladacie prvky nahravania";
 "Stop recording from the menu bar icon instead." = "Zastavte nahravanie pomocou ikony v liste menu.";

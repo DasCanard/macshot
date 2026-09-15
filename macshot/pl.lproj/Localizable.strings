@@ -500,6 +500,7 @@
 "Settings" = "Ustawienia";
 "macshot Settings" = "Ustawienia macshot";
 "Also open in Editor" = "Otwórz też w edytorze";
+"Close editor after copying" = "Zamknij edytor po skopiowaniu";
 "Hide controls" = "Ukryj kontrolki";
 "Hide recording controls" = "Ukryj kontrolki nagrywania";
 "Stop recording from the menu bar icon instead." = "Zatrzymaj nagrywanie z ikony na pasku menu.";

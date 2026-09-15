@@ -504,6 +504,7 @@
 "Settings..." = "Asetukset...";
 "macshot Settings" = "macshot-asetukset";
 "Also open in Editor" = "Avaa my\U00F6s editorissa";
+"Close editor after copying" = "Sulje editori kopioinnin jälkeen";
 "Hide controls" = "Piilota ohjaimet";
 "Hide recording controls" = "Piilota nauhoitusohjaimet";
 "Stop recording from the menu bar icon instead." = "Pys\U00E4yt\U00E4 nauhoitus valikkopalkin kuvakkeesta.";

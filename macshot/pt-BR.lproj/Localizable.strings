@@ -497,6 +497,7 @@
 "Settings" = "Configurações";
 "macshot Settings" = "Configurações do macshot";
 "Also open in Editor" = "Abrir também no Editor";
+"Close editor after copying" = "Fechar o editor após copiar";
 "Hide controls" = "Ocultar controles";
 "Hide recording controls" = "Ocultar controles de gravação";
 "Stop recording from the menu bar icon instead." = "Pare a gravação pelo ícone na barra de menus.";

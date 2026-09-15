@@ -506,6 +506,7 @@
 "Settings..." = "Cài đặt...";
 "macshot Settings" = "Cài đặt macshot";
 "Also open in Editor" = "Đồng thời mở trong trình chỉnh sửa";
+"Close editor after copying" = "Đóng trình chỉnh sửa sau khi sao chép";
 "Hide controls" = "Ẩn điều khiển";
 "Hide recording controls" = "Ẩn điều khiển quay";
 "Stop recording from the menu bar icon instead." = "Dừng quay từ biểu tượng thanh menu thay thế.";

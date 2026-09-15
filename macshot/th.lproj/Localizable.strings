@@ -506,6 +506,7 @@
 "Settings..." = "การตั้งค่า...";
 "macshot Settings" = "การตั้งค่า macshot";
 "Also open in Editor" = "เปิดในตัวแก้ไขด้วย";
+"Close editor after copying" = "ปิดตัวแก้ไขหลังคัดลอก";
 "Hide controls" = "ซ่อนตัวควบคุม";
 "Hide recording controls" = "ซ่อนตัวควบคุมการบันทึก";
 "Stop recording from the menu bar icon instead." = "หยุดบันทึกจากไอคอนแถบเมนูแทน";

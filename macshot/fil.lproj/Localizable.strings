@@ -505,6 +505,7 @@
 "Settings..." = "Mga Setting...";
 "macshot Settings" = "Mga Setting ng macshot";
 "Also open in Editor" = "Buksan din sa Editor";
+"Close editor after copying" = "Isara ang editor pagkatapos kumopya";
 "Hide controls" = "Itago ang mga kontrol";
 "Hide recording controls" = "Itago ang mga kontrol sa pag-record";
 "Stop recording from the menu bar icon instead." = "Ihinto ang pag-record mula sa icon sa menu bar.";

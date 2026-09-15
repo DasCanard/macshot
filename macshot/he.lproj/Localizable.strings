@@ -498,6 +498,7 @@
 "Settings..." = "הגדרות...";
 "macshot Settings" = "הגדרות macshot";
 "Also open in Editor" = "פתח גם בעורך";
+"Close editor after copying" = "סגור את העורך לאחר ההעתקה";
 "Hide controls" = "הסתר פקדים";
 "Hide recording controls" = "הסתר פקדי הקלטה";
 "Stop recording from the menu bar icon instead." = "עצור הקלטה מסמל שורת התפריטים במקום.";

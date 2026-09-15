@@ -506,6 +506,7 @@
 "Settings" = "Подешавања";
 "macshot Settings" = "macshot подешавања";
 "Also open in Editor" = "Отвори и у уређивачу";
+"Close editor after copying" = "Затвори уређивач након копирања";
 "Hide controls" = "Сакриј контроле";
 "Hide recording controls" = "Сакриј контроле снимања";
 "Stop recording from the menu bar icon instead." = "Уместо тога, зауставите снимање преко иконице у траци менија.";

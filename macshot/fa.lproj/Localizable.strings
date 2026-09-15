@@ -498,6 +498,7 @@
 "Settings..." = "تنظیمات...";
 "macshot Settings" = "تنظیمات macshot";
 "Also open in Editor" = "باز کردن در ویرایشگر نیز";
+"Close editor after copying" = "بستن ویرایشگر پس از کپی";
 "Hide controls" = "پنهان کردن کنترل‌ها";
 "Hide recording controls" = "پنهان کردن کنترل‌های ضبط ویدیو";
 "Stop recording from the menu bar icon instead." = "به جای آن، ضبط ویدیو را از آیکون نوار منو متوقف کنید.";

@@ -499,6 +499,7 @@
 "Settings..." = "Ayarlar...";
 "macshot Settings" = "macshot Ayarları";
 "Also open in Editor" = "Düzenleyicide de aç";
+"Close editor after copying" = "Kopyaladıktan sonra düzenleyiciyi kapat";
 "Hide controls" = "Kontrolleri gizle";
 "Hide recording controls" = "Kayıt kontrollerini gizle";
 "Stop recording from the menu bar icon instead." = "Bunun yerine menü çubuğu simgesinden kaydı durdurun.";

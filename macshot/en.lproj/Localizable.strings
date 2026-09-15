@@ -498,6 +498,7 @@
 "Settings..." = "Settings...";
 "macshot Settings" = "macshot Settings";
 "Also open in Editor" = "Also open in Editor";
+"Close editor after copying" = "Close editor after copying";
 "Hide controls" = "Hide controls";
 "Hide recording controls" = "Hide recording controls";
 "Stop recording from the menu bar icon instead." = "Stop recording from the menu bar icon instead.";
