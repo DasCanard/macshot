@@ -10,6 +10,7 @@ extension OverlayView {
     private struct BrowserAccessibilityValues {
         let application: AXUIElement
         let manualAccessibility: CFTypeRef?
+        let didEnableEnhancedUserInterface: Bool
     }
 
     enum SnapMode: Int {
@@ -299,11 +300,20 @@ extension OverlayView {
             return false
         }
 
+        // Leave enhanced UI alone when it is already on: VoiceOver and other
+        // assistive clients switch it on, and AppKit apps honour it too, so
+        // turning it off afterwards would clobber their state. Chromium also
+        // refcounts enable/disable requests, and skipping keeps that balanced.
+        let enhancedUserInterfaceWasOn = accessibilityAttributeValue(
+            "AXEnhancedUserInterface" as CFString,
+            of: application) as? Bool ?? false
+
         browserAccessibilityPreviousValues[ownerPID] = BrowserAccessibilityValues(
             application: application,
             manualAccessibility: accessibilityAttributeValue(
                 "AXManualAccessibility" as CFString,
-                of: application))
+                of: application),
+            didEnableEnhancedUserInterface: !enhancedUserInterfaceWasOn)
 
         // Chromium/Electron builds may report errors even when these values
         // successfully materialize the web-content accessibility tree.
@@ -311,10 +321,12 @@ extension OverlayView {
             application,
             "AXManualAccessibility" as CFString,
             kCFBooleanTrue)
-        AXUIElementSetAttributeValue(
-            application,
-            "AXEnhancedUserInterface" as CFString,
-            kCFBooleanTrue)
+        if !enhancedUserInterfaceWasOn {
+            AXUIElementSetAttributeValue(
+                application,
+                "AXEnhancedUserInterface" as CFString,
+                kCFBooleanTrue)
+        }
         browserAccessibilityLock.unlock()
         return true
     }
@@ -336,14 +348,15 @@ extension OverlayView {
                 values.application,
                 "AXManualAccessibility" as CFString,
                 values.manualAccessibility ?? kCFBooleanFalse)
-            // Chromium counts Enhanced UI enable/disable requests. A matching
-            // false removes only our request and preserves requests from other
-            // assistive clients; re-sending a previously observed true would
-            // add another request instead of restoring the prior state.
-            AXUIElementSetAttributeValue(
-                values.application,
-                "AXEnhancedUserInterface" as CFString,
-                kCFBooleanFalse)
+            // Only withdraw the enhanced-UI request we made ourselves. Chromium
+            // counts these requests, and an app that already had it on (e.g.
+            // under VoiceOver) must keep it on.
+            if values.didEnableEnhancedUserInterface {
+                AXUIElementSetAttributeValue(
+                    values.application,
+                    "AXEnhancedUserInterface" as CFString,
+                    kCFBooleanFalse)
+            }
         }
         browserAccessibilityLock.unlock()
     }
