@@ -1,5 +1,15 @@
 # Changelog
 
+## [4.2.2-beta.4] - 2026-09-17
+
+### Added
+
+- **S3 public-read uploads** — opt-in "Make uploads publicly readable" setting sends the `public-read` ACL so links work on AWS S3, DigitalOcean Spaces, MinIO, and Backblaze B2. (#352)
+
+### Fixed
+
+- **Clipboard compatibility** — copied screenshots now contain image data only, matching the macOS screenshot tool. Pasting works in Microsoft Teams, Photopea, and remote desktop clients without granting Full Disk Access, and Teams embeds the image inline instead of uploading it as a file. On macOS 27, Finder can still paste screenshots as files. On earlier macOS versions, use Save instead. (#309, #393)
+
 ## [4.2.2-beta.3] - 2026-08-29
 
 ### Added

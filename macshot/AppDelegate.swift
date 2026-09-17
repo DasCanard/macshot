@@ -279,10 +279,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUUpdaterDelegate {
 
         migrateFilenameTemplateIfNeeded()
 
-        // Touch the retained clipboard backing directory before cleanup so it
-        // exists for both the sweeper and the first screenshot copy.
-        _ = ClipboardBackingStore.directory
-
         // Reclaim disk from stale tmp leftovers (cancelled recordings,
         // legacy clipboard PNGs, share-sheet scratch). Runs off the main
         // thread so it can't delay launch.
@@ -3323,7 +3319,7 @@ extension AppDelegate: NSMenuDelegate {
         let entry = entries[index]
         guard let image = ScreenshotHistory.shared.loadImage(for: entry) else { return }
 
-        ImageEncoder.copyToClipboard(image, sourceFileURL: ScreenshotHistory.shared.fileURL(for: entry))
+        ImageEncoder.copyToClipboard(image)
         showFloatingThumbnail(image: image, historyEntryID: entry.id)
 
         let soundEnabled = UserDefaults.standard.object(forKey: "playCopySound") as? Bool ?? true

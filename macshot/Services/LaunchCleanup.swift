@@ -86,7 +86,7 @@ enum LaunchCleanup {
     static let all: [LaunchCleaner] = [
         TmpFileCleaner(),
         ScratchDirectoryCleaner(),
-        ClipboardDirectoryCleaner(),
+        LegacyClipboardBackingDirectoryCleaner(),
         LegacyClipboardTmpDirectoryCleaner(),
     ]
 
@@ -207,14 +207,27 @@ private struct ScratchDirectoryCleaner: LaunchCleaner {
     }
 }
 
-/// Sweeps retained clipboard backing files from Application Support.
-/// These files intentionally outlive a single pasteboard write so external
-/// clipboard history apps can read old entries after later captures.
-private struct ClipboardDirectoryCleaner: LaunchCleaner {
-    let name = "ClipboardDirectoryCleaner"
+/// Sweeps the legacy clipboard backing folder from builds that put file URLs on the pasteboard.
+/// The 7-day TTL matches the old retention so clipboard history entries don't break on update.
+private struct LegacyClipboardBackingDirectoryCleaner: LaunchCleaner {
+    let name = "LegacyClipboardBackingDirectoryCleaner"
 
     func sweep() -> DirectorySweeper.Result {
-        ClipboardBackingStore.cleanup()
+        guard let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
+            return DirectorySweeper.Result()
+        }
+        let dir = appSupport
+            .appendingPathComponent("com.sw33tlie.macshot", isDirectory: true)
+            .appendingPathComponent("clipboard", isDirectory: true)
+        let result = DirectorySweeper.sweep(
+            directory: dir,
+            olderThan: 7 * 24 * 60 * 60,
+            shouldDelete: { _ in true }
+        )
+        if let remaining = try? FileManager.default.contentsOfDirectory(atPath: dir.path), remaining.isEmpty {
+            try? FileManager.default.removeItem(at: dir)
+        }
+        return result
     }
 }
 
