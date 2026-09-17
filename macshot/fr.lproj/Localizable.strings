@@ -475,7 +475,7 @@
 /* Recording — Input Monitoring Permission */
 "Input Monitoring Required" = "Surveillance des entrées requise";
 "macshot needs Input Monitoring permission to show keystrokes during recording. Please grant access in System Settings, then try again." = "macshot a besoin de l'autorisation Surveillance des entrées pour afficher les frappes pendant l'enregistrement. Veuillez accorder l'accès dans System Settings, puis réessayez.";
-"macshot needs Accessibility permission to show keystrokes during recording. Please grant access in System Settings, then try again." = "macshot a besoin de l'autorisation Accessibilité pour afficher les frappes pendant l'enregistrement. Veuillez accorder l'accès dans System Settings, puis réessayez.";
+"macshot needs Accessibility permission to snap to individual interface elements. Please grant access in System Settings, then try again." = "macshot a besoin de l'autorisation Accessibilité pour s'aligner sur des éléments d'interface individuels. Veuillez accorder l'accès dans les Réglages Système, puis réessayez.";
 
 /* Recording — Keystroke Overlay */
 "Show Keystrokes" = "Afficher les frappes";

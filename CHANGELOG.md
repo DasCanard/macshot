@@ -1,5 +1,22 @@
 # Changelog
 
+## [4.2.2-beta.5] - 2026-09-17
+
+### Added
+
+- **Element snapping** — press Tab on the capture screen to cycle Window → Off → Element snapping. Element mode highlights individual buttons, panels, and fields under the pointer, including Chromium and Electron apps (can be turned off in Settings). Requires Accessibility permission, which macshot asks for the first time you switch to it. (#360)
+- **Google Drive destination folder** — choose which Drive folder uploads go to. (#372)
+- **Letterbox thumbnail preview** — optional setting to fit very wide or tall captures inside the floating thumbnail instead of cropping them. (#366)
+- **Close editor after copying** — optional setting to close the editor window after copying. (#394, #395)
+
+### Changed
+
+- The video editor remembers the last export scale and quality. (#363, #376)
+
+### Fixed
+
+- Missing accents in several Slovak, Croatian, Romanian, and Catalan labels.
+
 ## [4.2.2-beta.4] - 2026-09-17
 
 ### Added

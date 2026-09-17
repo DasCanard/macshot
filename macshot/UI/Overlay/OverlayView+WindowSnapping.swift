@@ -19,9 +19,9 @@ extension OverlayView {
 
         var next: SnapMode {
             switch self {
-            case .window: return .element
-            case .element: return .off
-            case .off: return .window
+            case .window: return .off
+            case .off: return .element
+            case .element: return .window
             }
         }
     }

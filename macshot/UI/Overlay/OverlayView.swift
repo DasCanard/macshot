@@ -9222,18 +9222,19 @@ class OverlayView: NSView {
             }
         case 48:  // Tab
             if state == .idle {
-                // Cycle capture snapping: window -> element -> off.
+                // Cycle capture snapping: window -> off -> element.
                 snapMode = snapMode.next
                 hoveredSnapRect = nil
                 hoveredSnapWindowID = nil
-                if snapMode == .element && !AXIsProcessTrusted() {
-                    let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue(): true] as CFDictionary
-                    AXIsProcessTrustedWithOptions(options)
-                    showOverlayError(L("Accessibility Access Required"))
-                }
                 needsDisplay = true
                 // Notify other overlays to redraw (for multi-monitor setups)
                 overlayDelegate?.overlayViewDidChangeSnapMode()
+                // Element mode stays selected so it works on the next capture once granted.
+                if snapMode == .element && !AXIsProcessTrusted() {
+                    showOverlayError(L("Accessibility Access Required"))
+                    overlayDelegate?.overlayViewDidRequestAccessibilityPermission()
+                    return
+                }
                 if snapMode != .off {
                     querySnapTarget(at: NSEvent.mouseLocation)
                 }
