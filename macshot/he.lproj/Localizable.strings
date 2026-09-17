@@ -344,6 +344,8 @@
 "Secret Key:" = "מפתח סודי:";
 "Public URL:" = "כתובת URL ציבורית:";
 "Path Prefix:" = "קידומת נתיב:";
+"Make uploads publicly readable" = "הפוך העלאות לקריאה ציבורית";
+"Sends the public-read ACL so uploaded files are viewable by anyone with the link. Needed for AWS S3, DigitalOcean Spaces, MinIO and Backblaze B2, which store objects privately by default. Leave off for Cloudflare R2, which has no ACLs and rejects the header." = "שולח ACL מסוג public-read כדי שקבצים שהועלו יהיו נגישים לכל מי שיש לו את הקישור. נדרש עבור AWS S3, DigitalOcean Spaces, MinIO ו-Backblaze B2, ששומרים אובייקטים באופן פרטי כברירת מחדל. השאר כבוי עבור Cloudflare R2, שאינו תומך ב-ACLs ודוחה את הכותרת.";
 "API key:" = "מפתח API:";
 "Upload History" = "היסטוריית העלאות";
 "No uploads yet." = "אין העלאות עדיין.";

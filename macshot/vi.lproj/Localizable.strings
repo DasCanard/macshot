@@ -350,6 +350,8 @@
 "Secret Key:" = "Khóa bí mật:";
 "Public URL:" = "URL công khai:";
 "Path Prefix:" = "Tiền tố đường dẫn:";
+"Make uploads publicly readable" = "Cho phép đọc công khai các tệp tải lên";
+"Sends the public-read ACL so uploaded files are viewable by anyone with the link. Needed for AWS S3, DigitalOcean Spaces, MinIO and Backblaze B2, which store objects privately by default. Leave off for Cloudflare R2, which has no ACLs and rejects the header." = "Gửi ACL public-read để các tệp đã tải lên có thể xem được bởi bất kỳ ai có liên kết. Cần thiết cho AWS S3, DigitalOcean Spaces, MinIO và Backblaze B2 vì các dịch vụ này lưu trữ đối tượng ở chế độ riêng tư theo mặc định. Tắt cho Cloudflare R2 vì không hỗ trợ ACL và sẽ từ chối header.";
 "API key:" = "Khóa API:";
 "Upload History" = "Lịch sử tải lên";
 "No uploads yet." = "Chưa có tải lên nào.";

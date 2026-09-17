@@ -351,6 +351,8 @@
 "Secret Key:" = "Μυστικό κλειδί:";
 "Public URL:" = "Δημόσιο URL:";
 "Path Prefix:" = "Πρόθεμα διαδρομής:";
+"Make uploads publicly readable" = "Δημόσια αναγνώσιμες μεταφορτώσεις";
+"Sends the public-read ACL so uploaded files are viewable by anyone with the link. Needed for AWS S3, DigitalOcean Spaces, MinIO and Backblaze B2, which store objects privately by default. Leave off for Cloudflare R2, which has no ACLs and rejects the header." = "Στέλνει το ACL public-read ώστε τα μεταφορτωμένα αρχεία να είναι ορατά σε οποιονδήποτε έχει τον σύνδεσμο. Απαιτείται για AWS S3, DigitalOcean Spaces, MinIO και Backblaze B2, που αποθηκεύουν αντικείμενα ιδιωτικά από προεπιλογή. Αφήστε το απενεργοποιημένο για Cloudflare R2, που δεν υποστηρίζει ACLs και απορρίπτει την κεφαλίδα.";
 "API key:" = "Κλειδί API:";
 "Upload History" = "Ιστορικό μεταφορτώσεων";
 "No uploads yet." = "Δεν υπάρχουν μεταφορτώσεις ακόμα.";

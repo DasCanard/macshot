@@ -350,6 +350,8 @@
 "Secret Key:" = "Titkos kulcs:";
 "Public URL:" = "Nyilvános URL:";
 "Path Prefix:" = "Útvonal előtag:";
+"Make uploads publicly readable" = "Feltöltések nyilvánosan olvashatóvá tétele";
+"Sends the public-read ACL so uploaded files are viewable by anyone with the link. Needed for AWS S3, DigitalOcean Spaces, MinIO and Backblaze B2, which store objects privately by default. Leave off for Cloudflare R2, which has no ACLs and rejects the header." = "A public-read ACL-t küldi, így a feltöltött fájlok bárki számára megtekinthetők a linkkel. Szükséges az AWS S3, DigitalOcean Spaces, MinIO és Backblaze B2 számára, amelyek alapértelmezetten privát módon tárolják az objektumokat. Hagyja kikapcsolva a Cloudflare R2-nél, amely nem támogatja az ACL-eket és elutasítja a fejlécet.";
 "API key:" = "API kulcs:";
 "Upload History" = "Feltöltési előzmények";
 "No uploads yet." = "Még nincsenek feltöltések.";

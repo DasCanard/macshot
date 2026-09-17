@@ -351,6 +351,8 @@
 "Secret Key:" = "Tajny kluc:";
 "Public URL:" = "Verejna URL:";
 "Path Prefix:" = "Prefix cesty:";
+"Make uploads publicly readable" = "Spristupnit nahravania verejne na citanie";
+"Sends the public-read ACL so uploaded files are viewable by anyone with the link. Needed for AWS S3, DigitalOcean Spaces, MinIO and Backblaze B2, which store objects privately by default. Leave off for Cloudflare R2, which has no ACLs and rejects the header." = "Odosle ACL public-read, aby nahrane subory boli pristupne komukoIvek s odkazom. Potrebne pre AWS S3, DigitalOcean Spaces, MinIO a Backblaze B2, ktore predvolene ukladaju objekty ako sukromne. Ponechajte vypnute pre Cloudflare R2, ktore nepodporuje ACL a tuto hlavicku odmietne.";
 "API key:" = "API kluc:";
 "Upload History" = "Historia nahravani";
 "No uploads yet." = "Zatial ziadne nahravania.";

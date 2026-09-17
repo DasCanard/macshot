@@ -351,6 +351,8 @@
 "Secret Key:" = "Tajni kljuc:";
 "Public URL:" = "Javni URL:";
 "Path Prefix:" = "Prefiks putanje:";
+"Make uploads publicly readable" = "Ucini ucitavanja javno citljivima";
+"Sends the public-read ACL so uploaded files are viewable by anyone with the link. Needed for AWS S3, DigitalOcean Spaces, MinIO and Backblaze B2, which store objects privately by default. Leave off for Cloudflare R2, which has no ACLs and rejects the header." = "Salje ACL public-read tako da ucitane datoteke budu dostupne svima s poveznicom. Potrebno za AWS S3, DigitalOcean Spaces, MinIO i Backblaze B2, koji prema zadanim postavkama pohranjuju objekte privatno. Ostavite iskljuceno za Cloudflare R2, koji ne podrzava ACL i odbija to zaglavlje.";
 "API key:" = "API kljuc:";
 "Upload History" = "Povijest ucitavanja";
 "No uploads yet." = "Nema ucitavanja.";

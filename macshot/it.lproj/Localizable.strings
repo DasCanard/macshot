@@ -334,6 +334,8 @@
 "Secret Key:" = "Chiave segreta:";
 "Public URL:" = "URL pubblico:";
 "Path Prefix:" = "Prefisso percorso:";
+"Make uploads publicly readable" = "Rendi i caricamenti leggibili pubblicamente";
+"Sends the public-read ACL so uploaded files are viewable by anyone with the link. Needed for AWS S3, DigitalOcean Spaces, MinIO and Backblaze B2, which store objects privately by default. Leave off for Cloudflare R2, which has no ACLs and rejects the header." = "Invia l'ACL public-read in modo che i file caricati siano visibili da chiunque abbia il link. Necessario per AWS S3, DigitalOcean Spaces, MinIO e Backblaze B2, che archiviano gli oggetti in modo privato per impostazione predefinita. Lasciare disattivato per Cloudflare R2, che non supporta le ACL e rifiuta l'intestazione.";
 "API key:" = "Chiave API:";
 "Upload History" = "Cronologia caricamenti";
 "No uploads yet." = "Nessun caricamento.";

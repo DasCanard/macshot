@@ -351,6 +351,8 @@
 "Secret Key:" = "Таен ключ:";
 "Public URL:" = "Публичен URL:";
 "Path Prefix:" = "Префикс на пътя:";
+"Make uploads publicly readable" = "Направи качванията публично достъпни за четене";
+"Sends the public-read ACL so uploaded files are viewable by anyone with the link. Needed for AWS S3, DigitalOcean Spaces, MinIO and Backblaze B2, which store objects privately by default. Leave off for Cloudflare R2, which has no ACLs and rejects the header." = "Изпраща ACL public-read, за да бъдат качените файлове достъпни за всеки с връзката. Необходимо за AWS S3, DigitalOcean Spaces, MinIO и Backblaze B2, които по подразбиране съхраняват обектите като частни. Оставете изключено за Cloudflare R2, който не поддържа ACL и отхвърля заглавието.";
 "API key:" = "API ключ:";
 "Upload History" = "История на качванията";
 "No uploads yet." = "Все още няма качвания.";

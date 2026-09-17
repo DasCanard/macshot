@@ -344,6 +344,8 @@
 "Secret Key:" = "Cheie secreta:";
 "Public URL:" = "URL public:";
 "Path Prefix:" = "Prefix cale:";
+"Make uploads publicly readable" = "Fa incarcările citibile public";
+"Sends the public-read ACL so uploaded files are viewable by anyone with the link. Needed for AWS S3, DigitalOcean Spaces, MinIO and Backblaze B2, which store objects privately by default. Leave off for Cloudflare R2, which has no ACLs and rejects the header." = "Trimite ACL-ul public-read ca fisierele incarcate sa fie vizibile de oricine are linkul. Necesar pentru AWS S3, DigitalOcean Spaces, MinIO si Backblaze B2, care stocheaza obiectele privat in mod implicit. Lasa dezactivat pentru Cloudflare R2, care nu suporta ACL-uri si respinge headerul.";
 "API key:" = "Cheie API:";
 "Upload History" = "Istoric incarcari";
 "No uploads yet." = "Nicio incarcare inca.";

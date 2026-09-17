@@ -351,6 +351,8 @@
 "Secret Key:" = "Kunci Rahsia:";
 "Public URL:" = "URL Awam:";
 "Path Prefix:" = "Awalan Laluan:";
+"Make uploads publicly readable" = "Jadikan muat naik boleh dibaca secara awam";
+"Sends the public-read ACL so uploaded files are viewable by anyone with the link. Needed for AWS S3, DigitalOcean Spaces, MinIO and Backblaze B2, which store objects privately by default. Leave off for Cloudflare R2, which has no ACLs and rejects the header." = "Menghantar ACL public-read supaya fail yang dimuat naik boleh dilihat oleh sesiapa yang mempunyai pautan. Diperlukan untuk AWS S3, DigitalOcean Spaces, MinIO dan Backblaze B2 yang menyimpan objek secara peribadi secara lalai. Matikan untuk Cloudflare R2 yang tiada ACL dan menolak header ini.";
 "API key:" = "Kunci API:";
 "Upload History" = "Sejarah Muat Naik";
 "No uploads yet." = "Belum ada muat naik.";

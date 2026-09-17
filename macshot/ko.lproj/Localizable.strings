@@ -333,6 +333,8 @@
 "Secret Key:" = "시크릿 키:";
 "Public URL:" = "공개 URL:";
 "Path Prefix:" = "경로 접두사:";
+"Make uploads publicly readable" = "업로드를 공개 읽기 가능으로 설정";
+"Sends the public-read ACL so uploaded files are viewable by anyone with the link. Needed for AWS S3, DigitalOcean Spaces, MinIO and Backblaze B2, which store objects privately by default. Leave off for Cloudflare R2, which has no ACLs and rejects the header." = "public-read ACL을 전송하여 업로드된 파일을 링크가 있는 누구나 볼 수 있게 합니다. 기본적으로 객체를 비공개로 저장하는 AWS S3, DigitalOcean Spaces, MinIO, Backblaze B2에 필요합니다. ACL이 없고 헤더를 거부하는 Cloudflare R2에서는 끄세요.";
 "API key:" = "API 키:";
 "Upload History" = "업로드 기록";
 "No uploads yet." = "아직 업로드가 없습니다.";

@@ -349,6 +349,8 @@
 "Secret Key:" = "Hemmelig n\U00F8gle:";
 "Public URL:" = "Offentlig URL:";
 "Path Prefix:" = "Stipr\U00E6fiks:";
+"Make uploads publicly readable" = "G\U00F8r uploads offentligt l\U00E6sbare";
+"Sends the public-read ACL so uploaded files are viewable by anyone with the link. Needed for AWS S3, DigitalOcean Spaces, MinIO and Backblaze B2, which store objects privately by default. Leave off for Cloudflare R2, which has no ACLs and rejects the header." = "Sender public-read ACL, s\U00E5 uploadede filer kan ses af alle med linket. N\U00F8dvendigt for AWS S3, DigitalOcean Spaces, MinIO og Backblaze B2, som gemmer objekter privat som standard. Lad v\U00E6re sl\U00E5et fra for Cloudflare R2, som ikke har ACL og afviser headeren.";
 "API key:" = "API-n\U00F8gle:";
 "Upload History" = "Uploadhistorik";
 "No uploads yet." = "Ingen uploads endnu.";

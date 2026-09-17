@@ -344,6 +344,8 @@
 "Secret Key:" = "Clau secreta:";
 "Public URL:" = "URL publica:";
 "Path Prefix:" = "Prefix de ruta:";
+"Make uploads publicly readable" = "Fer les pujades llegibles publicament";
+"Sends the public-read ACL so uploaded files are viewable by anyone with the link. Needed for AWS S3, DigitalOcean Spaces, MinIO and Backblaze B2, which store objects privately by default. Leave off for Cloudflare R2, which has no ACLs and rejects the header." = "Envia l'ACL public-read perque els fitxers pujats siguin visibles per qualsevol persona amb l'enllac. Necessari per a AWS S3, DigitalOcean Spaces, MinIO i Backblaze B2, que emmagatzemen objectes de manera privada per defecte. Deixeu-ho desactivat per a Cloudflare R2, que no admet ACLs i rebutja la capcalera.";
 "API key:" = "Clau API:";
 "Upload History" = "Historial de pujades";
 "No uploads yet." = "Encara no hi ha pujades.";

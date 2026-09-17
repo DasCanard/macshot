@@ -350,6 +350,8 @@
 "Secret Key:" = "秘密金鑰：";
 "Public URL:" = "公開 URL：";
 "Path Prefix:" = "路徑前綴：";
+"Make uploads publicly readable" = "將上傳檔案設為公開可讀";
+"Sends the public-read ACL so uploaded files are viewable by anyone with the link. Needed for AWS S3, DigitalOcean Spaces, MinIO and Backblaze B2, which store objects privately by default. Leave off for Cloudflare R2, which has no ACLs and rejects the header." = "傳送 public-read ACL，讓上傳的檔案可被任何擁有連結的人檢視。AWS S3、DigitalOcean Spaces、MinIO 和 Backblaze B2 預設以私有方式儲存物件，需要啟用此選項。Cloudflare R2 不支援 ACL 且會拒絕此標頭，請保持關閉。";
 "API key:" = "API 金鑰：";
 "Upload History" = "上傳歷史記錄";
 "No uploads yet." = "尚無上傳記錄。";
