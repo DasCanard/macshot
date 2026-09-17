@@ -509,6 +509,7 @@
 "Settings" = "Настройки";
 "macshot Settings" = "Настройки macshot";
 "Also open in Editor" = "Также открыть в редакторе";
+"Close editor after copying" = "Закрывать редактор после копирования";
 "Hide controls" = "Скрыть элементы управления";
 "Hide recording controls" = "Скрыть элементы управления записью";
 "Stop recording from the menu bar icon instead." = "Остановите запись через значок в строке меню.";

@@ -499,6 +499,7 @@
 "Settings" = "Instellingen";
 "macshot Settings" = "macshot-instellingen";
 "Also open in Editor" = "Ook openen in editor";
+"Close editor after copying" = "Editor sluiten na kopiëren";
 "Hide controls" = "Bedieningselementen verbergen";
 "Hide recording controls" = "Opnamebediening verbergen";
 "Stop recording from the menu bar icon instead." = "Stop de opname via het menubalkpictogram.";

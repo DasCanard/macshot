@@ -101,6 +101,7 @@ class SettingsWindowController: NSWindowController, NSToolbarDelegate, NSWindowD
     private var themePresetPopup: NSPopUpButton!
     private var quickModePopup: NSPopUpButton!
     private var quickCaptureOpenEditorCheckbox: NSButton!
+    private var closeEditorAfterCopyCheckbox: NSButton!
     private var imageFormatPopup: NSPopUpButton!
     private var qualitySlider: NSSlider!
     private var qualityLabel: NSTextField!
@@ -754,6 +755,10 @@ class SettingsWindowController: NSWindowController, NSToolbarDelegate, NSWindowD
 
         quickCaptureOpenEditorCheckbox = NSButton(checkboxWithTitle: L("Also open in Editor"), target: self, action: #selector(quickCaptureOpenEditorChanged(_:)))
         stack.addArrangedSubview(indented(quickCaptureOpenEditorCheckbox))
+        stack.setCustomSpacing(6, after: stack.arrangedSubviews.last!)
+
+        closeEditorAfterCopyCheckbox = NSButton(checkboxWithTitle: L("Close editor after copying"), target: self, action: #selector(closeEditorAfterCopyChanged(_:)))
+        stack.addArrangedSubview(indented(closeEditorAfterCopyCheckbox))
         stack.setCustomSpacing(8, after: stack.arrangedSubviews.last!)
 
         // OCR & QR action dropdown
@@ -2647,6 +2652,7 @@ class SettingsWindowController: NSWindowController, NSToolbarDelegate, NSWindowD
         let quickMode = UserDefaults.standard.object(forKey: "quickCaptureMode") as? Int ?? 1
         quickModePopup.selectItem(at: quickMode)
         quickCaptureOpenEditorCheckbox.state = UserDefaults.standard.bool(forKey: "quickCaptureOpenEditor") ? .on : .off
+        closeEditorAfterCopyCheckbox.state = UserDefaults.standard.bool(forKey: "closeEditorAfterCopy") ? .on : .off
 
         selectImageFormat(ImageEncoder.format)
 
@@ -2796,6 +2802,9 @@ class SettingsWindowController: NSWindowController, NSToolbarDelegate, NSWindowD
     }
     @objc private func quickCaptureOpenEditorChanged(_ sender: NSButton) {
         UserDefaults.standard.set(sender.state == .on, forKey: "quickCaptureOpenEditor")
+    }
+    @objc private func closeEditorAfterCopyChanged(_ sender: NSButton) {
+        UserDefaults.standard.set(sender.state == .on, forKey: "closeEditorAfterCopy")
     }
     @objc private func languageChanged(_ sender: NSPopUpButton) {
         let languages = LanguageManager.availableLanguages

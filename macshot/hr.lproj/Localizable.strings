@@ -510,6 +510,7 @@
 "Settings..." = "Postavke...";
 "macshot Settings" = "macshot Postavke";
 "Also open in Editor" = "Otvori i u uredivacku";
+"Close editor after copying" = "Zatvori uređivač nakon kopiranja";
 "Hide controls" = "Sakrij kontrole";
 "Hide recording controls" = "Sakrij kontrole snimanja";
 "Stop recording from the menu bar icon instead." = "Umjesto toga zaustavite snimanje putem ikone u traci izbornika.";

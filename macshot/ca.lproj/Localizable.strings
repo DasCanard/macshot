@@ -502,6 +502,7 @@
 "Settings..." = "Configuració...";
 "macshot Settings" = "Configuracio de macshot";
 "Also open in Editor" = "Obrir tambe a l'editor";
+"Close editor after copying" = "Tanca l'editor després de copiar";
 "Hide controls" = "Amagar controls";
 "Hide recording controls" = "Amagar controls de gravacio";
 "Stop recording from the menu bar icon instead." = "Atureu la gravacio des de la icona de la barra de menus.";

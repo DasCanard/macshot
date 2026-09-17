@@ -499,6 +499,7 @@
 "Settings..." = "설정...";
 "macshot Settings" = "macshot 설정";
 "Also open in Editor" = "편집기에서도 열기";
+"Close editor after copying" = "복사 후 편집기 닫기";
 "Hide controls" = "컨트롤 숨기기";
 "Hide recording controls" = "녹화 컨트롤 숨기기";
 "Stop recording from the menu bar icon instead." = "대신 메뉴 막대 아이콘에서 녹화를 중지하세요.";

@@ -412,6 +412,9 @@ extension DetachedEditorWindowController: OverlayViewDelegate {
         ImageEncoder.copyToClipboard(image)
         playCopySound()
         autoSaveToHistoryIfNeeded(compositedImage: image, annotationData: annotationData)
+        if UserDefaults.standard.bool(forKey: "closeEditorAfterCopy") {
+            window?.close()
+        }
         (NSApp.delegate as? AppDelegate)?.showFloatingThumbnail(image: image, annotationData: annotationData, historyEntryID: historyEntryID)
     }
 

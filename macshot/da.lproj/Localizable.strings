@@ -508,6 +508,7 @@
 "Settings..." = "Indstillinger...";
 "macshot Settings" = "macshot Indstillinger";
 "Also open in Editor" = "\U00C5bn ogs\U00E5 i redigering";
+"Close editor after copying" = "Luk editoren efter kopiering";
 "Hide controls" = "Skjul kontroller";
 "Hide recording controls" = "Skjul optagelseskontroller";
 "Stop recording from the menu bar icon instead." = "Stop optagelsen fra menulinjeikonen i stedet.";
