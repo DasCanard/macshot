@@ -555,6 +555,7 @@
 
 "Same as screenshots" = "स्क्रीनशॉट के समान";
 "  Preview size:" = "  पूर्वावलोकन आकार:";
+"Fit image in preview (letterbox)" = "पूर्वावलोकन में पूरी छवि फ़िट करें (लेटरबॉक्स)";
 "(0 = off)" = "(0 = बंद)";
 "Clear All" = "सब साफ़ करें";
 "Clear History?" = "इतिहास साफ़ करें?";

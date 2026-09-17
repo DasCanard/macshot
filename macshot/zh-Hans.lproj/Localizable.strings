@@ -546,6 +546,7 @@
 
 "Same as screenshots" = "与截图相同";
 "  Preview size:" = "  预览大小:";
+"Fit image in preview (letterbox)" = "在预览中完整显示图片 (黑边填充)";
 "(0 = off)" = "(0 = 关闭)";
 "Clear All" = "清除全部";
 "Clear History?" = "清除历史记录？";

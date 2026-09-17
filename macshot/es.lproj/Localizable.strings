@@ -543,6 +543,7 @@
 
 "Same as screenshots" = "Igual que las capturas";
 "  Preview size:" = "  Tamaño de vista previa:";
+"Fit image in preview (letterbox)" = "Ajustar imagen en la vista previa (con bandas)";
 "(0 = off)" = "(0 = desactivado)";
 "Clear All" = "Borrar todo";
 "Clear History?" = "¿Borrar historial?";

@@ -544,6 +544,7 @@
 
 "Same as screenshots" = "スクリーンショットと同じ";
 "  Preview size:" = "  プレビューサイズ:";
+"Fit image in preview (letterbox)" = "プレビューに画像全体を表示 (レターボックス)";
 "(0 = off)" = "(0 = オフ)";
 "Clear All" = "すべてクリア";
 "Clear History?" = "履歴をクリアしますか？";

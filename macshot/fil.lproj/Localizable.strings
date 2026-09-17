@@ -555,6 +555,7 @@
 
 "Same as screenshots" = "Kapareho ng mga screenshot";
 "  Preview size:" = "  Laki ng preview:";
+"Fit image in preview (letterbox)" = "Ipakita ang buong larawan sa preview (letterbox)";
 "(0 = off)" = "(0 = off)";
 "Clear All" = "I-clear Lahat";
 "Clear History?" = "I-clear ang History?";

@@ -553,6 +553,7 @@
 
 "Same as screenshots" = "Sama kuin kuvakaappaukset";
 "  Preview size:" = "  Esikatselukoko:";
+"Fit image in preview (letterbox)" = "Sovita kuva esikatseluun (mustat reunat)";
 "(0 = off)" = "(0 = pois)";
 "Clear All" = "Tyhjennä kaikki";
 "Clear History?" = "Tyhjennetäänkö historia?";

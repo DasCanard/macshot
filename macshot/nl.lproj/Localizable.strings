@@ -544,6 +544,7 @@
 
 "Same as screenshots" = "Hetzelfde als schermafbeeldingen";
 "  Preview size:" = "  Voorbeeldgrootte:";
+"Fit image in preview (letterbox)" = "Afbeelding passend maken in voorbeeld (letterbox)";
 "(0 = off)" = "(0 = uit)";
 "Clear All" = "Alles wissen";
 "Clear History?" = "Geschiedenis wissen?";

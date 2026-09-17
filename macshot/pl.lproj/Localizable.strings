@@ -552,6 +552,7 @@
 
 "Same as screenshots" = "Jak zrzuty ekranu";
 "  Preview size:" = "  Rozmiar podglądu:";
+"Fit image in preview (letterbox)" = "Dopasuj obraz do podglądu (z pasami)";
 "(0 = off)" = "(0 = wył.)";
 "Clear All" = "Wyczyść wszystko";
 "Clear History?" = "Wyczyścić historię?";

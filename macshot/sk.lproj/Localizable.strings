@@ -508,7 +508,7 @@
 "Settings..." = "Nastavenia...";
 "Settings" = "Nastavenia";
 "macshot Settings" = "Nastavenia macshot";
-"Also open in Editor" = "Otvorit aj v editore";
+"Also open in Editor" = "Otvoriť aj v editore";
 "Close editor after copying" = "Zavrieť editor po skopírovaní";
 "Hide controls" = "Skryt ovladacie prvky";
 "Hide recording controls" = "Skryt ovladacie prvky nahravania";
@@ -555,6 +555,7 @@
 
 "Same as screenshots" = "Rovnaké ako snímky obrazovky";
 "  Preview size:" = "  Veľkosť náhľadu:";
+"Fit image in preview (letterbox)" = "Prispôsobiť obrázok náhľadu (s pruhmi)";
 "(0 = off)" = "(0 = vypnuté)";
 "Clear All" = "Vymazať všetko";
 "Clear History?" = "Vymazať históriu?";

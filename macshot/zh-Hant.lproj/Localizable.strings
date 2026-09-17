@@ -557,6 +557,7 @@
 
 "Same as screenshots" = "與截圖相同";
 "  Preview size:" = "  預覽大小:";
+"Fit image in preview (letterbox)" = "在預覽中完整顯示圖片 (黑邊填充)";
 "(0 = off)" = "(0 = 關閉)";
 "Clear All" = "清除全部";
 "Clear History?" = "清除歷史記錄？";

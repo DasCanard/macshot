@@ -547,6 +547,7 @@
 
 "Same as screenshots" = "זהה לצילומי המסך";
 "  Preview size:" = "  גודל תצוגה מקדימה:";
+"Fit image in preview (letterbox)" = "התאם את התמונה לתצוגה המקדימה (עם פסים)";
 "(0 = off)" = "(0 = כבוי)";
 "Clear All" = "נקה הכל";
 "Clear History?" = "לנקות את ההיסטוריה?";

@@ -545,6 +545,7 @@
 
 "Same as screenshots" = "Wie Screenshots";
 "  Preview size:" = "  Vorschaugröße:";
+"Fit image in preview (letterbox)" = "Bild in Vorschau einpassen (Letterbox)";
 "(0 = off)" = "(0 = aus)";
 "Clear All" = "Alles löschen";
 "Clear History?" = "Verlauf löschen?";

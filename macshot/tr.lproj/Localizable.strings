@@ -549,6 +549,7 @@
 
 "Same as screenshots" = "Ekran görüntüleriyle aynı";
 "  Preview size:" = "  Önizleme boyutu:";
+"Fit image in preview (letterbox)" = "Görüntüyü önizlemeye sığdır (sinemaskop)";
 "(0 = off)" = "(0 = kapalı)";
 "Clear All" = "Tümünü Temizle";
 "Clear History?" = "Geçmiş Temizlensin mi?";

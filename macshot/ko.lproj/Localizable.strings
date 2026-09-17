@@ -546,6 +546,7 @@
 
 "Same as screenshots" = "스크린샷과 동일";
 "  Preview size:" = "  미리보기 크기:";
+"Fit image in preview (letterbox)" = "미리보기에 이미지 전체 맞추기 (레터박스)";
 "(0 = off)" = "(0 = 끄기)";
 "Clear All" = "모두 지우기";
 "Clear History?" = "기록을 지우시겠습니까?";

@@ -555,6 +555,7 @@
 
 "Same as screenshots" = "เหมือนกับภาพหน้าจอ";
 "  Preview size:" = "  ขนาดตัวอย่าง:";
+"Fit image in preview (letterbox)" = "ปรับภาพให้พอดีกับตัวอย่าง (มีแถบดำ)";
 "(0 = off)" = "(0 = ปิด)";
 "Clear All" = "ล้างทั้งหมด";
 "Clear History?" = "ล้างประวัติ?";

@@ -547,6 +547,7 @@
 
 "Same as screenshots" = "مشابه اسکرین‌شات‌ها";
 "  Preview size:" = "  اندازه پیش‌نمایش:";
+"Fit image in preview (letterbox)" = "جا دادن تصویر در پیش‌نمایش (با نوار)";
 "(0 = off)" = "(0 = خاموش)";
 "Clear All" = "پاک کردن همه";
 "Clear History?" = "پاک کردن تاریخچه؟";

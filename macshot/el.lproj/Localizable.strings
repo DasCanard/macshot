@@ -557,6 +557,7 @@
 
 "Same as screenshots" = "Ίδιο με τα στιγμιότυπα";
 "  Preview size:" = "  Μέγεθος προεπισκόπησης:";
+"Fit image in preview (letterbox)" = "Προσαρμογή εικόνας στην προεπισκόπηση (letterbox)";
 "(0 = off)" = "(0 = απενεργοποίηση)";
 "Clear All" = "Εκκαθάριση όλων";
 "Clear History?" = "Εκκαθάριση ιστορικού;";

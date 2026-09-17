@@ -535,6 +535,7 @@
 
 "Same as screenshots" = "Come gli screenshot";
 "  Preview size:" = "  Dimensione anteprima:";
+"Fit image in preview (letterbox)" = "Adatta l'immagine all'anteprima (letterbox)";
 "(0 = off)" = "(0 = off)";
 "Clear All" = "Cancella tutto";
 "Clear History?" = "Cancellare la cronologia?";

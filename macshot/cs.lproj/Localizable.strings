@@ -555,6 +555,7 @@
 
 "Same as screenshots" = "Stejné jako snímky obrazovky";
 "  Preview size:" = "  Velikost náhledu:";
+"Fit image in preview (letterbox)" = "Přizpůsobit obrázek náhledu (s pruhy)";
 "(0 = off)" = "(0 = vypnuto)";
 "Clear All" = "Vymazat vše";
 "Clear History?" = "Vymazat historii?";

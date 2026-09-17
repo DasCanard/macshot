@@ -550,6 +550,7 @@
 
 "Same as screenshots" = "Identique aux captures d'écran";
 "  Preview size:" = "  Taille de l'aperçu :";
+"Fit image in preview (letterbox)" = "Ajuster l'image dans l'aperçu (bandes noires)";
 "(0 = off)" = "(0 = désactivé)";
 "Clear All" = "Tout effacer";
 "Clear History?" = "Effacer l'historique ?";

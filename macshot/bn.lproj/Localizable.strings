@@ -557,6 +557,7 @@
 
 "Same as screenshots" = "স্ক্রিনশটের মতোই";
 "  Preview size:" = "  প্রিভিউ আকার:";
+"Fit image in preview (letterbox)" = "প্রিভিউতে পুরো ছবি ফিট করুন (লেটারবক্স)";
 "(0 = off)" = "(0 = বন্ধ)";
 "Clear All" = "সব মুছুন";
 "Clear History?" = "ইতিহাস মুছবেন?";

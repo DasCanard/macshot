@@ -545,6 +545,7 @@
 
 "Same as screenshots" = "Igual às capturas de ecrã";
 "  Preview size:" = "  Tamanho da pré-visualização:";
+"Fit image in preview (letterbox)" = "Ajustar imagem à pré-visualização (com barras)";
 "(0 = off)" = "(0 = desligado)";
 "Clear All" = "Limpar tudo";
 "Clear History?" = "Limpar histórico?";

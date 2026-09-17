@@ -549,6 +549,7 @@
 
 "Same as screenshots" = "نفس لقطات الشاشة";
 "  Preview size:" = "  حجم المعاينة:";
+"Fit image in preview (letterbox)" = "ملاءمة الصورة داخل المعاينة (مع أشرطة)";
 "(0 = off)" = "(0 = إيقاف)";
 "Clear All" = "مسح الكل";
 "Clear History?" = "مسح السجل؟";

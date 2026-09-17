@@ -509,7 +509,7 @@
 "Offline build: upload and cloud storage integrations are removed. Update checks may still connect to MacShot's update server. Screenshots and recordings stay local unless you share or save them yourself." = "Izvanmrežna verzija: integracije za prijenos i pohranu u oblaku uklonjene su. Provjere ažuriranja i dalje se mogu povezivati s MacShotovim poslužiteljem za ažuriranja. Snimke zaslona i snimke ostaju lokalne osim ako ih sami ne podijelite ili spremite.";
 "Settings..." = "Postavke...";
 "macshot Settings" = "macshot Postavke";
-"Also open in Editor" = "Otvori i u uredivacku";
+"Also open in Editor" = "Otvori i u uređivaču";
 "Close editor after copying" = "Zatvori uređivač nakon kopiranja";
 "Hide controls" = "Sakrij kontrole";
 "Hide recording controls" = "Sakrij kontrole snimanja";
@@ -555,6 +555,7 @@
 
 "Same as screenshots" = "Isto kao snimke zaslona";
 "  Preview size:" = "  Veličina pregleda:";
+"Fit image in preview (letterbox)" = "Uklopi sliku u pregled (s trakama)";
 "(0 = off)" = "(0 = isključeno)";
 "Clear All" = "Obriši sve";
 "Clear History?" = "Obrisati povijest?";

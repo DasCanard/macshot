@@ -557,6 +557,7 @@
 
 "Same as screenshots" = "Isto kao snimci ekrana";
 "  Preview size:" = "  Veličina pregleda:";
+"Fit image in preview (letterbox)" = "Uklopi sliku u pregled (sa trakama)";
 "(0 = off)" = "(0 = isključeno)";
 "Clear All" = "Obriši sve";
 "Clear History?" = "Obrisati istoriju?";

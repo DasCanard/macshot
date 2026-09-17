@@ -555,6 +555,7 @@
 
 "Same as screenshots" = "Как у скриншотов";
 "  Preview size:" = "  Размер превью:";
+"Fit image in preview (letterbox)" = "Вписать изображение в превью (с полосами)";
 "(0 = off)" = "(0 = выкл)";
 "Clear All" = "Очистить всё";
 "Clear History?" = "Очистить историю?";

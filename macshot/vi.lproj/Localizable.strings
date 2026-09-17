@@ -555,6 +555,7 @@
 
 "Same as screenshots" = "Giống như ảnh chụp màn hình";
 "  Preview size:" = "  Kích thước xem trước:";
+"Fit image in preview (letterbox)" = "Hiển thị trọn ảnh trong xem trước (có viền đen)";
 "(0 = off)" = "(0 = tắt)";
 "Clear All" = "Xóa tất cả";
 "Clear History?" = "Xóa lịch sử?";

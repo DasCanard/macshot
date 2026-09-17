@@ -555,6 +555,7 @@
 
 "Same as screenshots" = "Samme som skærmbilleder";
 "  Preview size:" = "  Forhåndsvisningsstørrelse:";
+"Fit image in preview (letterbox)" = "Tilpas billedet i forhåndsvisningen (letterbox)";
 "(0 = off)" = "(0 = fra)";
 "Clear All" = "Ryd alt";
 "Clear History?" = "Ryd historik?";

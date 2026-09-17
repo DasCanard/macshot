@@ -555,6 +555,7 @@
 
 "Same as screenshots" = "Samma som skärmdumpar";
 "  Preview size:" = "  Förhandsgranskningsstorlek:";
+"Fit image in preview (letterbox)" = "Anpassa bilden i förhandsgranskningen (letterbox)";
 "(0 = off)" = "(0 = av)";
 "Clear All" = "Rensa alla";
 "Clear History?" = "Rensa historik?";

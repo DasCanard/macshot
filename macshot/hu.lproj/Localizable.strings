@@ -555,6 +555,7 @@
 
 "Same as screenshots" = "Megegyezik a képernyőképekkel";
 "  Preview size:" = "  Előnézet mérete:";
+"Fit image in preview (letterbox)" = "Kép igazítása az előnézetbe (sávokkal)";
 "(0 = off)" = "(0 = ki)";
 "Clear All" = "Összes törlése";
 "Clear History?" = "Törli az előzményeket?";

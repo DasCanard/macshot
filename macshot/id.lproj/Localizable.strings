@@ -555,6 +555,7 @@
 
 "Same as screenshots" = "Sama seperti tangkapan layar";
 "  Preview size:" = "  Ukuran pratinjau:";
+"Fit image in preview (letterbox)" = "Paskan gambar di pratinjau (letterbox)";
 "(0 = off)" = "(0 = nonaktif)";
 "Clear All" = "Hapus Semua";
 "Clear History?" = "Hapus Riwayat?";

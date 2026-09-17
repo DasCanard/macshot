@@ -501,7 +501,7 @@
 "Settings" = "Configuració";
 "Settings..." = "Configuració...";
 "macshot Settings" = "Configuracio de macshot";
-"Also open in Editor" = "Obrir tambe a l'editor";
+"Also open in Editor" = "Obrir també a l'editor";
 "Close editor after copying" = "Tanca l'editor després de copiar";
 "Hide controls" = "Amagar controls";
 "Hide recording controls" = "Amagar controls de gravacio";
@@ -549,6 +549,7 @@
 
 "Same as screenshots" = "Igual que les captures de pantalla";
 "  Preview size:" = "  Mida de la previsualització:";
+"Fit image in preview (letterbox)" = "Ajusta la imatge a la previsualització (amb franges)";
 "(0 = off)" = "(0 = desactivat)";
 "Clear All" = "Esborra-ho tot";
 "Clear History?" = "Esborrar l'historial?";
