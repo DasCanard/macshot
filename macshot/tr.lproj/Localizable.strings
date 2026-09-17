@@ -332,6 +332,7 @@
 "Signed in" = "Giriş yapıldı";
 "Not signed in" = "Giriş yapılmadı";
 "Account:" = "Hesap:";
+"Folder:" = "Klasör:";
 "Test Connection" = "Bağlantıyı Test Et";
 "Fill in endpoint, bucket, and credentials first" = "Önce uç nokta, kova ve kimlik bilgilerini doldurun";
 "Testing..." = "Test ediliyor...";
@@ -552,7 +553,7 @@
 "Clear History?" = "Geçmiş Temizlensin mi?";
 "This will permanently delete all screenshots from history." = "Bu işlem, geçmişteki tüm ekran görüntülerini kalıcı olarak siler.";
 "Click \"Set\" and press a key combination with at least one modifier (⌘, ⌥, ⌃, ⇧) to set a shortcut." = "\"Ayarla\"ya tıklayın ve kısayol atamak için en az bir değiştirici tuş (⌘, ⌥, ⌃, ⇧) içeren bir tuş kombinasyonuna basın.";
-"Files are uploaded to a \"macshot\" folder in your Google Drive. Everything stays private — nothing is shared publicly." = "Dosyalar, Google Drive'ınızdaki \"macshot\" klasörüne yüklenir. Her şey gizli kalır — hiçbir şey herkesle paylaşılmaz.";
+"Files are uploaded to this folder in your Google Drive. Leave empty to use \"macshot\". macshot can only use folders it created itself, so a folder you made in Drive with the same name won't be reused — a new one is created instead. Everything stays private — nothing is shared publicly." = "Dosyalar, Google Drive'ınızdaki bu klasöre yüklenir. \"macshot\" kullanmak için boş bırakın. macshot yalnızca kendi oluşturduğu klasörleri kullanabilir; bu nedenle Drive'da aynı adla oluşturduğunuz bir klasör yeniden kullanılmaz — bunun yerine yeni bir klasör oluşturulur. Her şey gizli kalır — hiçbir şey herkesle paylaşılmaz.";
 
 "Pressure" = "Basınç";
 

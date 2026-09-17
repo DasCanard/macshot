@@ -339,6 +339,7 @@
 "Signed in" = "Увійдено";
 "Not signed in" = "Не увійдено";
 "Account:" = "Обліковий запис:";
+"Folder:" = "Папка:";
 "Test Connection" = "Перевірити з'єднання";
 "Fill in endpoint, bucket, and credentials first" = "Спочатку заповніть адресу, бакет та облікові дані";
 "Testing..." = "Перевірка...";
@@ -558,7 +559,7 @@
 "Clear History?" = "Очистити історію?";
 "This will permanently delete all screenshots from history." = "Це назавжди видалить усі знімки екрана з історії.";
 "Click \"Set\" and press a key combination with at least one modifier (⌘, ⌥, ⌃, ⇧) to set a shortcut." = "Натисніть \"Встановити\" та введіть комбінацію клавіш з принаймні одним модифікатором (⌘, ⌥, ⌃, ⇧), щоб призначити ярлик.";
-"Files are uploaded to a \"macshot\" folder in your Google Drive. Everything stays private — nothing is shared publicly." = "Файли завантажуються до папки \"macshot\" на вашому Google Диску. Все залишається приватним — нічого не публікується у відкритому доступі.";
+"Files are uploaded to this folder in your Google Drive. Leave empty to use \"macshot\". macshot can only use folders it created itself, so a folder you made in Drive with the same name won't be reused — a new one is created instead. Everything stays private — nothing is shared publicly." = "Файли завантажуються до цієї папки на вашому Google Диску. Залиште поле порожнім, щоб використовувати \"macshot\". macshot може використовувати лише папки, які створив сам, тому папку з такою ж назвою, створену вами на Диску, не буде використано — натомість буде створено нову. Все залишається приватним — нічого не публікується у відкритому доступі.";
 
 "Pressure" = "Тиск";
 

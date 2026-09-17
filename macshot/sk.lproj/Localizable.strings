@@ -338,7 +338,8 @@
 "Sign Out" = "Odhlasit sa";
 "Signed in" = "Prihlaseny";
 "Not signed in" = "Neprihlaseny";
-"Account:" = "Ucet:";
+"Account:" = "Účet:";
+"Folder:" = "Priečinok:";
 "Test Connection" = "Otestovat pripojenie";
 "Fill in endpoint, bucket, and credentials first" = "Najprv vyplnte endpoint, bucket a prihlasovacie udaje";
 "Testing..." = "Testovanie...";
@@ -558,7 +559,7 @@
 "Clear History?" = "Vymazať históriu?";
 "This will permanently delete all screenshots from history." = "Týmto sa natrvalo odstránia všetky snímky obrazovky z histórie.";
 "Click \"Set\" and press a key combination with at least one modifier (⌘, ⌥, ⌃, ⇧) to set a shortcut." = "Kliknite na \"Nastaviť\" a stlačte kombináciu klávesov s aspoň jedným modifikátorom (⌘, ⌥, ⌃, ⇧) na nastavenie skratky.";
-"Files are uploaded to a \"macshot\" folder in your Google Drive. Everything stays private — nothing is shared publicly." = "Súbory sa nahrajú do priečinka \"macshot\" na vašom Google Drive. Všetko zostáva súkromné — nič nie je verejne zdieľané.";
+"Files are uploaded to this folder in your Google Drive. Leave empty to use \"macshot\". macshot can only use folders it created itself, so a folder you made in Drive with the same name won't be reused — a new one is created instead. Everything stays private — nothing is shared publicly." = "Súbory sa nahrajú do tohto priečinka na vašom Google Drive. Ak pole necháte prázdne, použije sa \"macshot\". macshot môže používať iba priečinky, ktoré sám vytvoril, takže priečinok s rovnakým názvom, ktorý ste vytvorili na Disku, sa nepoužije — namiesto neho sa vytvorí nový. Všetko zostáva súkromné — nič nie je verejne zdieľané.";
 
 "Pressure" = "Tlak";
 

@@ -337,6 +337,7 @@
 "Signed in" = "Kirjautunut sisaan";
 "Not signed in" = "Ei kirjautunut";
 "Account:" = "Tili:";
+"Folder:" = "Kansio:";
 "Test Connection" = "Testaa yhteys";
 "Fill in endpoint, bucket, and credentials first" = "Täytä ensin paatepiste, sailio ja tunnistetiedot";
 "Testing..." = "Testataan...";
@@ -556,7 +557,7 @@
 "Clear History?" = "Tyhjennetäänkö historia?";
 "This will permanently delete all screenshots from history." = "Tämä poistaa kaikki kuvakaappaukset historiasta pysyvästi.";
 "Click \"Set\" and press a key combination with at least one modifier (⌘, ⌥, ⌃, ⇧) to set a shortcut." = "Napsauta \"Aseta\" ja paina näppäinyhdistelmää, jossa on vähintään yksi muokkausnäppäin (⌘, ⌥, ⌃, ⇧) asettaaksesi pikakuvakkeen.";
-"Files are uploaded to a \"macshot\" folder in your Google Drive. Everything stays private — nothing is shared publicly." = "Tiedostot ladataan \"macshot\"-kansioon Google Drivessasi. Kaikki pysyy yksityisenä — mitään ei jaeta julkisesti.";
+"Files are uploaded to this folder in your Google Drive. Leave empty to use \"macshot\". macshot can only use folders it created itself, so a folder you made in Drive with the same name won't be reused — a new one is created instead. Everything stays private — nothing is shared publicly." = "Tiedostot ladataan tähän kansioon Google Drivessasi. Jätä tyhjäksi, jos haluat käyttää kansiota \"macshot\". macshot voi käyttää vain itse luomiaan kansioita, joten Driveen itse tekemääsi samannimistä kansiota ei käytetä uudelleen — sen sijaan luodaan uusi. Kaikki pysyy yksityisenä — mitään ei jaeta julkisesti.";
 
 "Pressure" = "Paine";
 

@@ -332,6 +332,7 @@
 "Signed in" = "מחובר";
 "Not signed in" = "לא מחובר";
 "Account:" = "חשבון:";
+"Folder:" = "תיקייה:";
 "Test Connection" = "בדוק חיבור";
 "Fill in endpoint, bucket, and credentials first" = "מלא קודם כתובת שרת, bucket ופרטי גישה";
 "Testing..." = "בודק...";
@@ -550,7 +551,7 @@
 "Clear History?" = "לנקות את ההיסטוריה?";
 "This will permanently delete all screenshots from history." = "פעולה זו תמחק לצמיתות את כל צילומי המסך מההיסטוריה.";
 "Click \"Set\" and press a key combination with at least one modifier (⌘, ⌥, ⌃, ⇧) to set a shortcut." = "לחץ על \"הגדר\" ולחץ על צירוף מקשים עם לפחות משנה אחד (⌘, ⌥, ⌃, ⇧) כדי להגדיר קיצור דרך.";
-"Files are uploaded to a \"macshot\" folder in your Google Drive. Everything stays private — nothing is shared publicly." = "הקבצים מועלים לתיקייה \"macshot\" ב-Google Drive שלך. הכל נשאר פרטי — שום דבר אינו משותף באופן ציבורי.";
+"Files are uploaded to this folder in your Google Drive. Leave empty to use \"macshot\". macshot can only use folders it created itself, so a folder you made in Drive with the same name won't be reused — a new one is created instead. Everything stays private — nothing is shared publicly." = "הקבצים מועלים לתיקייה זו ב-Google Drive שלך. השאר ריק כדי להשתמש ב-\"macshot\". macshot יכול להשתמש רק בתיקיות שהוא יצר בעצמו, ולכן תיקייה שיצרת ב-Drive עם אותו שם לא תנוצל מחדש — במקומה תיווצר תיקייה חדשה. הכל נשאר פרטי — שום דבר אינו משותף באופן ציבורי.";
 
 "Pressure" = "לחץ";
 

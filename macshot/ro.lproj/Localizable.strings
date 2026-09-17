@@ -332,6 +332,7 @@
 "Signed in" = "Conectat";
 "Not signed in" = "Neconectat";
 "Account:" = "Cont:";
+"Folder:" = "Folder:";
 "Test Connection" = "Testeaza conexiunea";
 "Fill in endpoint, bucket, and credentials first" = "Completeaza mai intai endpoint-ul, bucket-ul si credentialele";
 "Testing..." = "Se testeaza...";
@@ -550,7 +551,7 @@
 "Clear History?" = "Ștergi istoricul?";
 "This will permanently delete all screenshots from history." = "Aceasta va șterge definitiv toate capturile de ecran din istoric.";
 "Click \"Set\" and press a key combination with at least one modifier (⌘, ⌥, ⌃, ⇧) to set a shortcut." = "Apasă \"Setează\" și tastează o combinație de taste cu cel puțin un modificator (⌘, ⌥, ⌃, ⇧) pentru a seta o scurtătură.";
-"Files are uploaded to a \"macshot\" folder in your Google Drive. Everything stays private — nothing is shared publicly." = "Fișierele sunt încărcate într-un folder \"macshot\" din Google Drive-ul tău. Totul rămâne privat — nimic nu este distribuit public.";
+"Files are uploaded to this folder in your Google Drive. Leave empty to use \"macshot\". macshot can only use folders it created itself, so a folder you made in Drive with the same name won't be reused — a new one is created instead. Everything stays private — nothing is shared publicly." = "Fișierele sunt încărcate în acest folder din Google Drive-ul tău. Lasă gol pentru a folosi \"macshot\". macshot poate folosi doar folderele create de el însuși, așa că un folder creat de tine în Drive cu același nume nu va fi refolosit — în schimb, se creează unul nou. Totul rămâne privat — nimic nu este distribuit public.";
 
 "Pressure" = "Presiune";
 

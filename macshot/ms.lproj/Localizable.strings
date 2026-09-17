@@ -339,6 +339,7 @@
 "Signed in" = "Sudah log masuk";
 "Not signed in" = "Belum log masuk";
 "Account:" = "Akaun:";
+"Folder:" = "Folder:";
 "Test Connection" = "Uji Sambungan";
 "Fill in endpoint, bucket, and credentials first" = "Isi endpoint, bucket, dan kelayakan dahulu";
 "Testing..." = "Menguji...";
@@ -560,7 +561,7 @@
 "Clear History?" = "Kosongkan Sejarah?";
 "This will permanently delete all screenshots from history." = "Ini akan memadamkan semua tangkapan skrin daripada sejarah secara kekal.";
 "Click \"Set\" and press a key combination with at least one modifier (⌘, ⌥, ⌃, ⇧) to set a shortcut." = "Klik \"Tetapkan\" dan tekan kombinasi kekunci dengan sekurang-kurangnya satu pengubah suai (⌘, ⌥, ⌃, ⇧) untuk menetapkan pintasan.";
-"Files are uploaded to a \"macshot\" folder in your Google Drive. Everything stays private — nothing is shared publicly." = "Fail dimuat naik ke folder \"macshot\" dalam Google Drive anda. Semua maklumat kekal peribadi — tiada apa yang dikongsi secara awam.";
+"Files are uploaded to this folder in your Google Drive. Leave empty to use \"macshot\". macshot can only use folders it created itself, so a folder you made in Drive with the same name won't be reused — a new one is created instead. Everything stays private — nothing is shared publicly." = "Fail dimuat naik ke folder ini dalam Google Drive anda. Biarkan kosong untuk menggunakan \"macshot\". macshot hanya boleh menggunakan folder yang diciptakannya sendiri, jadi folder dengan nama yang sama yang anda cipta dalam Drive tidak akan digunakan semula — folder baharu akan dicipta sebaliknya. Semua maklumat kekal peribadi — tiada apa yang dikongsi secara awam.";
 
 "Pressure" = "Tekanan";
 

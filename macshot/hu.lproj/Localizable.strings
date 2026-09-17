@@ -338,6 +338,7 @@
 "Signed in" = "Bejelentkezve";
 "Not signed in" = "Nincs bejelentkezve";
 "Account:" = "Fiók:";
+"Folder:" = "Mappa:";
 "Test Connection" = "Kapcsolat tesztelése";
 "Fill in endpoint, bucket, and credentials first" = "Előbb add meg a végpontot, a tárolót és a hitelesítési adatokat";
 "Testing..." = "Tesztelés...";
@@ -558,7 +559,7 @@
 "Clear History?" = "Törli az előzményeket?";
 "This will permanently delete all screenshots from history." = "Ez véglegesen törli az összes képernyőképet az előzményekből.";
 "Click \"Set\" and press a key combination with at least one modifier (⌘, ⌥, ⌃, ⇧) to set a shortcut." = "Kattintson a \"Beállítás\" gombra, majd nyomjon meg egy billentyűkombinációt legalább egy módosítóbillentyűvel (⌘, ⌥, ⌃, ⇧) a gyorsbillentyű beállításához.";
-"Files are uploaded to a \"macshot\" folder in your Google Drive. Everything stays private — nothing is shared publicly." = "A fájlok a Google Drive-on lévő \"macshot\" mappába töltődnek fel. Minden privát marad — semmi nem kerül nyilvános megosztásra.";
+"Files are uploaded to this folder in your Google Drive. Leave empty to use \"macshot\". macshot can only use folders it created itself, so a folder you made in Drive with the same name won't be reused — a new one is created instead. Everything stays private — nothing is shared publicly." = "A fájlok ebbe a mappába töltődnek fel a Google Drive-on. Hagyd üresen a \"macshot\" használatához. A macshot csak az általa létrehozott mappákat tudja használni, ezért a Drive-ban általad létrehozott, azonos nevű mappát nem használja újra — helyette új mappát hoz létre. Minden privát marad — semmi nem kerül nyilvános megosztásra.";
 
 "Pressure" = "Nyomás";
 

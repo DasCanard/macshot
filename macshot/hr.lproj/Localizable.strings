@@ -338,7 +338,8 @@
 "Sign Out" = "Odjava";
 "Signed in" = "Prijavljeni";
 "Not signed in" = "Niste prijavljeni";
-"Account:" = "Racun:";
+"Account:" = "Račun:";
+"Folder:" = "Mapa:";
 "Test Connection" = "Testiraj vezu";
 "Fill in endpoint, bucket, and credentials first" = "Najprije unesite krajnju tocku, spremnik i vjerodajnice";
 "Testing..." = "Testiranje...";
@@ -558,7 +559,7 @@
 "Clear History?" = "Obrisati povijest?";
 "This will permanently delete all screenshots from history." = "Ovo će trajno izbrisati sve snimke zaslona iz povijesti.";
 "Click \"Set\" and press a key combination with at least one modifier (⌘, ⌥, ⌃, ⇧) to set a shortcut." = "Kliknite \"Postavi\" i pritisnite kombinaciju tipki s barem jednim modifikatorom (⌘, ⌥, ⌃, ⇧) za postavljanje prečaca.";
-"Files are uploaded to a \"macshot\" folder in your Google Drive. Everything stays private — nothing is shared publicly." = "Datoteke se učitavaju u mapu \"macshot\" na vašem Google Disku. Sve ostaje privatno — ništa se ne dijeli javno.";
+"Files are uploaded to this folder in your Google Drive. Leave empty to use \"macshot\". macshot can only use folders it created itself, so a folder you made in Drive with the same name won't be reused — a new one is created instead. Everything stays private — nothing is shared publicly." = "Datoteke se učitavaju u ovu mapu na vašem Google Disku. Ostavite prazno za korištenje mape \"macshot\". macshot može koristiti samo mape koje je sam stvorio, pa mapa s istim nazivom koju ste vi izradili na Disku neće biti ponovno korištena — umjesto nje stvara se nova. Sve ostaje privatno — ništa se ne dijeli javno.";
 
 "Pressure" = "Pritisak";
 

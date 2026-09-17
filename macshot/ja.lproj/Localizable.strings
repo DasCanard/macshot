@@ -321,6 +321,7 @@
 "Signed in" = "サインイン済み";
 "Not signed in" = "未サインイン";
 "Account:" = "アカウント:";
+"Folder:" = "フォルダ:";
 "Test Connection" = "接続テスト";
 "Fill in endpoint, bucket, and credentials first" = "先にエンドポイント、バケット、認証情報を入力してください";
 "Testing..." = "テスト中...";
@@ -547,7 +548,7 @@
 "Clear History?" = "履歴をクリアしますか？";
 "This will permanently delete all screenshots from history." = "履歴からすべてのスクリーンショットが完全に削除されます。";
 "Click \"Set\" and press a key combination with at least one modifier (⌘, ⌥, ⌃, ⇧) to set a shortcut." = "\"設定\" をクリックし、少なくとも1つの修飾キー (⌘, ⌥, ⌃, ⇧) を含むキーの組み合わせを押してショートカットを設定してください。";
-"Files are uploaded to a \"macshot\" folder in your Google Drive. Everything stays private — nothing is shared publicly." = "ファイルはGoogle Driveの \"macshot\" フォルダにアップロードされます。すべてプライベートに保たれ、公開されることはありません。";
+"Files are uploaded to this folder in your Google Drive. Leave empty to use \"macshot\". macshot can only use folders it created itself, so a folder you made in Drive with the same name won't be reused — a new one is created instead. Everything stays private — nothing is shared publicly." = "ファイルはGoogle Driveのこのフォルダにアップロードされます。空欄の場合は \"macshot\" が使用されます。macshotは自身が作成したフォルダしか使用できないため、Drive上で同じ名前のフォルダを自分で作成していても再利用されず、新しいフォルダが作成されます。すべてプライベートに保たれ、公開されることはありません。";
 
 "Pressure" = "筆圧";
 

@@ -339,6 +339,7 @@
 "Signed in" = "Συνδεδεμένος";
 "Not signed in" = "Μη συνδεδεμένος";
 "Account:" = "Λογαριασμός:";
+"Folder:" = "Φάκελος:";
 "Test Connection" = "Δοκιμή σύνδεσης";
 "Fill in endpoint, bucket, and credentials first" = "Συμπληρώστε πρώτα το endpoint, το bucket και τα διαπιστευτήρια";
 "Testing..." = "Δοκιμή...";
@@ -560,7 +561,7 @@
 "Clear History?" = "Εκκαθάριση ιστορικού;";
 "This will permanently delete all screenshots from history." = "Αυτό θα διαγράψει μόνιμα όλα τα στιγμιότυπα από το ιστορικό.";
 "Click \"Set\" and press a key combination with at least one modifier (⌘, ⌥, ⌃, ⇧) to set a shortcut." = "Κάνε κλικ στο \"Ορισμός\" και πάτησε έναν συνδυασμό πλήκτρων με τουλάχιστον έναν τροποποιητή (⌘, ⌥, ⌃, ⇧) για να ορίσεις μια συντόμευση.";
-"Files are uploaded to a \"macshot\" folder in your Google Drive. Everything stays private — nothing is shared publicly." = "Τα αρχεία ανεβαίνουν σε έναν φάκελο \"macshot\" στο Google Drive σου. Όλα παραμένουν ιδιωτικά — τίποτα δεν κοινοποιείται δημόσια.";
+"Files are uploaded to this folder in your Google Drive. Leave empty to use \"macshot\". macshot can only use folders it created itself, so a folder you made in Drive with the same name won't be reused — a new one is created instead. Everything stays private — nothing is shared publicly." = "Τα αρχεία ανεβαίνουν σε αυτόν τον φάκελο στο Google Drive σου. Άφησέ το κενό για να χρησιμοποιηθεί ο \"macshot\". Το macshot μπορεί να χρησιμοποιήσει μόνο φακέλους που δημιούργησε το ίδιο, οπότε ένας φάκελος με το ίδιο όνομα που δημιούργησες στο Drive δεν θα επαναχρησιμοποιηθεί — αντί γι' αυτό δημιουργείται νέος. Όλα παραμένουν ιδιωτικά — τίποτα δεν κοινοποιείται δημόσια.";
 
 "Pressure" = "Πίεση";
 

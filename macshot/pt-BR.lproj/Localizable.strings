@@ -329,6 +329,7 @@
 "Signed in" = "Conectado";
 "Not signed in" = "Não conectado";
 "Account:" = "Conta:";
+"Folder:" = "Pasta:";
 "Test Connection" = "Testar Conexão";
 "Fill in endpoint, bucket, and credentials first" = "Preencha o endpoint, bucket e credenciais primeiro";
 "Testing..." = "Testando...";
@@ -548,7 +549,7 @@
 "Clear History?" = "Limpar histórico?";
 "This will permanently delete all screenshots from history." = "Isso excluirá permanentemente todas as capturas de tela do histórico.";
 "Click \"Set\" and press a key combination with at least one modifier (⌘, ⌥, ⌃, ⇧) to set a shortcut." = "Clique em \"Definir\" e pressione uma combinação de teclas com pelo menos um modificador (⌘, ⌥, ⌃, ⇧) para definir um atalho.";
-"Files are uploaded to a \"macshot\" folder in your Google Drive. Everything stays private — nothing is shared publicly." = "Os arquivos são enviados para uma pasta \"macshot\" no seu Google Drive. Tudo permanece privado — nada é compartilhado publicamente.";
+"Files are uploaded to this folder in your Google Drive. Leave empty to use \"macshot\". macshot can only use folders it created itself, so a folder you made in Drive with the same name won't be reused — a new one is created instead. Everything stays private — nothing is shared publicly." = "Os arquivos são enviados para esta pasta no seu Google Drive. Deixe em branco para usar \"macshot\". O macshot só pode usar pastas que ele mesmo criou, então uma pasta com o mesmo nome criada por você no Drive não será reutilizada — uma nova será criada. Tudo permanece privado — nada é compartilhado publicamente.";
 
 "Pressure" = "Pressão";
 

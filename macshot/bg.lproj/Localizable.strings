@@ -339,6 +339,7 @@
 "Signed in" = "Влезли сте";
 "Not signed in" = "Не сте влезли";
 "Account:" = "Акаунт:";
+"Folder:" = "Папка:";
 "Test Connection" = "Тестване на връзката";
 "Fill in endpoint, bucket, and credentials first" = "Първо попълнете адрес, контейнер и идентификационни данни";
 "Testing..." = "Тестване...";
@@ -558,7 +559,7 @@
 "Clear History?" = "Изчисти историята?";
 "This will permanently delete all screenshots from history." = "Това ще изтрие окончателно всички екранни снимки от историята.";
 "Click \"Set\" and press a key combination with at least one modifier (⌘, ⌥, ⌃, ⇧) to set a shortcut." = "Кликнете върху \"Set\" и натиснете комбинация от клавиши с поне един модификатор (⌘, ⌥, ⌃, ⇧), за да зададете пряк път.";
-"Files are uploaded to a \"macshot\" folder in your Google Drive. Everything stays private — nothing is shared publicly." = "Файловете се качват в папка \"macshot\" във вашия Google Drive. Всичко остава поверително — нищо не се споделя публично.";
+"Files are uploaded to this folder in your Google Drive. Leave empty to use \"macshot\". macshot can only use folders it created itself, so a folder you made in Drive with the same name won't be reused — a new one is created instead. Everything stays private — nothing is shared publicly." = "Файловете се качват в тази папка във вашия Google Drive. Оставете празно, за да се използва \"macshot\". macshot може да използва само папки, които сам е създал, затова папка със същото име, създадена от вас в Drive, няма да бъде използвана — вместо нея ще бъде създадена нова. Всичко остава поверително — нищо не се споделя публично.";
 
 "Pressure" = "Натиск";
 

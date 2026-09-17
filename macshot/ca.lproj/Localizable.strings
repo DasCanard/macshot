@@ -332,6 +332,7 @@
 "Signed in" = "Sessio iniciada";
 "Not signed in" = "Sessio no iniciada";
 "Account:" = "Compte:";
+"Folder:" = "Carpeta:";
 "Test Connection" = "Provar connexio";
 "Fill in endpoint, bucket, and credentials first" = "Ompliu primer l'endpoint, el bucket i les credencials";
 "Testing..." = "Provant...";
@@ -552,7 +553,7 @@
 "Clear History?" = "Esborrar l'historial?";
 "This will permanently delete all screenshots from history." = "Això eliminarà permanentment totes les captures de pantalla de l'historial.";
 "Click \"Set\" and press a key combination with at least one modifier (⌘, ⌥, ⌃, ⇧) to set a shortcut." = "Feu clic a \"Establir\" i premeu una combinació de tecles amb almenys un modificador (⌘, ⌥, ⌃, ⇧) per definir una drecera.";
-"Files are uploaded to a \"macshot\" folder in your Google Drive. Everything stays private — nothing is shared publicly." = "Els fitxers es pugen a una carpeta \"macshot\" del vostre Google Drive. Tot és privat — res no es comparteix públicament.";
+"Files are uploaded to this folder in your Google Drive. Leave empty to use \"macshot\". macshot can only use folders it created itself, so a folder you made in Drive with the same name won't be reused — a new one is created instead. Everything stays private — nothing is shared publicly." = "Els fitxers es pugen a aquesta carpeta del vostre Google Drive. Deixeu-ho buit per utilitzar \"macshot\". macshot només pot utilitzar carpetes que ha creat ell mateix, de manera que una carpeta amb el mateix nom que hàgiu creat a Drive no es reutilitzarà — se'n crearà una de nova. Tot és privat — res no es comparteix públicament.";
 
 "Pressure" = "Pressió";
 

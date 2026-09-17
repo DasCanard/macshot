@@ -332,6 +332,7 @@
 "Signed in" = "تم تسجيل الدخول";
 "Not signed in" = "لم يتم تسجيل الدخول";
 "Account:" = "الحساب:";
+"Folder:" = "المجلد:";
 "Test Connection" = "اختبار الاتصال";
 "Fill in endpoint, bucket, and credentials first" = "أدخل نقطة النهاية والحاوية وبيانات الاعتماد أولًا";
 "Testing..." = "جارٍ الاختبار...";
@@ -552,7 +553,7 @@
 "Clear History?" = "مسح السجل؟";
 "This will permanently delete all screenshots from history." = "سيؤدي هذا إلى حذف جميع لقطات الشاشة من السجل نهائيًا.";
 "Click \"Set\" and press a key combination with at least one modifier (⌘, ⌥, ⌃, ⇧) to set a shortcut." = "انقر على \"تعيين\" واضغط على مجموعة مفاتيح تحتوي على معدِّل واحد على الأقل (⌘, ⌥, ⌃, ⇧) لتعيين اختصار.";
-"Files are uploaded to a \"macshot\" folder in your Google Drive. Everything stays private — nothing is shared publicly." = "يتم تحميل الملفات إلى مجلد \"macshot\" في Google Drive الخاص بك. كل شيء يبقى خاصًا — لا يُشارك أي شيء بشكل عام.";
+"Files are uploaded to this folder in your Google Drive. Leave empty to use \"macshot\". macshot can only use folders it created itself, so a folder you made in Drive with the same name won't be reused — a new one is created instead. Everything stays private — nothing is shared publicly." = "يتم تحميل الملفات إلى هذا المجلد في Google Drive الخاص بك. اتركه فارغًا لاستخدام \"macshot\". لا يمكن لـ macshot استخدام سوى المجلدات التي أنشأها بنفسه، لذلك لن يُعاد استخدام مجلد أنشأته في Drive بالاسم نفسه — بل سيُنشأ مجلد جديد بدلًا منه. كل شيء يبقى خاصًا — لا يُشارك أي شيء بشكل عام.";
 
 "Pressure" = "الضغط";
 

@@ -328,6 +328,7 @@
 "Signed in" = "Ingelogd";
 "Not signed in" = "Niet ingelogd";
 "Account:" = "Account:";
+"Folder:" = "Map:";
 "Test Connection" = "Verbinding testen";
 "Fill in endpoint, bucket, and credentials first" = "Vul eerst endpoint, bucket en inloggegevens in";
 "Testing..." = "Testen...";
@@ -547,7 +548,7 @@
 "Clear History?" = "Geschiedenis wissen?";
 "This will permanently delete all screenshots from history." = "Hiermee worden alle schermafbeeldingen definitief uit de geschiedenis verwijderd.";
 "Click \"Set\" and press a key combination with at least one modifier (⌘, ⌥, ⌃, ⇧) to set a shortcut." = "Klik op \"Instellen\" en druk op een toetscombinatie met ten minste één modifier (⌘, ⌥, ⌃, ⇧) om een sneltoets in te stellen.";
-"Files are uploaded to a \"macshot\" folder in your Google Drive. Everything stays private — nothing is shared publicly." = "Bestanden worden geüpload naar een \"macshot\"-map in uw Google Drive. Alles blijft privé — er wordt niets openbaar gedeeld.";
+"Files are uploaded to this folder in your Google Drive. Leave empty to use \"macshot\". macshot can only use folders it created itself, so a folder you made in Drive with the same name won't be reused — a new one is created instead. Everything stays private — nothing is shared publicly." = "Bestanden worden geüpload naar deze map in uw Google Drive. Laat leeg om \"macshot\" te gebruiken. macshot kan alleen mappen gebruiken die het zelf heeft aangemaakt, dus een map met dezelfde naam die u zelf in Drive hebt gemaakt wordt niet hergebruikt — er wordt in plaats daarvan een nieuwe aangemaakt. Alles blijft privé — er wordt niets openbaar gedeeld.";
 
 "Pressure" = "Druk";
 

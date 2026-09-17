@@ -321,6 +321,7 @@
 "Signed in" = "로그인됨";
 "Not signed in" = "로그인되지 않음";
 "Account:" = "계정:";
+"Folder:" = "폴더:";
 "Test Connection" = "연결 테스트";
 "Fill in endpoint, bucket, and credentials first" = "먼저 엔드포인트, 버킷, 자격 증명을 입력하세요";
 "Testing..." = "테스트 중...";
@@ -549,7 +550,7 @@
 "Clear History?" = "기록을 지우시겠습니까?";
 "This will permanently delete all screenshots from history." = "기록에서 모든 스크린샷이 영구적으로 삭제됩니다.";
 "Click \"Set\" and press a key combination with at least one modifier (⌘, ⌥, ⌃, ⇧) to set a shortcut." = "\"설정\" 을 클릭하고 적어도 하나의 수정 키 (⌘, ⌥, ⌃, ⇧) 가 포함된 키 조합을 눌러 단축키를 설정하세요.";
-"Files are uploaded to a \"macshot\" folder in your Google Drive. Everything stays private — nothing is shared publicly." = "파일은 Google Drive의 \"macshot\" 폴더에 업로드됩니다. 모든 것은 비공개로 유지되며 공개적으로 공유되지 않습니다.";
+"Files are uploaded to this folder in your Google Drive. Leave empty to use \"macshot\". macshot can only use folders it created itself, so a folder you made in Drive with the same name won't be reused — a new one is created instead. Everything stays private — nothing is shared publicly." = "파일은 Google Drive의 이 폴더에 업로드됩니다. 비워 두면 \"macshot\" 폴더를 사용합니다. macshot은 직접 생성한 폴더만 사용할 수 있으므로, Drive에서 직접 만든 같은 이름의 폴더는 재사용되지 않고 새 폴더가 생성됩니다. 모든 것은 비공개로 유지되며 공개적으로 공유되지 않습니다.";
 
 "Pressure" = "필압";
 

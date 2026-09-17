@@ -332,6 +332,7 @@
 "Signed in" = "وارد شده";
 "Not signed in" = "وارد نشده";
 "Account:" = "حساب کاربری:";
+"Folder:" = "پوشه:";
 "Test Connection" = "تست اتصال";
 "Fill in endpoint, bucket, and credentials first" = "ابتدا آدرس، باکت و اطلاعات ورود را پر کنید";
 "Testing..." = "در حال تست...";
@@ -550,7 +551,7 @@
 "Clear History?" = "پاک کردن تاریخچه؟";
 "This will permanently delete all screenshots from history." = "این کار تمام اسکرین‌شات‌ها را به‌طور دائمی از تاریخچه حذف می‌کند.";
 "Click \"Set\" and press a key combination with at least one modifier (⌘, ⌥, ⌃, ⇧) to set a shortcut." = "روی \"تنظیم\" کلیک کنید و یک ترکیب کلید با حداقل یک کلید تغییردهنده (⌘, ⌥, ⌃, ⇧) را برای تعیین میانبر فشار دهید.";
-"Files are uploaded to a \"macshot\" folder in your Google Drive. Everything stays private — nothing is shared publicly." = "فایل‌ها در پوشه‌ای به نام \"macshot\" در Google Drive شما بارگذاری می‌شوند. همه چیز خصوصی می‌ماند — هیچ چیز به‌صورت عمومی به اشتراک گذاشته نمی‌شود.";
+"Files are uploaded to this folder in your Google Drive. Leave empty to use \"macshot\". macshot can only use folders it created itself, so a folder you made in Drive with the same name won't be reused — a new one is created instead. Everything stays private — nothing is shared publicly." = "فایل‌ها در این پوشه در Google Drive شما بارگذاری می‌شوند. برای استفاده از \"macshot\" خالی بگذارید. macshot فقط می‌تواند از پوشه‌هایی استفاده کند که خودش ساخته است، بنابراین پوشه‌ای که خودتان با همین نام در Drive ساخته‌اید دوباره استفاده نمی‌شود — به‌جای آن یک پوشهٔ جدید ساخته می‌شود. همه چیز خصوصی می‌ماند — هیچ چیز به‌صورت عمومی به اشتراک گذاشته نمی‌شود.";
 
 "Pressure" = "فشار";
 

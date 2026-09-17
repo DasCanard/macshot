@@ -337,6 +337,7 @@
 "Signed in" = "साइन इन किया हुआ";
 "Not signed in" = "साइन इन नहीं किया";
 "Account:" = "खाता:";
+"Folder:" = "फ़ोल्डर:";
 "Test Connection" = "कनेक्शन परीक्षण";
 "Fill in endpoint, bucket, and credentials first" = "पहले एंडपॉइंट, बकेट और क्रेडेंशियल भरें";
 "Testing..." = "परीक्षण हो रहा है...";
@@ -558,7 +559,7 @@
 "Clear History?" = "इतिहास साफ़ करें?";
 "This will permanently delete all screenshots from history." = "यह इतिहास से सभी स्क्रीनशॉट स्थायी रूप से हटा देगा।";
 "Click \"Set\" and press a key combination with at least one modifier (⌘, ⌥, ⌃, ⇧) to set a shortcut." = "\"सेट\" पर क्लिक करें और कम से कम एक मॉडिफ़ायर (⌘, ⌥, ⌃, ⇧) के साथ एक कुंजी संयोजन दबाएं।";
-"Files are uploaded to a \"macshot\" folder in your Google Drive. Everything stays private — nothing is shared publicly." = "फ़ाइलें आपके Google Drive में एक \"macshot\" फ़ोल्डर में अपलोड की जाती हैं। सब कुछ निजी रहता है — कुछ भी सार्वजनिक रूप से साझा नहीं किया जाता।";
+"Files are uploaded to this folder in your Google Drive. Leave empty to use \"macshot\". macshot can only use folders it created itself, so a folder you made in Drive with the same name won't be reused — a new one is created instead. Everything stays private — nothing is shared publicly." = "फ़ाइलें आपके Google Drive में इस फ़ोल्डर में अपलोड की जाती हैं। \"macshot\" का उपयोग करने के लिए खाली छोड़ें। macshot केवल उन्हीं फ़ोल्डरों का उपयोग कर सकता है जिन्हें उसने स्वयं बनाया है, इसलिए Drive में आपके द्वारा उसी नाम से बनाया गया फ़ोल्डर दोबारा उपयोग नहीं किया जाएगा — इसके बजाय एक नया फ़ोल्डर बनाया जाता है। सब कुछ निजी रहता है — कुछ भी सार्वजनिक रूप से साझा नहीं किया जाता।";
 
 "Pressure" = "दबाव";
 

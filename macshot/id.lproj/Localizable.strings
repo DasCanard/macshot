@@ -339,6 +339,7 @@
 "Signed in" = "Sudah masuk";
 "Not signed in" = "Belum masuk";
 "Account:" = "Akun:";
+"Folder:" = "Folder:";
 "Test Connection" = "Tes Koneksi";
 "Fill in endpoint, bucket, and credentials first" = "Isi endpoint, bucket, dan kredensial terlebih dahulu";
 "Testing..." = "Menguji...";
@@ -558,7 +559,7 @@
 "Clear History?" = "Hapus Riwayat?";
 "This will permanently delete all screenshots from history." = "Ini akan menghapus semua tangkapan layar dari riwayat secara permanen.";
 "Click \"Set\" and press a key combination with at least one modifier (⌘, ⌥, ⌃, ⇧) to set a shortcut." = "Klik \"Atur\" dan tekan kombinasi tombol dengan setidaknya satu modifier (⌘, ⌥, ⌃, ⇧) untuk menetapkan pintasan.";
-"Files are uploaded to a \"macshot\" folder in your Google Drive. Everything stays private — nothing is shared publicly." = "File diunggah ke folder \"macshot\" di Google Drive Anda. Semuanya tetap privat — tidak ada yang dibagikan secara publik.";
+"Files are uploaded to this folder in your Google Drive. Leave empty to use \"macshot\". macshot can only use folders it created itself, so a folder you made in Drive with the same name won't be reused — a new one is created instead. Everything stays private — nothing is shared publicly." = "File diunggah ke folder ini di Google Drive Anda. Biarkan kosong untuk menggunakan \"macshot\". macshot hanya dapat menggunakan folder yang dibuatnya sendiri, jadi folder dengan nama yang sama yang Anda buat di Drive tidak akan digunakan — folder baru akan dibuat sebagai gantinya. Semuanya tetap privat — tidak ada yang dibagikan secara publik.";
 
 "Pressure" = "Tekanan";
 

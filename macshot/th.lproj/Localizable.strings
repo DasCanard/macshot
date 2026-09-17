@@ -338,6 +338,7 @@
 "Signed in" = "เข้าสู่ระบบแล้ว";
 "Not signed in" = "ยังไม่ได้เข้าสู่ระบบ";
 "Account:" = "บัญชี:";
+"Folder:" = "โฟลเดอร์:";
 "Test Connection" = "ทดสอบการเชื่อมต่อ";
 "Fill in endpoint, bucket, and credentials first" = "กรอก endpoint, bucket และข้อมูลรับรองก่อน";
 "Testing..." = "กำลังทดสอบ...";
@@ -558,7 +559,7 @@
 "Clear History?" = "ล้างประวัติ?";
 "This will permanently delete all screenshots from history." = "การดำเนินการนี้จะลบภาพหน้าจอทั้งหมดออกจากประวัติอย่างถาวร";
 "Click \"Set\" and press a key combination with at least one modifier (⌘, ⌥, ⌃, ⇧) to set a shortcut." = "คลิก \"ตั้งค่า\" แล้วกดคีย์ผสมที่มีปุ่มตัวแก้ไขอย่างน้อยหนึ่งปุ่ม (⌘, ⌥, ⌃, ⇧) เพื่อตั้งค่าทางลัด";
-"Files are uploaded to a \"macshot\" folder in your Google Drive. Everything stays private — nothing is shared publicly." = "ไฟล์จะถูกอัปโหลดไปยังโฟลเดอร์ \"macshot\" ใน Google Drive ของคุณ ทุกอย่างเป็นส่วนตัว — ไม่มีการแชร์สาธารณะ";
+"Files are uploaded to this folder in your Google Drive. Leave empty to use \"macshot\". macshot can only use folders it created itself, so a folder you made in Drive with the same name won't be reused — a new one is created instead. Everything stays private — nothing is shared publicly." = "ไฟล์จะถูกอัปโหลดไปยังโฟลเดอร์นี้ใน Google Drive ของคุณ เว้นว่างไว้เพื่อใช้ \"macshot\" macshot สามารถใช้ได้เฉพาะโฟลเดอร์ที่ตัวเองสร้างขึ้นเท่านั้น ดังนั้นโฟลเดอร์ชื่อเดียวกันที่คุณสร้างเองใน Drive จะไม่ถูกนำมาใช้ซ้ำ — แต่จะสร้างโฟลเดอร์ใหม่แทน ทุกอย่างเป็นส่วนตัว — ไม่มีการแชร์สาธารณะ";
 
 "Pressure" = "แรงกด";
 

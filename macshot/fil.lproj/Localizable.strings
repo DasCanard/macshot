@@ -339,6 +339,7 @@
 "Signed in" = "Naka-sign in";
 "Not signed in" = "Hindi naka-sign in";
 "Account:" = "Account:";
+"Folder:" = "Folder:";
 "Test Connection" = "Subukan ang Koneksyon";
 "Fill in endpoint, bucket, and credentials first" = "Punan muna ang endpoint, bucket, at mga kredensyal";
 "Testing..." = "Sinusubukan...";
@@ -558,7 +559,7 @@
 "Clear History?" = "I-clear ang History?";
 "This will permanently delete all screenshots from history." = "Permanenteng mabubura ang lahat ng screenshot mula sa history.";
 "Click \"Set\" and press a key combination with at least one modifier (⌘, ⌥, ⌃, ⇧) to set a shortcut." = "I-click ang \"Set\" at pindutin ang kombinasyon ng key na may kahit isang modifier (⌘, ⌥, ⌃, ⇧) upang magtakda ng shortcut.";
-"Files are uploaded to a \"macshot\" folder in your Google Drive. Everything stays private — nothing is shared publicly." = "Ina-upload ang mga file sa isang \"macshot\" na folder sa iyong Google Drive. Nananatiling pribado ang lahat — walang ibinabahagi nang publiko.";
+"Files are uploaded to this folder in your Google Drive. Leave empty to use \"macshot\". macshot can only use folders it created itself, so a folder you made in Drive with the same name won't be reused — a new one is created instead. Everything stays private — nothing is shared publicly." = "Ina-upload ang mga file sa folder na ito sa iyong Google Drive. Iwanang blangko para gamitin ang \"macshot\". Maaari lamang gamitin ng macshot ang mga folder na nilikha nito, kaya ang folder na may parehong pangalan na ginawa mo sa Drive ay hindi gagamitin muli — sa halip ay lilikha ng bagong folder. Nananatiling pribado ang lahat — walang ibinabahagi nang publiko.";
 
 "Pressure" = "Pressure";
 

@@ -337,6 +337,7 @@
 "Signed in" = "உள்நுழைந்துள்ளீர்கள்";
 "Not signed in" = "உள்நுழையவில்லை";
 "Account:" = "கணக்கு:";
+"Folder:" = "கோப்புறை:";
 "Test Connection" = "இணைப்பைச் சோதி";
 "Fill in endpoint, bucket, and credentials first" = "முதலில் முனைப்புள்ளி, பக்கெட் மற்றும் சான்றுகளை நிரப்புங்கள்";
 "Testing..." = "சோதிக்கிறது...";
@@ -560,7 +561,7 @@
 "Clear History?" = "வரலாற்றை அழிக்கவா?";
 "This will permanently delete all screenshots from history." = "இது வரலாற்றில் உள்ள அனைத்து ஸ்கிரீன்ஷாட்களையும் நிரந்தரமாக நீக்கும்.";
 "Click \"Set\" and press a key combination with at least one modifier (⌘, ⌥, ⌃, ⇧) to set a shortcut." = "\"அமை\" என்பதை கிளிக் செய்து, குறுக்குவழியை அமைக்க குறைந்தது ஒரு மாற்றி (⌘, ⌥, ⌃, ⇧) கொண்ட விசை சேர்க்கையை அழுத்தவும்.";
-"Files are uploaded to a \"macshot\" folder in your Google Drive. Everything stays private — nothing is shared publicly." = "கோப்புகள் உங்கள் Google Drive-ல் உள்ள \"macshot\" கோப்புறையில் பதிவேற்றப்படும். அனைத்தும் தனிப்பட்டதாக இருக்கும் — எதுவும் பொதுவில் பகிரப்படாது.";
+"Files are uploaded to this folder in your Google Drive. Leave empty to use \"macshot\". macshot can only use folders it created itself, so a folder you made in Drive with the same name won't be reused — a new one is created instead. Everything stays private — nothing is shared publicly." = "கோப்புகள் உங்கள் Google Drive-ல் உள்ள இந்தக் கோப்புறையில் பதிவேற்றப்படும். \"macshot\"-ஐப் பயன்படுத்த காலியாக விடவும். macshot தானே உருவாக்கிய கோப்புறைகளை மட்டுமே பயன்படுத்த முடியும், எனவே Drive-ல் நீங்கள் அதே பெயரில் உருவாக்கிய கோப்புறை மீண்டும் பயன்படுத்தப்படாது — அதற்குப் பதிலாக புதிய கோப்புறை உருவாக்கப்படும். அனைத்தும் தனிப்பட்டதாக இருக்கும் — எதுவும் பொதுவில் பகிரப்படாது.";
 
 "Pressure" = "அழுத்தம்";
 

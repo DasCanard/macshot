@@ -338,6 +338,7 @@
 "Signed in" = "Đã đăng nhập";
 "Not signed in" = "Chưa đăng nhập";
 "Account:" = "Tài khoản:";
+"Folder:" = "Thư mục:";
 "Test Connection" = "Kiểm tra kết nối";
 "Fill in endpoint, bucket, and credentials first" = "Điền endpoint, bucket và thông tin xác thực trước";
 "Testing..." = "Đang kiểm tra...";
@@ -558,7 +559,7 @@
 "Clear History?" = "Xóa lịch sử?";
 "This will permanently delete all screenshots from history." = "Thao tác này sẽ xóa vĩnh viễn tất cả ảnh chụp màn hình khỏi lịch sử.";
 "Click \"Set\" and press a key combination with at least one modifier (⌘, ⌥, ⌃, ⇧) to set a shortcut." = "Nhấp vào \"Đặt\" và nhấn tổ hợp phím có ít nhất một phím bổ trợ (⌘, ⌥, ⌃, ⇧) để đặt phím tắt.";
-"Files are uploaded to a \"macshot\" folder in your Google Drive. Everything stays private — nothing is shared publicly." = "Các tệp được tải lên thư mục \"macshot\" trong Google Drive của bạn. Mọi thứ đều được giữ bí mật — không có gì được chia sẻ công khai.";
+"Files are uploaded to this folder in your Google Drive. Leave empty to use \"macshot\". macshot can only use folders it created itself, so a folder you made in Drive with the same name won't be reused — a new one is created instead. Everything stays private — nothing is shared publicly." = "Các tệp được tải lên thư mục này trong Google Drive của bạn. Để trống để dùng \"macshot\". macshot chỉ có thể dùng các thư mục do chính nó tạo ra, vì vậy thư mục cùng tên mà bạn tự tạo trong Drive sẽ không được dùng lại — thay vào đó một thư mục mới sẽ được tạo. Mọi thứ đều được giữ bí mật — không có gì được chia sẻ công khai.";
 
 "Pressure" = "Lực nhấn";
 

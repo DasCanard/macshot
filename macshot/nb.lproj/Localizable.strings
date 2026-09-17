@@ -337,6 +337,7 @@
 "Signed in" = "Innlogget";
 "Not signed in" = "Ikke innlogget";
 "Account:" = "Konto:";
+"Folder:" = "Mappe:";
 "Test Connection" = "Test tilkobling";
 "Fill in endpoint, bucket, and credentials first" = "Fyll inn endepunkt, beholder og legitimasjon f\U00F8rst";
 "Testing..." = "Tester\U2026";
@@ -558,7 +559,7 @@
 "Clear History?" = "Tøm historikk?";
 "This will permanently delete all screenshots from history." = "Dette vil slette alle skjermbilder fra historikken permanent.";
 "Click \"Set\" and press a key combination with at least one modifier (⌘, ⌥, ⌃, ⇧) to set a shortcut." = "Klikk \"Angi\" og trykk en tastekombinasjon med minst én modifikatortast (⌘, ⌥, ⌃, ⇧) for å angi en snarvei.";
-"Files are uploaded to a \"macshot\" folder in your Google Drive. Everything stays private — nothing is shared publicly." = "Filer lastes opp til en \"macshot\"-mappe i Google Disk. Alt forblir privat — ingenting deles offentlig.";
+"Files are uploaded to this folder in your Google Drive. Leave empty to use \"macshot\". macshot can only use folders it created itself, so a folder you made in Drive with the same name won't be reused — a new one is created instead. Everything stays private — nothing is shared publicly." = "Filer lastes opp til denne mappen i Google Disk. La feltet stå tomt for å bruke \"macshot\". macshot kan bare bruke mapper det har opprettet selv, så en mappe med samme navn som du har laget i Disk, blir ikke gjenbrukt — det opprettes en ny i stedet. Alt forblir privat — ingenting deles offentlig.";
 
 "Pressure" = "Trykk";
 

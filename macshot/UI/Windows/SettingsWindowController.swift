@@ -1907,7 +1907,7 @@ class SettingsWindowController: NSWindowController, NSToolbarDelegate, NSWindowD
         stack.addArrangedSubview(labeledRow(L("Folder:"), controls: [gdriveFolderField]))
         stack.setCustomSpacing(4, after: stack.arrangedSubviews.last!)
 
-        let gdriveNote = NSTextField(wrappingLabelWithString: L("Files are uploaded to the folder above in your Google Drive, created automatically if it doesn't exist. Leave empty to use \"macshot\". Everything stays private — nothing is shared publicly."))
+        let gdriveNote = NSTextField(wrappingLabelWithString: L("Files are uploaded to this folder in your Google Drive. Leave empty to use \"macshot\". macshot can only use folders it created itself, so a folder you made in Drive with the same name won't be reused — a new one is created instead. Everything stays private — nothing is shared publicly."))
         gdriveNote.font = NSFont.systemFont(ofSize: 10)
         gdriveNote.textColor = .secondaryLabelColor
         stack.addArrangedSubview(indented(gdriveNote))
