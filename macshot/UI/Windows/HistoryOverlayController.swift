@@ -967,8 +967,14 @@ private final class HistoryPanelView: NSView, NSDraggingSource {
     }
 
     private func beginDragSession(filterIndex: Int, event: NSEvent) {
-        guard filterIndex >= 0, filterIndex < filteredIndices.count else { return }
+        // Both arrays are indexed below, and they're rebuilt by different
+        // passes — a capture completing between mouse-down and the drag
+        // threshold can leave cardRects shorter than filteredIndices.
+        guard filterIndex >= 0,
+              filterIndex < filteredIndices.count,
+              filterIndex < cardRects.count else { return }
         let globalIndex = filteredIndices[filterIndex]
+        guard entries.indices.contains(globalIndex) else { return }
         let entry = entries[globalIndex]
         let fileURL = ScreenshotHistory.shared.fileURL(for: entry) as NSURL
 

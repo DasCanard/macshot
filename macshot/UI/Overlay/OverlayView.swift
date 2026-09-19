@@ -3824,10 +3824,22 @@ class OverlayView: NSView {
 
         var minRow = h, maxRow = 0, minCol = w, maxCol = 0
 
+        // Bound the scan by the buffer's real length rather than by the
+        // geometry: a provider whose data is shorter than bytesPerRow * h
+        // would otherwise be read past the end.
+        let byteCount = CFDataGetLength(data)
+        // Nothing sensible to report from a truncated buffer; treat the whole
+        // image as opaque rather than reading past the end.
+        guard byteCount >= bytesPerRow * h else {
+            return NSRect(x: 0, y: 0, width: CGFloat(w) / scale, height: CGFloat(h) / scale)
+        }
+
         for row in 0..<h {
             let rowBase = row * bytesPerRow
             for col in 0..<w {
-                let alpha = ptr[rowBase + col * bytesPerPixel + alphaOffset]
+                let offset = rowBase + col * bytesPerPixel + alphaOffset
+                guard offset < byteCount else { continue }
+                let alpha = ptr[offset]
                 if alpha > 0 {
                     if row < minRow { minRow = row }
                     if row > maxRow { maxRow = row }

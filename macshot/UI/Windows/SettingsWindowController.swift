@@ -3023,7 +3023,8 @@ class SettingsWindowController: NSWindowController, NSToolbarDelegate, NSWindowD
 
     @objc private func themePresetChanged(_ sender: NSPopUpButton) {
         let idx = sender.indexOfSelectedItem
-        guard idx < ThemePreset.all.count else { return } // "Custom" — no-op
+        // indexOfSelectedItem is -1 with no selection, which passes "< count".
+        guard idx >= 0, idx < ThemePreset.all.count else { return } // "Custom" — no-op
         applyThemePreset(ThemePreset.all[idx])
     }
 

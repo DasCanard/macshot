@@ -590,21 +590,24 @@ private final class VideoEditorView: NSView {
             times.append(NSValue(time: CMTime(seconds: t, preferredTimescale: 600)))
         }
 
-        var images: [NSImage] = Array(repeating: NSImage(), count: count)
-        var idx = 0
-        generator.generateCGImagesAsynchronously(forTimes: times) { [weak self] _, cgImage, _, _, _ in
-            if let cg = cgImage {
-                let img = NSImage(cgImage: cg, size: NSSize(width: CGFloat(cg.width), height: CGFloat(cg.height)))
-                images[idx] = img
+        // AVFoundation calls this handler from its own queue, with no ordering
+        // guarantee across the requested times. The previous version mutated a
+        // captured array and counter directly from there, so a lost increment
+        // could index past the end — and the array itself was written
+        // concurrently. Collect under a lock, keyed by the requested time so a
+        // result always lands in the right slot.
+        let collector = ThumbnailCollector(count: count)
+        generator.generateCGImagesAsynchronously(forTimes: times) { [weak self] requestedTime, cgImage, _, _, _ in
+            let image = cgImage.map {
+                NSImage(cgImage: $0, size: NSSize(width: CGFloat($0.width), height: CGFloat($0.height)))
             }
-            idx += 1
-            if idx >= count {
-                DispatchQueue.main.async {
-                    self?.thumbnailImages = images
-                    self?.thumbnailStrip = nil           // force rebuild in drawTimeline
-                    self?.thumbnailsGenerating = false
-                    self?.needsDisplay = true
-                }
+            let slot = times.firstIndex { CMTimeCompare($0.timeValue, requestedTime) == 0 }
+            guard let finished = collector.record(image, at: slot) else { return }
+            DispatchQueue.main.async {
+                self?.thumbnailImages = finished
+                self?.thumbnailStrip = nil           // force rebuild in drawTimeline
+                self?.thumbnailsGenerating = false
+                self?.needsDisplay = true
             }
         }
     }
@@ -2024,7 +2027,8 @@ private final class VideoEditorView: NSView {
         let timeRange = CMTimeRange(start: startTime, end: endTime)
         // User-selected GIF frame rate (5-30), capped at the source frame rate
         // so playback speed stays true to real time.
-        let sourceNominalFPS = asset.tracks(withMediaType: .video).first.map { Int($0.nominalFrameRate.rounded()) } ?? 30
+        let sourceNominalFPS = asset.tracks(withMediaType: .video).first
+            .map { SafeNumerics.frameRate($0.nominalFrameRate) } ?? 30
         let gifFPS = min(max(5, min(30, gifExportFPS)), max(5, sourceNominalFPS))
         let scale = exportScale
         let hasEffects = !zoomSegments.isEmpty || !censorSegments.isEmpty || !textSegments.isEmpty
@@ -2113,9 +2117,11 @@ private final class VideoEditorView: NSView {
                 reader.add(readerOutput)
 
                 let tmpURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".gif")
-                let sourceFPS = Int(videoTrack.nominalFrameRate.rounded())
-                let durationSec = CMTimeGetSeconds(readerTimeRange.duration)
-                let estimatedFrames = max(1, Int(durationSec * Double(sourceFPS)))
+                // A clip whose writer was killed mid-write reports a NaN frame
+                // rate and an invalid duration; Int() on either used to trap.
+                let sourceFPS = SafeNumerics.frameRate(videoTrack.nominalFrameRate)
+                let durationSec = SafeNumerics.seconds(readerTimeRange.duration)
+                let estimatedFrames = max(1, SafeNumerics.int(durationSec * Double(sourceFPS), fallback: 1))
 
                 if let gifskiBinary = GifskiExporter.locateBinary() {
                     // Parallel all-core encoder; streams frames via disk instead
@@ -2282,8 +2288,7 @@ private final class VideoEditorView: NSView {
         let srcW = abs(natSize.width)
         let srcH = abs(natSize.height)
         let (outW, outH) = VideoEncodingSettings.evenDimensions(width: srcW * exportScale, height: srcH * exportScale)
-        let srcFPS = Int(videoTrack.nominalFrameRate.rounded())
-        let fps = max(srcFPS, 1)
+        let fps = SafeNumerics.frameRate(videoTrack.nominalFrameRate)
 
         let includeAudio = !isMuted
         let srcAudioTracks = asset.tracks(withMediaType: .audio)
@@ -2853,7 +2858,7 @@ private final class VideoEditorView: NSView {
         let composition = AVMutableVideoComposition()
         composition.instructions = [instruction]
         composition.renderSize = renderSize
-        let fps = videoTrack.nominalFrameRate > 0 ? videoTrack.nominalFrameRate : 30
+        let fps = SafeNumerics.frameRate(videoTrack.nominalFrameRate)
         composition.frameDuration = CMTime(value: 1, timescale: CMTimeScale(fps))
         return composition
     }
@@ -2942,7 +2947,7 @@ private final class VideoEditorView: NSView {
         composition.customVideoCompositorClass = EffectsVideoCompositor.self
         composition.instructions = [instruction]
         composition.renderSize = CGSize(width: renderW, height: renderH)
-        let fps = videoTrack.nominalFrameRate > 0 ? videoTrack.nominalFrameRate : 30
+        let fps = SafeNumerics.frameRate(videoTrack.nominalFrameRate)
         composition.frameDuration = CMTime(value: 1, timescale: CMTimeScale(fps))
 
         return composition
@@ -3127,7 +3132,7 @@ private final class VideoEditorView: NSView {
         // Pause if playing
         if player.rate > 0 { player.pause(); needsDisplay = true }
 
-        let fps = asset?.tracks(withMediaType: .video).first?.nominalFrameRate ?? 30
+        let fps = SafeNumerics.frameRate(asset?.tracks(withMediaType: .video).first?.nominalFrameRate ?? 30)
         let frameDuration = 1.0 / Double(fps)
         let currentSource = mapPreviewClockToSourceTime(CMTimeGetSeconds(player.currentTime()))
         let targetSource = forward
@@ -3591,5 +3596,31 @@ private extension CMSampleBuffer {
             sampleBufferOut: &out
         )
         return status == noErr ? out : nil
+    }
+}
+
+/// Gathers timeline thumbnails delivered out of order from AVFoundation's
+/// queue, and reports the finished set exactly once.
+private final class ThumbnailCollector {
+    private let lock = NSLock()
+    private var images: [NSImage]
+    private var received = 0
+    private var reported = false
+
+    init(count: Int) {
+        images = Array(repeating: NSImage(), count: max(0, count))
+    }
+
+    /// Records one result. Returns the full set on the final call, nil before.
+    func record(_ image: NSImage?, at index: Int?) -> [NSImage]? {
+        lock.lock()
+        defer { lock.unlock() }
+        if let image, let index, images.indices.contains(index) {
+            images[index] = image
+        }
+        received += 1
+        guard received >= images.count, !reported else { return nil }
+        reported = true
+        return images
     }
 }

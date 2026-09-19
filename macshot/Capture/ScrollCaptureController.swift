@@ -719,7 +719,11 @@ final class ScrollCaptureController {
         let handler = VNImageRequestHandler(cgImage: curImg, options: [:])
         guard (try? handler.perform([request])) != nil,
               let obs = request.results?.first as? VNImageTranslationAlignmentObservation else { return nil }
-        return obs.alignmentTransform.ty
+        // Vision returns a degenerate transform when registration fails on
+        // blank, dark or repetitive content. The caller rounds this into an
+        // Int, which traps on a non-finite value.
+        let shift = obs.alignmentTransform.ty
+        return shift.isFinite ? shift : nil
     }
 
     // MARK: - Scrollbar detection
