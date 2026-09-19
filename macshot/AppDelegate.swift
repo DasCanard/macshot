@@ -261,6 +261,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUUpdaterDelegate {
             return
         }
 
+        // Clear image-effect state written by a pre-June-2026 build, which
+        // otherwise leaves Vivid silently applied to every capture (#345).
+        EffectsMigration.runIfNeeded()
+
         // Surface save failures — otherwise a capture that can't be written
         // (full disk, unmounted volume) disappears without a word.
         ImageSaveService.onFailure = { [weak self] message in
