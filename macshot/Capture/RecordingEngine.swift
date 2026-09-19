@@ -58,6 +58,22 @@ final class RecordingEngine: NSObject {
 
     // MARK: - Public API
 
+    /// Converts a selection in AppKit screen coordinates (bottom-left origin,
+    /// global across all displays) into the crop rect SCStream expects: display
+    /// -local, top-left origin, in points.
+    ///
+    /// Both conversions matter on a multi-display setup, where `displayBounds`
+    /// has a non-zero origin that can be negative (a display placed left of, or
+    /// above, the primary one).
+    nonisolated static func cropRect(for rect: NSRect, displayBounds: CGRect) -> CGRect {
+        CGRect(
+            x: rect.minX - displayBounds.minX,
+            y: displayBounds.maxY - rect.maxY,
+            width: rect.width,
+            height: rect.height
+        )
+    }
+
     /// Start recording the given rect (in NSScreen/AppKit coordinates, bottom-left origin).
     /// Optional overrides take precedence over UserDefaults for this session.
     /// Window IDs to exclude from the recording (e.g. selection border, HUD).
@@ -69,15 +85,7 @@ final class RecordingEngine: NSObject {
         state = .recording
 
         self.screen = screen
-        // Convert AppKit rect (bottom-left origin) → screen coords (top-left origin)
-        // SCStream uses top-left origin matching the display's coordinate system.
-        let displayBounds = screen.frame
-        let flippedY = displayBounds.maxY - rect.maxY
-        // Scale to points — SCStream works in points on the display
-        self.cropRect = CGRect(x: rect.minX - displayBounds.minX,
-                               y: flippedY,
-                               width: rect.width,
-                               height: rect.height)
+        self.cropRect = Self.cropRect(for: rect, displayBounds: screen.frame)
 
         let defaultFPS = UserDefaults.standard.integer(forKey: "recordingFPS") > 0
             ? UserDefaults.standard.integer(forKey: "recordingFPS") : 30

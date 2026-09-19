@@ -40,23 +40,30 @@ macshot/
 ├── AppDelegate.swift                   # App lifecycle, status bar, hotkey, capture orchestration
 │
 ├── Model/
-│   └── Annotation.swift                # Data model + drawing for all annotation types
+│   ├── Annotation.swift                # Data model + drawing for all annotation types
+│   └── LenientDecoding.swift           # Backward/forward-compatible Codable helpers
 │
 ├── Capture/
 │   ├── ScreenCaptureManager.swift      # Multi-screen capture via ScreenCaptureKit (async/await)
 │   ├── RecordingEngine.swift           # Screen recording (MP4 via AVAssetWriter, GIF via GIFEncoder)
 │   ├── ScrollCaptureController.swift   # Scroll capture with SAD-based stitching
+│   ├── ScrollFrameAnalyzer.swift       # Pure pixel comparison: frozen header + scrollbar detection
 │   └── GIFEncoder.swift               # Animated GIF from video frames
 │
 ├── Services/
 │   ├── ImageEncoder.swift              # PNG/JPEG/HEIC/WebP encoding, clipboard copy, resolution scaling
 │   ├── BeautifyRenderer.swift          # Gradient frame / background beautification (linear + mesh gradients)
 │   ├── AutoRedactor.swift              # PII regex detection + Vision OCR → redaction annotations
-│   ├── BarcodeDetector.swift           # Async Vision barcode/QR scanning, badge drawing, hit-testing
 │   ├── TranslationOverlay.swift        # OCR → translate → overlay annotations
 │   ├── TranslationService.swift        # Google Translate API wrapper
 │   ├── VisionOCR.swift                 # Vision text recognition request factory
 │   ├── HotkeyManager.swift            # Global keyboard shortcut (Carbon RegisterEventHotKey)
+│   ├── KeyboardShortcutMatcher.swift   # Layout-aware character matching for shortcuts
+│   ├── ToolShortcutManager.swift       # Single-key overlay tool shortcuts
+│   ├── EditorCommandShortcutManager.swift  # Configurable undo/redo chords
+│   ├── FilenameFormatter.swift         # Filename templates ({date}, {window}, {random}, …)
+│   ├── SettingsPortability.swift       # Settings export/import + the secret filter
+│   ├── LanguageManager.swift           # Locale resolution + L("…") lookup
 │   ├── ScreenshotHistory.swift         # Local history in ~/Library/Application Support/
 │   └── SaveDirectoryAccess.swift       # Security-scoped bookmark for save directory
 │
@@ -291,7 +298,8 @@ Copy to clipboard, Save to file (PNG/JPEG/HEIC/WebP), Pin (floating always-on-to
 - `[weak self]` in all closures to avoid retain cycles
 - Tear down overlay windows and images promptly after capture
 - UserDefaults for all preferences (no Core Data, no plist files)
-- Annotation is a class (reference type) for mutation during drag/resize — use `clone()` for safe copies. **When adding new properties to Annotation, update three places:** the property declaration, `clone()`, and `CodableAnnotation` in `AnnotationCodable.swift` (`toCodable` + `fromCodable`). The compiler won't catch missing fields — annotations will silently lose data on clone or history reload.
+- Annotation is a class (reference type) for mutation during drag/resize — use `clone()` for safe copies. **When adding new properties to Annotation, update four places:** the property declaration, `clone()`, `CodableAnnotation` in `AnnotationCodable.swift` (the struct field, `toCodable`, `fromCodable`, and a line in its `init(from:)`), and the census in `macshotTests/AnnotationPersistenceTests.swift`. The compiler won't catch a missing field — annotations silently lose data on clone or history reload — but the census test will: it reflects over every stored property and fails naming the new one.
+- **Persisted models must decode leniently.** Swift's synthesized `init(from:)` requires a key for every non-optional property *even when it has a default value*, so adding a field silently breaks every file written by an older build. Any `Codable` type that is written to disk or UserDefaults needs a hand-written `init(from:)` using `decode(_:or:)` / `decodeOptional(_:)` from `Model/LenientDecoding.swift`, and arrays of them should decode through `LenientArrayDecoder` so one corrupt entry doesn't discard the file. This applies to `CodableAnnotation`, `CaptureEditState`, `ScreenshotHistory.IndexEntry`, and anything new that joins them.
 - **Keyboard shortcuts:** Character-based commands must go through `KeyboardShortcutMatcher`; do not compare raw letter key codes or read `charactersIgnoringModifiers` directly. The matcher follows the character produced by rearranged Latin layouts such as QWERTZ, AZERTY, and Dvorak, while falling back through the user's ASCII-capable layout for non-Latin input sources such as Russian or Arabic. Use `EditorCommandShortcutManager` for configurable Undo/Redo chords and `ToolShortcutManager` plus `KeyboardShortcutMatcher.toolCharacters(for:)` for single-key overlay tools. Raw `event.keyCode` checks are appropriate only for layout-independent non-character keys such as Escape, Return, Tab, Space, Delete, arrows, and function keys. Global Carbon hotkeys remain physical key-code bindings; translate them only for display with `KeyboardShortcutMatcher.currentLayoutCharacter(for:)`, and disable `NSMenuItem` automatic key-equivalent localization after applying an already-translated physical binding.
 - `autoreleasepool` for overlay teardown to prevent memory spikes
 - Extension files (`OverlayView+Feature.swift`) for self-contained feature code that accesses OverlayView state but is logically separate (recording overlays, scroll capture HUD, window snapping, popovers)
@@ -305,6 +313,14 @@ Copy to clipboard, Save to file (PNG/JPEG/HEIC/WebP), Pin (floating always-on-to
   - All floating panels (thumbnails, pins, upload toasts, HUD, overlays) must set `hidesOnDeactivate = false` so they survive app deactivation. Pin windows must use `orderFrontRegardless()` instead of `makeKeyAndOrderFront` to avoid activating macshot.
   - `NSApp.activate(options: .activateIgnoringOtherApps)` is the only reliable way to switch focus to another app — plain `activate()` and `NSApp.deactivate()` do not reliably transfer focus on macOS 26.
   - `NSApp.hide(nil)` reliably transfers focus (activates next app in line) but hides ALL windows — only safe as last resort when no floating panels are expected.
+
+## Tests
+
+- `scripts/run-tests.sh` runs everything; pass `ClassName` or `ClassName/testName` to narrow it. It prints failures with their messages, which `xcodebuild` itself no longer does.
+- The `macshotTests` target compiles the app sources directly (a synchronized group over `macshot/`, minus `main.swift`), so there is **no host app**: tests run headless, with no Screen Recording permission and no window server dependency. `internal` symbols are reachable without `@testable import`; `private` ones are not.
+- Shared helpers live in `macshotTests/TestSupport.swift`: `withDefaults` (isolated UserDefaults), `ImageProbe` (scale-independent fixture images + pixel probes — never build fixtures with `lockFocus`, it produces 2x buffers on Retina and 1x in CI), `TestKeyEvent` (synthesized `NSEvent`s), and `Reflect`/`FieldDescriber` (compare every stored property of a value at once).
+- Logic that is worth testing but buried in a permission-gated class should be extracted rather than left untested — see `ScrollFrameAnalyzer` and `RecordingEngine.cropRect(for:displayBounds:)`.
+- `.github/workflows/tests.yml` runs the suite plus a Release build of both variants on every push and PR. The Release build is what catches strict-concurrency errors that Debug builds let through.
 
 ## Build & Run
 
