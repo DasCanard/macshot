@@ -43,6 +43,34 @@ enum AutoRedactor {
         }
     }()
 
+    /// Ranges of `text` that match an enabled sensitive pattern, with the name
+    /// of the pattern that matched. This is the whole of the regex layer: OCR
+    /// hands it a recognized line, and every range that comes back gets covered.
+    ///
+    /// `enabledTypes` defaults to the user's selection in settings; nil means
+    /// every pattern is active.
+    static func sensitiveMatches(
+        in text: String,
+        enabledTypes: [String]? = UserDefaults.standard.array(forKey: "enabledRedactTypes") as? [String]
+    ) -> [(name: String, range: Range<String.Index>)] {
+        let active = sensitivePatterns.filter { enabledTypes == nil || enabledTypes!.contains($0.name) }
+        let fullRange = NSRange(location: 0, length: (text as NSString).length)
+        var found: [(name: String, range: Range<String.Index>)] = []
+        for (name, regex) in active {
+            for match in regex.matches(in: text, options: [], range: fullRange) {
+                guard let range = Range(match.range, in: text) else { continue }
+                found.append((name, range))
+            }
+        }
+        return found
+    }
+
+    /// Whether any enabled pattern matches — the question a redaction pass asks
+    /// of each OCR line.
+    static func containsSensitiveText(_ text: String, enabledTypes: [String]? = nil) -> Bool {
+        !sensitiveMatches(in: text, enabledTypes: enabledTypes).isEmpty
+    }
+
     // MARK: - Public API
 
     /// Redact PII patterns in the selected region. Runs OCR on background thread, calls completion with annotations.
@@ -264,20 +292,13 @@ enum AutoRedactor {
         }
 
         // Pass 1: regex matching
-        let enabledTypes = UserDefaults.standard.array(forKey: "enabledRedactTypes") as? [String]
-        let activePatterns = sensitivePatterns.filter { enabledTypes == nil || enabledTypes!.contains($0.name) }
-
         for (i, obs) in observations.enumerated() {
             guard let candidate = obs.topCandidates(1).first else { continue }
             let text = candidate.string
-            let fullRange = NSRange(location: 0, length: (text as NSString).length)
-            for (_, regex) in activePatterns {
-                for match in regex.matches(in: text, options: [], range: fullRange) {
-                    guard let swiftRange = Range(match.range, in: text),
-                          let box = try? candidate.boundingBox(for: swiftRange) else { continue }
-                    addRedaction(box: box.boundingBox)
-                    redactedObservations.insert(i)
-                }
+            for match in sensitiveMatches(in: text) {
+                guard let box = try? candidate.boundingBox(for: match.range) else { continue }
+                addRedaction(box: box.boundingBox)
+                redactedObservations.insert(i)
             }
         }
 
