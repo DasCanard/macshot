@@ -23,16 +23,22 @@ final class ScreenshotHistoryTests: XCTestCase {
         ScreenshotHistory(directory: directory)
     }
 
-    /// `add` finishes its file writes on a background queue.
+    /// `add` finishes its file writes on a background queue, in a fixed order:
+    /// composited image, thumbnail, preview, raw image, annotations, edit
+    /// state. Waiting on the last file each capture expects avoids racing it.
     private func waitForWrites(_ history: ScreenshotHistory, entryCount: Int,
+                               expecting suffixes: [String] = [".png"],
                                file: StaticString = #filePath, line: UInt = #line) {
-        let deadline = Date().addingTimeInterval(5)
+        let deadline = Date().addingTimeInterval(10)
         while Date() < deadline {
-            let files = (try? FileManager.default.contentsOfDirectory(atPath: directory.path)) ?? []
-            if files.filter({ $0.hasSuffix(".png") && !$0.contains("_") }).count >= entryCount,
-               files.contains("index.json") {
-                return
+            let files = Set((try? FileManager.default.contentsOfDirectory(atPath: directory.path)) ?? [])
+            let ids = history.entries.map(\.id)
+            let complete = ids.count >= entryCount && ids.allSatisfy { id in
+                suffixes.allSatisfy { suffix in
+                    files.contains(suffix == ".png" ? "\(id).png" : "\(id)\(suffix)")
+                }
             }
+            if complete && files.contains("index.json") { return }
             RunLoop.current.run(until: Date().addingTimeInterval(0.02))
         }
         XCTFail("history files were never written", file: file, line: line)
@@ -56,7 +62,7 @@ final class ScreenshotHistoryTests: XCTestCase {
         withDefaults(["historySize": 10, "historyUnlimited": false]) {
             history.add(image: image, rawImage: image, annotations: annotations())
         }
-        waitForWrites(history, entryCount: 1)
+        waitForWrites(history, entryCount: 1, expecting: [".png", "_raw.png", "_annotations.json"])
 
         // A second instance reads the index from disk, like the next launch does.
         let reloaded = makeHistory()
@@ -84,7 +90,7 @@ final class ScreenshotHistoryTests: XCTestCase {
         withDefaults(["historySize": 10, "historyUnlimited": false]) {
             history.add(image: image, rawImage: image, annotations: nil, editState: state)
         }
-        waitForWrites(history, entryCount: 1)
+        waitForWrites(history, entryCount: 1, expecting: [".png", "_edit.json"])
 
         let reloaded = makeHistory()
         let entry = try XCTUnwrap(reloaded.entries.first)
@@ -100,7 +106,7 @@ final class ScreenshotHistoryTests: XCTestCase {
         withDefaults(["historySize": 10, "historyUnlimited": false]) {
             history.add(image: image, rawImage: image, annotations: annotations())
         }
-        waitForWrites(history, entryCount: 1)
+        waitForWrites(history, entryCount: 1, expecting: [".png", "_annotations.json"])
 
         let entry = try XCTUnwrap(history.entries.first)
         let annotationFile = directory.appendingPathComponent("\(entry.id)_annotations.json")
@@ -122,7 +128,7 @@ final class ScreenshotHistoryTests: XCTestCase {
         withDefaults(["historySize": 10, "historyUnlimited": false]) {
             history.add(image: image, rawImage: image, annotations: annotations())
         }
-        waitForWrites(history, entryCount: 1)
+        waitForWrites(history, entryCount: 1, expecting: [".png", "_annotations.json"])
 
         let entry = try XCTUnwrap(history.entries.first)
         try Data("truncated{".utf8).write(to: directory.appendingPathComponent("\(entry.id)_annotations.json"))
