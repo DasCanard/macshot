@@ -113,6 +113,12 @@ final class GoogleDriveUploader: NSObject, ASWebAuthenticationPresentationContex
 
     /// Upload a file (image or video) to the configured destination folder.
     func upload(data: Data, filename: String, mimeType: String, completion: @escaping (Result<String, Error>) -> Void) {
+        upload(payload: .data(data), filename: filename, mimeType: mimeType, completion: completion)
+    }
+
+    /// Upload from a payload. A recording is passed as `.file` so it is
+    /// streamed from disk instead of being read into memory.
+    func upload(payload: UploadPayload, filename: String, mimeType: String, completion: @escaping (Result<String, Error>) -> Void) {
         ensureValidToken { [weak self] success in
             guard let self = self, success else {
                 completion(.failure(Self.error("Not signed in")))
@@ -121,7 +127,8 @@ final class GoogleDriveUploader: NSObject, ASWebAuthenticationPresentationContex
             self.ensureDestinationFolder { result in
                 switch result {
                 case .success(let folderID):
-                    self.uploadFile(data: data, filename: filename, mimeType: mimeType, folderID: folderID, completion: completion)
+                    self.uploadFileWithRetry(payload: payload, filename: filename, mimeType: mimeType,
+                                             folderID: folderID, attempt: 1, completion: completion)
                 case .failure(let error):
                     completion(.failure(error))
                 }
@@ -145,14 +152,15 @@ final class GoogleDriveUploader: NSObject, ASWebAuthenticationPresentationContex
 
     /// Upload a video file from URL.
     func uploadVideo(url: URL, completion: @escaping (Result<String, Error>) -> Void) {
-        guard let data = try? Data(contentsOf: url) else {
+        guard FileManager.default.isReadableFile(atPath: url.path) else {
             completion(.failure(Self.error("Failed to read video file")))
             return
         }
         let ext = url.pathExtension.lowercased()
         let mime = ext == "gif" ? "image/gif" : "video/mp4"
-        let filename = url.lastPathComponent
-        upload(data: data, filename: filename, mimeType: mime, completion: completion)
+        // Streamed from disk: a long recording is routinely larger than the
+        // memory the app can afford to hold.
+        upload(payload: .file(url), filename: url.lastPathComponent, mimeType: mime, completion: completion)
     }
 
     // MARK: - OAuth Token Exchange
@@ -381,11 +389,7 @@ final class GoogleDriveUploader: NSObject, ASWebAuthenticationPresentationContex
         }.resume()
     }
 
-    private func uploadFile(data: Data, filename: String, mimeType: String, folderID: String, completion: @escaping (Result<String, Error>) -> Void) {
-        uploadFileWithRetry(data: data, filename: filename, mimeType: mimeType, folderID: folderID, attempt: 1, completion: completion)
-    }
-
-    private func uploadFileWithRetry(data fileData: Data, filename: String, mimeType: String, folderID: String, attempt: Int, completion: @escaping (Result<String, Error>) -> Void) {
+    private func uploadFileWithRetry(payload: UploadPayload, filename: String, mimeType: String, folderID: String, attempt: Int, completion: @escaping (Result<String, Error>) -> Void) {
         guard let token = loadAccessToken() else {
             completion(.failure(Self.error("No access token")))
             return
@@ -401,20 +405,23 @@ final class GoogleDriveUploader: NSObject, ASWebAuthenticationPresentationContex
             "name": filename,
             "parents": [folderID],
         ]
-        let metadataData = try! JSONSerialization.data(withJSONObject: metadata)
+        let metadataData = (try? JSONSerialization.data(withJSONObject: metadata)) ?? Data("{}".utf8)
 
-        var body = Data()
-        body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Type: application/json; charset=UTF-8\r\n\r\n".data(using: .utf8)!)
-        body.append(metadataData)
-        body.append("\r\n--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Type: \(mimeType)\r\n\r\n".data(using: .utf8)!)
-        body.append(fileData)
-        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
-
-        // Write body to temp file for uploadTask (enables progress tracking)
+        // Stream the multipart body straight to a temp file. Building it in
+        // memory first cost two extra copies of the payload — a gigabyte-plus
+        // recording would push the app into jetsam before the upload started.
         let tmpFile = FileManager.default.temporaryDirectory.appendingPathComponent("macshot_upload_\(UUID().uuidString).tmp")
-        try? body.write(to: tmpFile)
+        do {
+            try MultipartBodyWriter.writeRelatedBody(
+                metadata: metadataData, mimeType: mimeType, boundary: boundary,
+                payload: payload, to: tmpFile)
+        } catch {
+            DispatchQueue.main.async {
+                self.onProgress = nil
+                completion(.failure(Self.error("Could not prepare the upload: \(error.localizedDescription)")))
+            }
+            return
+        }
 
         let maxRetries = 3
         let task = uploadSession.uploadTask(with: request, fromFile: tmpFile) { [weak self] data, response, error in
@@ -426,7 +433,7 @@ final class GoogleDriveUploader: NSObject, ASWebAuthenticationPresentationContex
                attempt < maxRetries {
                 let delay = Double(attempt) * 2.0
                 DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-                    self?.uploadFileWithRetry(data: fileData, filename: filename, mimeType: mimeType,
+                    self?.uploadFileWithRetry(payload: payload, filename: filename, mimeType: mimeType,
                                               folderID: folderID, attempt: attempt + 1, completion: completion)
                 }
                 return
@@ -453,7 +460,7 @@ final class GoogleDriveUploader: NSObject, ASWebAuthenticationPresentationContex
                         }
                         return
                     }
-                    self?.uploadFileWithRetry(data: fileData, filename: filename, mimeType: mimeType,
+                    self?.uploadFileWithRetry(payload: payload, filename: filename, mimeType: mimeType,
                                               folderID: folderID, attempt: attempt + 1, completion: completion)
                 }
                 return

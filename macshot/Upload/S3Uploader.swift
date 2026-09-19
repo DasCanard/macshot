@@ -73,7 +73,7 @@ final class S3Uploader {
     // MARK: - Upload Video
 
     func uploadVideo(url: URL, completion: @escaping (Result<String, Error>) -> Void) {
-        guard let data = try? Data(contentsOf: url) else {
+        guard FileManager.default.isReadableFile(atPath: url.path) else {
             completion(.failure(S3Error.fileReadFailed))
             return
         }
@@ -86,12 +86,18 @@ final class S3Uploader {
         case "webm": contentType = "video/webm"
         default: contentType = "application/octet-stream"
         }
-        upload(data: data, filename: url.lastPathComponent, contentType: contentType, completion: completion)
+        // Streamed from disk — a recording can be larger than the memory the
+        // app can hold, and the SigV4 content hash is computed incrementally.
+        upload(payload: .file(url), filename: url.lastPathComponent, contentType: contentType, completion: completion)
     }
 
     // MARK: - Core Upload
 
     func upload(data: Data, filename: String, contentType: String, completion: @escaping (Result<String, Error>) -> Void) {
+        upload(payload: .data(data), filename: filename, contentType: contentType, completion: completion)
+    }
+
+    func upload(payload: UploadPayload, filename: String, contentType: String, completion: @escaping (Result<String, Error>) -> Void) {
         let cfg = config
         guard cfg.isValid else {
             completion(.failure(S3Error.notConfigured))
@@ -139,13 +145,31 @@ final class S3Uploader {
             request.setValue("public-read", forHTTPHeaderField: "x-amz-acl")
         }
 
-        // Sign the request
+        // Sign the request. The payload hash is computed by streaming, so a
+        // large recording never has to be held in memory to be signed.
         let now = Date()
-        signRequest(&request, data: data, date: now, region: cfg.effectiveRegion,
+        let payloadHash: String
+        do {
+            payloadHash = try payload.sha256Hex()
+        } catch {
+            completion(.failure(S3Error.fileReadFailed))
+            return
+        }
+        signRequest(&request, payloadHash: payloadHash, date: now, region: cfg.effectiveRegion,
                      accessKeyID: cfg.accessKeyID, secretAccessKey: cfg.secretAccessKey)
 
-        // Upload
-        let task = URLSession.shared.uploadTask(with: request, from: data) { [weak self] responseData, response, error in
+        // Upload from a file so URLSession streams the body off disk.
+        let bodyFile = FileManager.default.temporaryDirectory
+            .appendingPathComponent("macshot_upload_\(UUID().uuidString).tmp")
+        do {
+            try payload.write(to: bodyFile)
+        } catch {
+            completion(.failure(S3Error.fileReadFailed))
+            return
+        }
+
+        let task = URLSession.shared.uploadTask(with: request, fromFile: bodyFile) { [weak self] responseData, response, error in
+            try? FileManager.default.removeItem(at: bodyFile)
             DispatchQueue.main.async { self?.onProgress = nil }
 
             if let error = error {
@@ -197,7 +221,7 @@ final class S3Uploader {
 
     // MARK: - AWS Signature V4
 
-    private func signRequest(_ request: inout URLRequest, data: Data, date: Date,
+    private func signRequest(_ request: inout URLRequest, payloadHash: String, date: Date,
                               region: String, accessKeyID: String, secretAccessKey: String) {
         let service = "s3"
         let dateFormatter = DateFormatter()
@@ -212,8 +236,7 @@ final class S3Uploader {
 
         request.setValue(amzDate, forHTTPHeaderField: "X-Amz-Date")
 
-        // Content hash
-        let payloadHash = SHA256.hash(data: data).hexString
+        // Content hash (streamed by the caller)
         request.setValue(payloadHash, forHTTPHeaderField: "X-Amz-Content-Sha256")
 
         // Canonical request

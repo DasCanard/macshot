@@ -20,7 +20,7 @@
 "Capture OCR" = "Zachytiť OCR";
 "Capture OCR & QR" = "Zachytiť OCR a QR";
 "Capture area and read text/QR codes" = "Zachytiť oblasť a načítať text/QR kódy";
-"Quick Capture" = "Rýchle zachytiť";
+"Quick Capture" = "Rýchle zachytenie";
 "Scroll Capture" = "Zachytiť posun";
 "Capture Last Area" = "Zachytiť poslednú oblasť";
 "Capture Delay" = "Oneskorenie zachytenia";
@@ -139,7 +139,7 @@
 "Move up" = "Presunúť nahor";
 "Move down" = "Presunúť nadol";
 "Menu Bar Order" = "Poradie v lište menu";
-"Choose the order of capture actions in the macshot menu bar menu." = "Vyberte poradie akcii snímania v menu macshot v lište menu.";
+"Choose the order of capture actions in the macshot menu bar menu." = "Vyberte poradie akcií snímania v menu macshot v lište menu.";
 
 /* Toolbar - Recording */
 "Start Recording" = "Spustiť nahrávanie";
@@ -205,7 +205,7 @@
 "Drag to reposition" = "Potiahnutím zmeňte polohu";
 
 /* Overlay - Popovers */
-"Format:" = "Format:";
+"Format:" = "Formát:";
 "FPS:" = "FPS:";
 "When done:" = "Po dokončení:";
 "Open editor" = "Otvoriť editor";
@@ -222,11 +222,11 @@
 "Uploads" = "Nahrávania";
 "Language" = "Jazyk";
 "Language:" = "Jazyk:";
-"Restart the app to fully apply the new language." = "Reštartujte aplikáciu pre úplne použitie nového jazyka.";
+"Restart the app to fully apply the new language." = "Reštartujte aplikáciu pre úplné použitie nového jazyka.";
 "Capture" = "Zachytenie";
 "Play sound on capture" = "Prehrať zvuk pri snímaní";
 "Play sound on copy" = "Prehrať zvuk pri kopírovaní";
-"Remember last selected tool" = "Pamätať si posledny vybraný nástroj";
+"Remember last selected tool" = "Pamätať si posledný vybraný nástroj";
 "Show floating thumbnail after capture" = "Zobraziť plávajúci náhľad po zachytení";
 "Launch at login" = "Spustiť pri prihlásení";
 "Show snap alignment guides" = "Zobraziť vodiace čiary zarovnania";
@@ -238,20 +238,20 @@
 "Hide capture instructions" = "Skryť pokyny pri snímaní";
 "Use window title in saved filename" = "Použiť názov okna v názve súboru";
 "Hide menu bar icon" = "Skryť ikonu v lište menu";
-"Hotkeys still work. To show the icon again, re-launch macshot." = "Klávesové skratky stále fungujú. Pre opätovne zobrazenie ikony znovu spusťte macshot.";
+"Hotkeys still work. To show the icon again, re-launch macshot." = "Klávesové skratky stále fungujú. Pre opätovné zobrazenie ikony znovu spusťte macshot.";
 "Check for updates automatically" = "Automaticky kontrolovať aktualizácie";
 "Check for beta updates" = "Kontrolovať beta aktualizácie";
 "Thumbnail" = "Náhľad";
 "  Dismiss after:" = "  Skryť po:";
-"seconds before auto-dismiss (0 = never)" = "sekund pred automatickym skrytím (0 = nikdy)";
+"seconds before auto-dismiss (0 = never)" = "sekund pred automatickým skrytím (0 = nikdy)";
 "  Multiple previews:" = "  Viacero náhľadov:";
 "Stack (keep all)" = "Vrstviť (ponechať všetky)";
-"Replace (show only latest)" = "Nahradiť (zobraziť len posledny)";
+"Replace (show only latest)" = "Nahradiť (zobraziť len posledný)";
 "Output" = "Výstup";
-"Image format:" = "Format obrázka:";
+"Image format:" = "Formát obrázka:";
 "Quality:" = "Kvalita:";
 "%d%%" = "%d%%";
-"Save at standard resolution (1x)" = "Uložiť v standardnom rozlíšení (1x)";
+"Save at standard resolution (1x)" = "Uložiť v štandardnom rozlíšení (1x)";
 "Halves dimensions on Retina displays, ~4x smaller files" = "Polovičné rozmery na Retina displejoch, ~4x menšie súbory";
 "Embed sRGB color profile" = "Vložiť sRGB farebný profil";
 "Ensures consistent colors across different displays" = "Zabezpečuje konzistentné farby na rôznych displejoch";
@@ -319,7 +319,7 @@
 "Slow" = "Pomaly";
 "Medium" = "Stredný";
 "Fast" = "Rýchly";
-"Very fast" = "Velmi rýchly";
+"Very fast" = "Veľmi rýchly";
 "5 fps" = "5 fps";
 "10 fps" = "10 fps";
 "15 fps" = "15 fps";
@@ -348,7 +348,7 @@
 "Test Connection" = "Otestovať pripojenie";
 "Fill in endpoint, bucket, and credentials first" = "Najprv vyplňte endpoint, bucket a prihlasovacie údaje";
 "Testing..." = "Testovanie...";
-"Connection successful!" = "Pripojenie úspešne!";
+"Connection successful!" = "Pripojenie úspešné!";
 "Leave empty to use default" = "Nechajte prázdne pre použitie predvolenej hodnoty";
 "Endpoint:" = "Endpoint:";
 "Region:" = "Region:";
@@ -374,7 +374,7 @@
 "Version %@ (%@)" = "Verzia %@ (%@)";
 "Made by" = "Vytvoril";
 "Licensed under the GPLv3" = "Licencované pod GPLv3";
-"A free, open-source screenshot & screen recording tool for macOS.\nFully native — built with Swift and AppKit." = "Bezplatný, open-source nástroj na snímky obrazovky a nahrávanie obrazovky pre macOS.\nPlne natívny — postaveny na Swift a AppKit.";
+"A free, open-source screenshot & screen recording tool for macOS.\nFully native — built with Swift and AppKit." = "Bezplatný, open-source nástroj na snímky obrazovky a nahrávanie obrazovky pre macOS.\nPlne natívny — postavený na Swift a AppKit.";
 
 /* Alerts */
 "No Image on Clipboard" = "Žiadny obrázok v schránke";
@@ -470,7 +470,7 @@
 "History" = "História";
 
 /* Preferences - Shortcuts note */
-"Click \"Record\" and press a key combination with at least one modifier (⌘, ⌥, ⌃, ⇧) to set a shortcut." = "Kliknite na \"Record\" a stlačte kombináciu kláves s aspoň jedným modifikatorom (⌘, ⌥, ⌃, ⇧) pre nastavenie skratky.";
+"Click \"Record\" and press a key combination with at least one modifier (⌘, ⌥, ⌃, ⇧) to set a shortcut." = "Kliknite na \"Record\" a stlačte kombináciu kláves s aspoň jedným modifikátorom (⌘, ⌥, ⌃, ⇧) pre nastavenie skratky.";
 
 /* Recording — GIF Processing */
 "Processing GIF…" = "Spracovanie GIF…";
@@ -507,7 +507,7 @@
 "Webcam Size Large" = "Veľké";
 "Webcam Size Extra Large" = "Extra veľké";
 "Circle" = "Kruh";
-"Rounded Rectangle" = "Zaobleny obdĺžnik";
+"Rounded Rectangle" = "Zaoblený obdĺžnik";
 "Cam pos:" = "Poz. kam.:";
 "Cam size:" = "Veľk. kam.:";
 "Cam shape:" = "Tvar kam.:";
