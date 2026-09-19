@@ -201,4 +201,78 @@ final class LocalizationTests: XCTestCase {
         XCTAssertNotNil(Self.tables[LanguageManager.shared.resolvedLanguage],
                         "resolved to a locale that isn't shipped")
     }
+
+    // MARK: - Diacritic damage
+
+    /// A word written without diacritics where the same word appears accented
+    /// elsewhere in the file is usually damage: an old script stripped
+    /// diacritics from roughly 1,300 translated values, leaving misspelled UI
+    /// text in ten languages.
+    ///
+    /// Some are legitimate, though — a word can collapse onto another once
+    /// diacritics are removed (Vietnamese "trong", Czech case endings,
+    /// Romanian's definite-article forms), so this is a ceiling rather than a
+    /// ban. A locale that climbs above its budget has almost certainly been
+    /// re-damaged; the fix is to repair the strings, not to raise the number.
+    private static let diacriticSuspectBudget: [String: Int] = [
+        "ca": 3, "cs": 16, "es": 3, "fr": 6, "hr": 1, "pl": 1,
+        "pt": 4, "pt-BR": 3, "ro": 37, "sk": 3, "sv": 1, "tr": 4, "vi": 74,
+    ]
+
+    private static func deaccented(_ word: String) -> String {
+        String(word.decomposedStringWithCanonicalMapping.unicodeScalars.filter {
+            !(0x0300...0x036F).contains($0.value)
+        })
+    }
+
+    /// Counts words in `table` that are ASCII while the same word appears
+    /// accented in another value of the same table.
+    private static func diacriticSuspects(in table: [String: String]) -> [String: Int] {
+        var accented = Set<String>()
+        var plain: [String: Int] = [:]
+        for value in table.values {
+            for word in value.split(whereSeparator: { !$0.isLetter }).map(String.init) {
+                guard word.count > 3 else { continue }
+                if word.unicodeScalars.contains(where: { !$0.isASCII }) {
+                    accented.insert(deaccented(word).lowercased())
+                } else {
+                    plain[word.lowercased(), default: 0] += 1
+                }
+            }
+        }
+        return plain.filter { accented.contains($0.key) }
+    }
+
+    func testNoLocaleHasMoreDiacriticDamageThanItsBudget() {
+        var report: [String] = []
+        for (locale, table) in Self.tables.sorted(by: { $0.key < $1.key }) where locale != Self.baseLocale {
+            let suspects = Self.diacriticSuspects(in: table)
+            let count = suspects.values.reduce(0, +)
+            let budget = Self.diacriticSuspectBudget[locale] ?? 0
+            if count > budget {
+                let worst = suspects.sorted { $0.value > $1.value }.prefix(4)
+                    .map { "\($0.key) x\($0.value)" }.joined(separator: ", ")
+                report.append("\(locale): \(count) suspect words (budget \(budget)) — \(worst)")
+            }
+        }
+        XCTAssertTrue(report.isEmpty, """
+            Translations look like their diacritics were stripped:
+            \(report.joined(separator: "\n"))
+            """)
+    }
+
+    func testTheDiacriticBudgetDoesNotCoverLocalesThatAreClean() {
+        // Keeps the budget honest: an entry that is no longer needed should be
+        // removed rather than left as permanent slack.
+        for (locale, budget) in Self.diacriticSuspectBudget {
+            guard let table = Self.tables[locale] else {
+                return XCTFail("budget lists `\(locale)`, which isn't a shipped locale")
+            }
+            let count = Self.diacriticSuspects(in: table).values.reduce(0, +)
+            XCTAssertEqual(count, budget, """
+                `\(locale)` now has \(count) suspect words but the budget says \(budget). \
+                If translations were repaired, lower the budget to \(count).
+                """)
+        }
+    }
 }
