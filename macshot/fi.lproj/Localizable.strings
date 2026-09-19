@@ -31,10 +31,10 @@
 "Recent Captures" = "Viimeaikaiset kaappaukset";
 "Show History Panel" = "Näytä historiapaneeli";
 "Open Image..." = "Avaa kuva...";
-"Open from Clipboard" = "Avaa leikepoydalsta";
-"Pin from Clipboard" = "Kiinnita leikepoydalsta";
+"Open from Clipboard" = "Avaa leikepöydältä";
+"Pin from Clipboard" = "Kiinnitä leikepöydältä";
 "Preferences..." = "Asetukset...";
-"Check for Updates..." = "Tarkista paivitykset...";
+"Check for Updates..." = "Tarkista päivitykset...";
 "Quit macshot" = "Lopeta macshot";
 "No recent captures" = "Ei viimeaikaisia kaappauksia";
 "Clear History" = "Tyhjennä historia";
@@ -42,14 +42,14 @@
 /* History Panel */
 "Copy" = "Kopioi";
 "Open in Editor" = "Avaa editorissa";
-"Pin to Screen" = "Kiinnita ruudulle";
+"Pin to Screen" = "Kiinnitä ruudulle";
 "Quick Look" = "Pika-esikatselu";
 "Delete" = "Poista";
 "All" = "Kaikki";
 "Screenshots" = "Kuvakaappaukset";
 "GIFs" = "GIFs";
 "Click to copy · Drag to app" = "Napsauta kopioidaksesi · Vedä sovellukseen";
-"No captures yet" = "Ei kaappauksia viela";
+"No captures yet" = "Ei kaappauksia vielä";
 
 /* Floating Thumbnail */
 "Close All" = "Sulje kaikki";
@@ -57,12 +57,12 @@
 
 /* Editor Top Bar */
 "Zoom" = "Zoomaus";
-"Zoom In" = "Lahenna";
+"Zoom In" = "Lähennä";
 "Zoom Out" = "Loitonna";
 "Fit Canvas" = "Sovita kankaalle";
 "Crop" = "Rajaa";
-"Rotate Left" = "Kierra vasemmalle";
-"Rotate Right" = "Kierra oikealle";
+"Rotate Left" = "Kierrä vasemmalle";
+"Rotate Right" = "Kierrä oikealle";
 "Flip Horizontal" = "Käännä vaakasuunnassa";
 "Flip Vertical" = "Käännä pystysuunnassa";
 "Add Capture" = "Lisää kaappaus";
@@ -72,9 +72,9 @@
 "Line" = "Viiva";
 "Rectangle" = "Suorakulmio";
 "Ellipse" = "Ellipsi";
-"Pencil" = "Kyna";
-"Pencil (Draw)" = "Kyna (Piirra)";
-"Marker" = "Korostuskyna";
+"Pencil" = "Kynä";
+"Pencil (Draw)" = "Kynä (Piirrä)";
+"Marker" = "Korostuskynä";
 "Text" = "Teksti";
 "Number" = "Numero";
 "Number / Counter" = "Numero / Laskuri";
@@ -87,19 +87,19 @@
 "Highlight" = "Korosta";
 "Highlight (Spotlight)" = "Korosta (Kohdevalo)";
 "Dim" = "Himmennä";
-"Color Sampler" = "Varipoimija";
-"Color Picker" = "Varivalitsin";
+"Color Sampler" = "Väripoimija";
+"Color Picker" = "Värivalitsin";
 "Select & Edit" = "Valitse ja muokkaa";
 "Color" = "Väri";
 
 /* Toolbar - Actions */
-"Copy to Clipboard" = "Kopioi leikepoydale";
+"Copy to Clipboard" = "Kopioi leikepöydälle";
 "Save to File" = "Tallenna tiedostoon";
 "Save to" = "Tallenna kohteeseen";
 "Open in Editor Window" = "Avaa editori-ikkunassa";
-"Pin on Screen" = "Kiinnita ruudulle";
-"Pin" = "Kiinnita";
-"Pin (floating window)" = "Kiinnita (kelluva ikkuna)";
+"Pin on Screen" = "Kiinnitä ruudulle";
+"Pin" = "Kiinnitä";
+"Pin (floating window)" = "Kiinnitä (kelluva ikkuna)";
 "OCR" = "OCR";
 "OCR Text" = "OCR-teksti";
 "OCR (extract text)" = "OCR (poimi teksti)";
@@ -129,8 +129,8 @@
 "Custom \U00B7 %@" = "Mukautettu \U00B7 %@";
 "Resolution" = "Tarkkuus";
 "Freeform" = "Vapaamuotoinen";
-"Units" = "Yksikot";
-"Keep ratio for next captures" = "Sailyta suhde seuraavissa kaappauksissa";
+"Units" = "Yksiköt";
+"Keep ratio for next captures" = "Säilytä suhde seuraavissa kaappauksissa";
 
 /* Toolbar - Recording */
 "Start Recording" = "Aloita nauhoitus";
@@ -145,14 +145,14 @@
 "Stroke" = "Viiva";
 "Radius" = "Sade";
 "Start:" = "Aloitus:";
-"Draw:" = "Piirra:";
+"Draw:" = "Piirrä:";
 "Auto:" = "Auto:";
 "Fill" = "Täytä";
 "Outline" = "Reunaviiva";
 "More Emojis" = "Lisää emojeja";
 "Load Image" = "Lataa kuva";
-"Gradient Style" = "Liukuvarityyli";
-"On" = "Paalla";
+"Gradient Style" = "Liukuvärityyli";
+"On" = "Päällä";
 "Text Only" = "Vain teksti";
 "All Text" = "Kaikki teksti";
 "PII" = "PII";
@@ -162,7 +162,7 @@
 "Flip" = "Käännä";
 "Smooth" = "Tasoita";
 "Refined" = "Hienosäädetty";
-"Smart" = "Alykäs";
+"Smart" = "Älykäs";
 "Padding" = "Reunus";
 "Shadow" = "Varjo";
 "Right-click to add points" = "Lisää pisteet hiiren oikealla painikkeella";
@@ -182,8 +182,8 @@
 "Hold Space to move. Release to finish" = "Pidä välilyöntiä siirtääksesi. Vapauta lopettaaksesi";
 "Space" = "V\U00E4lily\U00F6nti";
 "Window snap: " = "Ikkunan tarttuminen: ";
-"Snap mode: " = "Tartuntitila: ";
-"ON" = "PAALLA";
+"Snap mode: " = "Tartuntatila: ";
+"ON" = "PÄÄLLÄ";
 "OFF" = "POIS";
 "WINDOW" = "IKKUNA";
 "ELEMENT" = "ELEMENTTI";
@@ -192,7 +192,7 @@
 "Right-click to copy" = "Kopioi oikealla napsautuksella";
 "Copied %@" = "Kopioitu %@";
 "Set color %@" = "Aseta väri %@";
-"Draw something first to use the move tool." = "Piirra ensin jotain kayttaaksesi siirtotyokalua.";
+"Draw something first to use the move tool." = "Piirrä ensin jotain käyttääksesi siirtotyökalua.";
 "Drag to reposition" = "Vedä siirtääksesi";
 
 /* Overlay - Popovers */
@@ -204,12 +204,12 @@
 "No Apps Available" = "Ei sovelluksia saatavilla";
 "No Share Services" = "Ei jakopalveluita";
 "Show in Finder" = "Näytä Finder-sovelluksessa";
-"Copy to clipboard" = "Kopioi leikepoydale";
+"Copy to clipboard" = "Kopioi leikepöydälle";
 
 /* Preferences - General */
 "macshot Preferences" = "macshot-asetukset";
 "General" = "Yleiset";
-"Tools" = "Tyokalut";
+"Tools" = "Työkalut";
 "Recording" = "Nauhoitus";
 "About" = "Tietoja";
 "Shortcuts" = "Pikanäppäimet";
@@ -220,35 +220,35 @@
 "Capture" = "Kaappaus";
 "Play sound on capture" = "Toista ääni kaappauksessa";
 "Play sound on copy" = "Toista ääni kopioitaessa";
-"Remember last selected tool" = "Muista viimeksi valittu tyokalu";
+"Remember last selected tool" = "Muista viimeksi valittu työkalu";
 "Show floating thumbnail after capture" = "Näytä kelluva pienoiskuva kaappauksen jälkeen";
 "Launch at login" = "Käynnistä kirjautumisen yhteydessä";
-"Show snap alignment guides" = "Näytä kohdistusoppaat";
+"Show snap alignment guides" = "Näytä kohdistusapuviivat";
 "Snap selection edges to image boundaries" = "Kohdista valinnan reunat kuvan rajoihin";
-"Enhance browser and Electron element snapping" = "Paranna selaimen ja Electronin elementt tartuntaa";
+"Enhance browser and Electron element snapping" = "Paranna selaimen ja Electronin elementtien tartuntaa";
 "Builds the target app's accessibility tree in Element mode. Disable this if a browser or Electron app becomes slow or has input issues." = "Rakentaa kohdeohjelman saavutettavuuspuun Element-tilassa. Poista tämä käytöstä, jos selain tai Electron-sovellus hidastuu tai sillä on input-ongelmia.";
 "Capture mouse cursor in screenshot" = "Kaappaa hiiren osoitin kuvakaappaukseen";
 "Double-click selection to copy" = "Kopioi kaksoisnapsauttamalla valintaa";
 "Hide capture instructions" = "Piilota kuvakaappausohjeet";
-"Use window title in saved filename" = "Kayta ikkunan otsikkoa tiedostonimessa";
+"Use window title in saved filename" = "Käytä ikkunan otsikkoa tiedostonimessä";
 "Hide menu bar icon" = "Piilota valikkopalkin kuvake";
 "Hotkeys still work. To show the icon again, re-launch macshot." = "Pikanäppäimet toimivat edelleen. Näytä kuvake uudelleen käynnistämällä macshot.";
-"Check for updates automatically" = "Tarkista paivitykset automaattisesti";
+"Check for updates automatically" = "Tarkista päivitykset automaattisesti";
 "Check for beta updates" = "Tarkista beetapäivitykset";
 "Thumbnail" = "Pienoiskuva";
 "  Dismiss after:" = "  Hylkää jälkeen:";
 "seconds before auto-dismiss (0 = never)" = "sekuntia ennen automaattista hylkäämistä (0 = ei koskaan)";
 "  Multiple previews:" = "  Useita esikatseluja:";
-"Stack (keep all)" = "Pinoa (sailyta kaikki)";
+"Stack (keep all)" = "Pinoa (säilytä kaikki)";
 "Replace (show only latest)" = "Korvaa (näytä vain viimeisin)";
 "Output" = "Tuloste";
 "Image format:" = "Kuvamuoto:";
 "Quality:" = "Laatu:";
 "%d%%" = "%d%%";
 "Save at standard resolution (1x)" = "Tallenna vakiotarkkuudella (1x)";
-"Halves dimensions on Retina displays, ~4x smaller files" = "Puolittaa mitat Retina-naytolla, ~4x pienemmat tiedostot";
-"Embed sRGB color profile" = "Upota sRGB-variprofiili";
-"Ensures consistent colors across different displays" = "Varmistaa yhtenaiset varit eri naytoilla";
+"Halves dimensions on Retina displays, ~4x smaller files" = "Puolittaa mitat Retina-näytöillä, ~4x pienemmät tiedostot";
+"Embed sRGB color profile" = "Upota sRGB-väriprofiili";
+"Ensures consistent colors across different displays" = "Varmistaa yhtenäiset värit eri näytöillä";
 "Screenshot History" = "Kuvakaappaushistoria";
 "History size:" = "Historian koko:";
 "screenshots kept on disk (0 = off)" = "kuvakaappausta säilytetään levyllä (0 = pois)";
@@ -266,10 +266,10 @@
 "OCR & QR Capture:" = "OCR- & QR-kaappaus:";
 "Show window + copy to clipboard" = "Näytä ikkuna + kopioi leikepöydälle";
 "Show window only" = "Näytä vain ikkuna";
-"Copy to clipboard only" = "Kopioi vain leikepoydale";
+"Copy to clipboard only" = "Kopioi vain leikepöydälle";
 "Enter / Quick Capture:" = "Enter / Pikakaappaus:";
 "Save to file" = "Tallenna tiedostoon";
-"Save + copy to clipboard" = "Tallenna + kopioi leikepoydale";
+"Save + copy to clipboard" = "Tallenna + kopioi leikepöydälle";
 "OCR Action" = "OCR-toiminto";
 "Save action:" = "Tallennustoiminto:";
 "Save to default folder" = "Tallenna oletuskansioon";
@@ -279,25 +279,25 @@
 "Menu bar icon:" = "Valikkopalkin kuvake:";
 "Default" = "Oletus";
 "Custom symbol" = "Mukautettu symboli";
-"Enter any SF Symbol name (e.g. camera.fill) or pick a preset. Browse names in Apple's SF Symbols app. Invalid names fall back to the default icon." = "Anna mika tahansa SF Symbol -nimi (esim. camera.fill) tai valitse esiasetus. Selaa nimia Applen SF Symbols -sovelluksessa. Virheelliset nimet palautuvat oletuskuvakkeeseen.";
+"Enter any SF Symbol name (e.g. camera.fill) or pick a preset. Browse names in Apple's SF Symbols app. Invalid names fall back to the default icon." = "Anna mikä tahansa SF Symbol -nimi (esim. camera.fill) tai valitse esiasetus. Selaa nimiä Applen SF Symbols -sovelluksessa. Virheelliset nimet palautuvat oletuskuvakkeeseen.";
 
 /* Preferences - Shortcuts */
 "Keyboard Shortcuts" = "Pikanäppäimet";
 "Hotkeys" = "Pikanäppäimet";
 "Clear shortcut" = "Tyhjennä pikanäppäin";
-"Press keys..." = "Paina nappaimia...";
+"Press keys..." = "Paina näppäimiä...";
 "Waiting..." = "Odotetaan...";
 
 /* Preferences - Tools */
-"Annotation Tools" = "Merkintasotyokalut";
-"Hidden tools are removed from the bottom toolbar." = "Piilotetut tyokalut poistetaan alapalkilta.";
+"Annotation Tools" = "Merkintätyökalut";
+"Hidden tools are removed from the bottom toolbar." = "Piilotetut työkalut poistetaan alapalkista.";
 "Capture Actions" = "Kaappaustoiminnot";
 "Menu Bar Order" = "Valikkopalkin j\U00E4rjestys";
 "Choose the order of capture actions in the macshot menu bar menu." = "Valitse kaappaustoimintojen j\U00E4rjestys macshot-valikkopalkkivalikossa.";
 "Move up" = "Siirr\U00E4 yl\U00F6s";
 "Move down" = "Siirr\U00E4 alas";
 "Bottom Toolbar Actions" = "Alapalkin toiminnot";
-"Hidden actions are removed from the bottom toolbar." = "Piilotetut toiminnot poistetaan alapalkilta.";
+"Hidden actions are removed from the bottom toolbar." = "Piilotetut toiminnot poistetaan alapalkista.";
 "Editor Actions" = "Editorin toiminnot";
 "Right Toolbar Actions" = "Oikean palkin toiminnot";
 "Hidden actions are removed from the right toolbar." = "Piilotetut toiminnot poistetaan oikeasta palkista.";
@@ -312,12 +312,12 @@
 "px (0 = unlimited)" = "px (0 = rajoittamaton)";
 "Behavior" = "Toiminta";
 "Auto-scroll (sends synthetic scroll events)" = "Automaattivieritys (lähettää synteettisiä vieritystapahtumia)";
-"Detect fixed/sticky headers" = "Tunnista kiinteat/tarttuvat ylatunnisteet";
+"Detect fixed/sticky headers" = "Tunnista kiinteät/tarttuvat ylätunnisteet";
 "Scroll speed:" = "Vieritysnopeus:";
 "Slow" = "Hidas";
 "Medium" = "Keskitaso";
 "Fast" = "Nopea";
-"Very fast" = "Erittain nopea";
+"Very fast" = "Erittäin nopea";
 "5 fps" = "5 fps";
 "10 fps" = "10 fps";
 "15 fps" = "15 fps";
@@ -337,21 +337,21 @@
 "imgbb (images only)" = "imgbb (vain kuvat)";
 "S3-Compatible (images + videos)" = "S3-yhteensopiva (kuvat + videot)";
 "S3-Compatible Storage" = "S3-yhteensopiva tallennustila";
-"Sign In with Google" = "Kirjaudu sisaan Googlella";
+"Sign In with Google" = "Kirjaudu sisään Googlella";
 "Sign Out" = "Kirjaudu ulos";
-"Signed in" = "Kirjautunut sisaan";
+"Signed in" = "Kirjautunut sisään";
 "Not signed in" = "Ei kirjautunut";
 "Account:" = "Tili:";
 "Folder:" = "Kansio:";
 "Test Connection" = "Testaa yhteys";
-"Fill in endpoint, bucket, and credentials first" = "Täytä ensin paatepiste, sailio ja tunnistetiedot";
+"Fill in endpoint, bucket, and credentials first" = "Täytä ensin päätepiste, säiliö ja tunnistetiedot";
 "Testing..." = "Testataan...";
 "Connection successful!" = "Yhteys onnistui!";
 "Leave empty to use default" = "Jätä tyhjäksi käyttääksesi oletusta";
-"Endpoint:" = "Paatepiste:";
+"Endpoint:" = "Päätepiste:";
 "Region:" = "Alue:";
-"Bucket:" = "Sailio:";
-"Access Key:" = "Kayttoavain:";
+"Bucket:" = "Säiliö:";
+"Access Key:" = "Käyttöavain:";
 "Secret Key:" = "Salainen avain:";
 "Public URL:" = "Julkinen URL:";
 "Path Prefix:" = "Polun etuliite:";
@@ -359,20 +359,20 @@
 "Sends the public-read ACL so uploaded files are viewable by anyone with the link. Needed for AWS S3, DigitalOcean Spaces, MinIO and Backblaze B2, which store objects privately by default. Leave off for Cloudflare R2, which has no ACLs and rejects the header." = "L\U00E4hett\U00E4\U00E4 public-read ACL -otsakkeen, jotta ladatut tiedostot ovat kaikkien n\U00E4ht\U00E4viss\U00E4 linkin kautta. Tarvitaan AWS S3:lle, DigitalOcean Spacesille, MinIO:lle ja Backblaze B2:lle, jotka tallentavat objektit oletuksena yksityisin\U00E4. J\U00E4t\U00E4 pois p\U00E4\U00E4lt\U00E4 Cloudflare R2:lle, joka ei tue ACL-otsakkeita ja hylk\U00E4\U00E4 ne.";
 "API key:" = "API-avain:";
 "Upload History" = "Lataushistoria";
-"No uploads yet." = "Ei latauksia viela.";
+"No uploads yet." = "Ei latauksia vielä.";
 "Base URL for public access. If empty, the S3 endpoint URL is used (may not be publicly accessible)." = "Julkisen pääsyn perus-URL. Jos tyhjä, käytetään S3-päätepisteen URL-osoitetta (ei välttämättä julkisesti saatavilla).";
 "A shared key is included — get your own free key at imgbb.com/api if you hit rate limits. Images only (no video support)." = "Jaettu avain on mukana — hanki oma ilmainen avain osoitteesta imgbb.com/api, jos kohtaat nopeusrajoituksia. Vain kuvat (ei videotukea).";
 "Works with AWS S3, Cloudflare R2, MinIO, DigitalOcean Spaces, Backblaze B2, and other S3-compatible services. Supports images and videos." = "Toimii AWS S3:n, Cloudflare R2:n, MinIO:n, DigitalOcean Spacesin, Backblaze B2:n ja muiden S3-yhteensopivien palveluiden kanssa. Tukee kuvia ja videoita.";
-"Configure S3 in Preferences" = "Maarittele S3 asetuksissa";
+"Configure S3 in Preferences" = "Määritä S3 asetuksissa";
 "Sign in to Google Drive in Preferences" = "Kirjaudu Google Driveen asetuksissa";
 "Video upload requires Google Drive or S3" = "Videon lataus vaatii Google Driven tai S3:n";
 
 /* Preferences - About */
 "macshot" = "macshot";
 "Version %@ (%@)" = "Versio %@ (%@)";
-"Made by" = "Tekija";
-"Licensed under the GPLv3" = "Lisensoitu GPLv3-lisenssilla";
-"A free, open-source screenshot & screen recording tool for macOS.\nFully native — built with Swift and AppKit." = "Ilmainen, avoimen lahdekoodin kuvakaappaus- ja ruudunnauhoitustyokalu macOS:lle.\nTaysin natiivi — rakennettu Swiftilla ja AppKitilla.";
+"Made by" = "Tekijä";
+"Licensed under the GPLv3" = "Lisensoitu GPLv3-lisenssillä";
+"A free, open-source screenshot & screen recording tool for macOS.\nFully native — built with Swift and AppKit." = "Ilmainen, avoimen lähdekoodin kuvakaappaus- ja ruudunnauhoitustyökalu macOS:lle.\nTäysin natiivi — rakennettu Swiftilla ja AppKitilla.";
 
 /* Alerts */
 "No Image on Clipboard" = "Ei kuvaa leikepöydällä";
@@ -380,12 +380,12 @@
 "Copy an image to the clipboard first, then try again." = "Kopioi ensin kuva leikepöydälle ja yritä sitten uudelleen.";
 "Copy an image or text to the clipboard first, then try again." = "Kopioi ensin kuva tai teksti leikepöydälle ja yritä sitten uudelleen.";
 "OK" = "OK";
-"Accessibility Access Required" = "Esteettomyysoikeus vaaditaan";
+"Accessibility Access Required" = "Esteettömyysoikeus vaaditaan";
 "macshot needs Accessibility permission to auto-scroll other apps. Please grant access in System Settings, then try again." = "macshot tarvitsee esteettömyysoikeuden vierittääkseen muita sovelluksia automaattisesti. Myönnä oikeus järjestelmän asetuksissa ja yritä uudelleen.";
 "macshot needs Accessibility permission for scroll capture. Please grant access in System Settings, then try again." = "macshot tarvitsee Esteettömyys-luvan vierityskaappausta varten. Myönnä käyttöoikeus Järjestelmäasetuksista ja yritä uudelleen.";
 "Open Settings" = "Avaa asetukset";
 "Cancel" = "Peruuta";
-"Microphone Access Required" = "Mikrofonin kayttoikeus vaaditaan";
+"Microphone Access Required" = "Mikrofonin käyttöoikeus vaaditaan";
 "macshot needs microphone permission to record voice audio. Open System Settings to grant access." = "macshot tarvitsee mikrofonin käyttöoikeuden äänittääkseen puhetta. Avaa järjestelmän asetukset myöntääksesi käyttöoikeuden.";
 "Upload to Google Drive?" = "Ladataanko Google Driveen?";
 "Upload to S3?" = "Ladataanko S3:een?";
@@ -395,8 +395,8 @@
 /* Permission Onboarding */
 "Welcome to macshot" = "Tervetuloa macshot-sovellukseen";
 "macshot needs one permission" = "macshot tarvitsee yhden luvan";
-"Screen Recording not yet granted" = "Ruudun nauhoituslupaa ei ole viela myonnetty";
-"Screen Recording granted!" = "Ruudun nauhoituslupa myonnetty!";
+"Screen Recording not yet granted" = "Ruudun nauhoituslupaa ei ole vielä myönnetty";
+"Screen Recording granted!" = "Ruudun nauhoituslupa myönnetty!";
 "Enable macshot, then try taking a screenshot" = "Ota macshot käyttöön ja kokeile kuvakaappausta";
 "Open Screen Recording Settings" = "Avaa ruudun nauhoitusasetukset";
 "Continue" = "Jatka";
@@ -404,16 +404,16 @@
 /* OCR Window */
 "Text Recognition" = "Tekstintunnistus";
 "Translate to:" = "Käännä kielelle:";
-"%d chars · %d words" = "%d merkkia · %d sanaa";
+"%d chars · %d words" = "%d merkkiä · %d sanaa";
 "Copy  ⌘↩" = "Kopioi  ⌘↩";
-"AI Search" = "Tekoalyhaku";
+"AI Search" = "Tekoälyhaku";
 "Show Original" = "Näytä alkuperäinen";
 "Translation Failed" = "Käännös epäonnistui";
 "Translation" = "Käännös";
 "(No text detected in the selected area)" = "(Tekstiä ei havaittu valitulta alueelta)";
 
 /* Upload Toast */
-"URL copied to the clipboard" = "URL kopioitu leikepoydale";
+"URL copied to the clipboard" = "URL kopioitu leikepöydälle";
 "Uploading... %d%%" = "Ladataan... %d%%";
 "Upload failed: %@" = "Lataus epäonnistui: %@";
 "Uploaded! Link copied." = "Ladattu! Linkki kopioitu.";
@@ -430,7 +430,7 @@
 /* Video Editor */
 "macshot Video Editor" = "macshot-videoeditori";
 "%@ selected" = "%@ valittu";
-"Exporting..." = "Viedaan...";
+"Exporting..." = "Viedään...";
 "Export failed" = "Vienti epäonnistui";
 "Saved to %@" = "Tallennettu kohteeseen %@";
 "Save failed" = "Tallennus epäonnistui";
@@ -439,7 +439,7 @@
 /* "Open" and "Copy" are shared with other sections */
 
 /* Save Panel */
-"Save As..." = "Tallenna nimella...";
+"Save As..." = "Tallenna nimellä...";
 "Choose a folder" = "Valitse kansio";
 "Save All to Folder…" = "Tallenna kaikki kansioon…";
 "Could not encode the screenshot." = "Kuvakaappausta ei voitu koodata.";
@@ -448,14 +448,14 @@
 /* Scroll Capture HUD */
 "Auto Scroll" = "Automaattivieritys";
 "Stop" = "Pysäytä";
-"Scrolling..." = "Vieritetaan...";
+"Scrolling..." = "Vieritetään...";
 
 /* Effects Picker (Adjust popover) */
 "Presets" = "Esiasetukset";
-"Adjustments" = "Saadot";
+"Adjustments" = "Säädöt";
 "Brightness" = "Kirkkaus";
 "Contrast" = "Kontrasti";
-"Saturation" = "Varikylläisyys";
+"Saturation" = "Värikylläisyys";
 "Sharpness" = "Terävyys";
 
 /* Time Ago */
@@ -496,15 +496,15 @@
 "Webcam" = "Webkamera";
 "Bottom Right" = "Oikea alakulma";
 "Bottom Left" = "Vasen alakulma";
-"Top Right" = "Oikea ylakulma";
-"Top Left" = "Vasen ylakulma";
+"Top Right" = "Oikea yläkulma";
+"Top Left" = "Vasen yläkulma";
 "Small" = "Pieni";
 "Large" = "Suuri";
 "Webcam Size Small" = "Pieni";
 "Webcam Size Medium" = "Keskitaso";
 "Webcam Size Large" = "Suuri";
-"Webcam Size Extra Large" = "Erittain suuri";
-"Circle" = "Ympyra";
+"Webcam Size Extra Large" = "Erittäin suuri";
+"Circle" = "Ympyrä";
 "Rounded Rectangle" = "Pyöristetty suorakulmio";
 "Cam pos:" = "Kameran sijainti:";
 "Cam size:" = "Kameran koko:";
@@ -521,8 +521,8 @@
 "Stop recording from the menu bar icon instead." = "Pys\U00E4yt\U00E4 nauhoitus valikkopalkin kuvakkeesta.";
 "Pixelate" = "Pikseloi";
 "Blur" = "Sumenna";
-"Solid" = "Yht\U00E4jaksoinen";
-"Erase" = "Pyhi";
+"Solid" = "Yhtenäinen";
+"Erase" = "Pyyhi";
 "Done" = "Valmis";
 "Do nothing" = "\U00C4l\U00E4 tee mit\U00E4\U00E4n";
 "Overlay / Editor Shortcuts" = "Peittokuvan / editorin pikan\U00E4pp\U00E4imet";
@@ -530,7 +530,7 @@
 "Press..." = "Paina...";
 "Reset to default" = "Palauta oletukseksi";
 "Press a single key to assign it as the shortcut for that tool. These work when the overlay or editor is active." = "Paina yht\U00E4 n\U00E4pp\U00E4int\U00E4 m\U00E4\U00E4ritt\U00E4\U00E4ksesi sen ty\U00F6kalun pikan\U00E4pp\U00E4imeksi. N\U00E4m\U00E4 toimivat, kun peittokuva tai editori on aktiivinen.";
-"Keep Separate" = "Pid\U00E4 erillaan";
+"Keep Separate" = "Pidä erillään";
 "Merge Audio" = "Yhdist\U00E4 \U00E4\U00E4ni";
 "Audio Tracks" = "\U00C4\U00E4niraidat";
 "Adjust volume for each audio track:" = "S\U00E4\U00E4d\U00E4 kunkin \U00E4\U00E4niraidan \U00E4\U00E4nenvoimakkuus:";
