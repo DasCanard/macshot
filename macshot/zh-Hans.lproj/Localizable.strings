@@ -427,6 +427,7 @@
 "Save failed" = "存储失败";
 "Could not encode the screenshot." = "无法编码截图。";
 "Could not save the screenshot: %@" = "无法存储截图: %@";
+"Could not save the screenshot to history." = "无法将截图存储到历史记录。";
 
 /* Barcode Detector */
 /* "Open" and "Copy" are shared with other sections */

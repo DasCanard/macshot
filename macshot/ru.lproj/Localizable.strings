@@ -446,6 +446,7 @@
 "Save All to Folder…" = "Сохранить все в папку…";
 "Could not encode the screenshot." = "Не удалось закодировать снимок экрана.";
 "Could not save the screenshot: %@" = "Не удалось сохранить снимок экрана: %@";
+"Could not save the screenshot to history." = "Не удалось сохранить снимок экрана в историю.";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "Авто-прокрутка";

@@ -447,6 +447,7 @@
 "Save All to Folder…" = "அனைத்தையும் கோப்புறையில் சேமி…";
 "Could not encode the screenshot." = "திரைப்பிடிப்பைக் குறியாக்கம் செய்ய முடியவில்லை.";
 "Could not save the screenshot: %@" = "திரைப்பிடிப்பைச் சேமிக்க முடியவில்லை: %@";
+"Could not save the screenshot to history." = "திரைப்பிடிப்பை வரலாற்றில் சேமிக்க முடியவில்லை.";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "தானியங்கு உருள்தல்";

@@ -444,6 +444,7 @@
 "Save All to Folder\U2026" = "Lagre alle i mappe\U2026";
 "Could not encode the screenshot." = "Kunne ikke kode skjermbildet.";
 "Could not save the screenshot: %@" = "Kunne ikke lagre skjermbildet: %@";
+"Could not save the screenshot to history." = "Kunne ikke lagre skjermbildet i historikken.";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "Autorulling";

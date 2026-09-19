@@ -27,7 +27,7 @@ final class ScreenshotHistoryTests: XCTestCase {
     /// composited image, thumbnail, preview, raw image, annotations, edit
     /// state. Waiting on the last file each capture expects avoids racing it.
     private func waitForWrites(_ history: ScreenshotHistory, entryCount: Int,
-                               expecting suffixes: [String] = [".png"],
+                               expecting suffixes: [String] = [".png", "_thumb.png", "_preview.png"],
                                file: StaticString = #filePath, line: UInt = #line) {
         // `add` writes on a utility queue, which can be starved for several
         // seconds on a loaded machine (a parallel build, say), so wait
@@ -67,7 +67,7 @@ final class ScreenshotHistoryTests: XCTestCase {
         withDefaults(["historySize": 10, "historyUnlimited": false]) {
             history.add(image: image, rawImage: image, annotations: annotations())
         }
-        waitForWrites(history, entryCount: 1, expecting: [".png", "_raw.png", "_annotations.json"])
+        waitForWrites(history, entryCount: 1, expecting: [".png", "_thumb.png", "_preview.png", "_raw.png", "_annotations.json"])
 
         // A second instance reads the index from disk, like the next launch does.
         let reloaded = makeHistory()
@@ -95,7 +95,7 @@ final class ScreenshotHistoryTests: XCTestCase {
         withDefaults(["historySize": 10, "historyUnlimited": false]) {
             history.add(image: image, rawImage: image, annotations: nil, editState: state)
         }
-        waitForWrites(history, entryCount: 1, expecting: [".png", "_edit.json"])
+        waitForWrites(history, entryCount: 1, expecting: [".png", "_thumb.png", "_preview.png", "_edit.json"])
 
         let reloaded = makeHistory()
         let entry = try XCTUnwrap(reloaded.entries.first)
@@ -111,7 +111,7 @@ final class ScreenshotHistoryTests: XCTestCase {
         withDefaults(["historySize": 10, "historyUnlimited": false]) {
             history.add(image: image, rawImage: image, annotations: annotations())
         }
-        waitForWrites(history, entryCount: 1, expecting: [".png", "_annotations.json"])
+        waitForWrites(history, entryCount: 1, expecting: [".png", "_thumb.png", "_preview.png", "_annotations.json"])
 
         let entry = try XCTUnwrap(history.entries.first)
         let annotationFile = directory.appendingPathComponent("\(entry.id)_annotations.json")
@@ -133,7 +133,7 @@ final class ScreenshotHistoryTests: XCTestCase {
         withDefaults(["historySize": 10, "historyUnlimited": false]) {
             history.add(image: image, rawImage: image, annotations: annotations())
         }
-        waitForWrites(history, entryCount: 1, expecting: [".png", "_annotations.json"])
+        waitForWrites(history, entryCount: 1, expecting: [".png", "_thumb.png", "_preview.png", "_annotations.json"])
 
         let entry = try XCTUnwrap(history.entries.first)
         try Data("truncated{".utf8).write(to: directory.appendingPathComponent("\(entry.id)_annotations.json"))

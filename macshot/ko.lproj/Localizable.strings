@@ -427,6 +427,7 @@
 "Save failed" = "저장 실패";
 "Could not encode the screenshot." = "스크린샷을 인코딩할 수 없습니다.";
 "Could not save the screenshot: %@" = "스크린샷을 저장할 수 없습니다: %@";
+"Could not save the screenshot to history." = "스크린샷을 기록에 저장할 수 없습니다.";
 
 /* Barcode Detector */
 /* "Open" and "Copy" are shared with other sections */

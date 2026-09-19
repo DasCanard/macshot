@@ -440,6 +440,7 @@
 "Save All to Folder…" = "Zachowaj wszystkie do folderu…";
 "Could not encode the screenshot." = "Nie udało się zakodować zrzutu ekranu.";
 "Could not save the screenshot: %@" = "Nie udało się zapisać zrzutu ekranu: %@";
+"Could not save the screenshot to history." = "Nie udało się zapisać zrzutu ekranu w historii.";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "Auto-przewijanie";

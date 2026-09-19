@@ -18,6 +18,10 @@ ARGS=(
   -configuration "$CONFIGURATION"
   -destination 'platform=macOS'
   -resultBundlePath "$RESULT_BUNDLE"
+  # Serial: parallel test processes share one UserDefaults domain, so tests
+  # that set a preference (image format, history size, shortcuts) clobber each
+  # other at random. The whole suite runs in a few seconds anyway.
+  -parallel-testing-enabled NO
 )
 for filter in "$@"; do
   ARGS+=(-only-testing:"macshotTests/$filter")
@@ -28,9 +32,11 @@ STATUS=$?
 
 LOG="${TMPDIR:-/tmp}/macshot-tests-$$.log"
 
-if grep -q "error:" "$LOG"; then
+# Compile errors only — a failing assertion is also reported with "error:",
+# and those belong in the summary below, not here.
+if grep -qE "^/.*\.swift:[0-9]+:[0-9]+: error:" "$LOG"; then
   echo "=== Build errors ==="
-  grep -E "error:" "$LOG" | sort -u | head -40
+  grep -E "^/.*\.swift:[0-9]+:[0-9]+: error:" "$LOG" | sort -u | head -40
   rm -rf "$RESULT_BUNDLE"
   exit 1
 fi

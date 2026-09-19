@@ -444,6 +444,7 @@
 "Save All to Folder…" = "Tallenna kaikki kansioon…";
 "Could not encode the screenshot." = "Kuvakaappausta ei voitu koodata.";
 "Could not save the screenshot: %@" = "Kuvakaappausta ei voitu tallentaa: %@";
+"Could not save the screenshot to history." = "Kuvakaappausta ei voitu tallentaa historiaan.";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "Automaattivieritys";

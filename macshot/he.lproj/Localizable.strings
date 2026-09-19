@@ -439,6 +439,7 @@
 "Save All to Folder…" = "שמור הכל לתיקייה…";
 "Could not encode the screenshot." = "לא ניתן היה לקודד את צילום המסך.";
 "Could not save the screenshot: %@" = "לא ניתן היה לשמור את צילום המסך: %@";
+"Could not save the screenshot to history." = "לא ניתן היה לשמור את צילום המסך בהיסטוריה.";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "גלילה אוטומטית";

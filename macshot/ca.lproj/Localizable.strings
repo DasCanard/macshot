@@ -439,6 +439,7 @@
 "Save All to Folder…" = "Desar tot a la carpeta...";
 "Could not encode the screenshot." = "No s'ha pogut codificar la captura de pantalla.";
 "Could not save the screenshot: %@" = "No s'ha pogut desar la captura de pantalla: %@";
+"Could not save the screenshot to history." = "No s'ha pogut desar la captura de pantalla a l'historial.";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "Desplaçament automàtic";

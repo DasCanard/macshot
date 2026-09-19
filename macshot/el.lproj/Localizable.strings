@@ -447,6 +447,7 @@
 "Save All to Folder…" = "Αποθήκευση όλων σε φάκελο…";
 "Could not encode the screenshot." = "Δεν ήταν δυνατή η κωδικοποίηση του στιγμιότυπου.";
 "Could not save the screenshot: %@" = "Δεν ήταν δυνατή η αποθήκευση του στιγμιότυπου: %@";
+"Could not save the screenshot to history." = "Δεν ήταν δυνατή η αποθήκευση του στιγμιότυπου στο ιστορικό.";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "Αυτόματη κύλιση";

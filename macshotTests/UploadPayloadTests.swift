@@ -150,7 +150,9 @@ final class UploadPayloadTests: XCTestCase {
         // Resident memory is a poor probe (freed chunks stay in the malloc
         // zone), so assert the property that actually matters: no single
         // append carries the whole payload.
-        let size = 64 * 1024 * 1024
+        // 16 MiB is plenty to prove chunking without making the rest of the
+        // suite fight this test for memory.
+        let size = 16 * 1024 * 1024
         let url = directory.appendingPathComponent("big.bin")
         let chunk = Data(repeating: 0xAB, count: UploadPayload.chunkSize)
         FileManager.default.createFile(atPath: url.path, contents: nil)
@@ -172,6 +174,7 @@ final class UploadPayloadTests: XCTestCase {
         XCTAssertEqual(totalAppended, size, "every byte must reach the body")
         XCTAssertLessThanOrEqual(largestAppend, UploadPayload.chunkSize,
                                  "a \(size / 1_048_576)MB payload was appended in one piece")
+        XCTAssertGreaterThan(size / UploadPayload.chunkSize, 1, "the fixture must span several chunks")
         XCTAssertEqual(try FileManager.default.attributesOfItem(atPath: destination.path)[.size] as? Int, size)
     }
 

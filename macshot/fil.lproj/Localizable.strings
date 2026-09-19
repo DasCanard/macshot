@@ -438,6 +438,7 @@
 "Save failed" = "Nabigo ang pag-save";
 "Could not encode the screenshot." = "Hindi ma-encode ang screenshot.";
 "Could not save the screenshot: %@" = "Hindi ma-save ang screenshot: %@";
+"Could not save the screenshot to history." = "Hindi ma-save ang screenshot sa history.";
 
 /* Barcode Detector */
 /* "Open" and "Copy" are shared with other sections */

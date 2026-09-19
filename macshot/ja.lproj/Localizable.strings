@@ -427,6 +427,7 @@
 "Save failed" = "保存に失敗しました";
 "Could not encode the screenshot." = "スクリーンショットをエンコードできませんでした。";
 "Could not save the screenshot: %@" = "スクリーンショットを保存できませんでした: %@";
+"Could not save the screenshot to history." = "スクリーンショットを履歴に保存できませんでした。";
 
 /* Barcode Detector */
 /* "Open" and "Copy" are shared with other sections */

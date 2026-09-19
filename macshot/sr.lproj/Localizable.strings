@@ -446,6 +446,7 @@
 "Save All to Folder…" = "Сачувај све у фасциклу…";
 "Could not encode the screenshot." = "Није могуће кодирати снимак екрана.";
 "Could not save the screenshot: %@" = "Није могуће сачувати снимак екрана: %@";
+"Could not save the screenshot to history." = "Није могуће сачувати снимак екрана у историју.";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "Аутоматско скроловање";

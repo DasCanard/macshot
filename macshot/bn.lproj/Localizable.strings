@@ -447,6 +447,7 @@
 "Save All to Folder…" = "সব ফোল্ডারে সংরক্ষণ করুন…";
 "Could not encode the screenshot." = "স্ক্রিনশট এনকোড করা যায়নি।";
 "Could not save the screenshot: %@" = "স্ক্রিনশট সংরক্ষণ করা যায়নি: %@";
+"Could not save the screenshot to history." = "স্ক্রিনশট ইতিহাসে সংরক্ষণ করা যায়নি।";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "স্বয়ংক্রিয় স্ক্রল";

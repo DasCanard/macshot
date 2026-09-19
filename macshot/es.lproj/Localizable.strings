@@ -437,6 +437,7 @@
 "Save All to Folder…" = "Guardar todo en carpeta…";
 "Could not encode the screenshot." = "No se pudo codificar la captura de pantalla.";
 "Could not save the screenshot: %@" = "No se pudo guardar la captura de pantalla: %@";
+"Could not save the screenshot to history." = "No se pudo guardar la captura de pantalla en el historial.";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "Auto desplazamiento";

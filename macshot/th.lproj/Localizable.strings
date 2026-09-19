@@ -438,6 +438,7 @@
 "Save failed" = "บันทึกล้มเหลว";
 "Could not encode the screenshot." = "ไม่สามารถเข้ารหัสภาพหน้าจอได้";
 "Could not save the screenshot: %@" = "ไม่สามารถบันทึกภาพหน้าจอได้: %@";
+"Could not save the screenshot to history." = "ไม่สามารถบันทึกภาพหน้าจอลงในประวัติได้";
 
 /* Barcode Detector */
 /* "Open" and "Copy" are shared with other sections */

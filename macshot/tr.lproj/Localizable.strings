@@ -439,6 +439,7 @@
 "Save All to Folder…" = "Tümünü Klasöre Kaydet…";
 "Could not encode the screenshot." = "Ekran görüntüsü kodlanamadı.";
 "Could not save the screenshot: %@" = "Ekran görüntüsü kaydedilemedi: %@";
+"Could not save the screenshot to history." = "Ekran görüntüsü geçmişe kaydedilemedi.";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "Otomatik Kaydır";

@@ -446,6 +446,7 @@
 "Save All to Folder…" = "Uložiť všetko do priečinka…";
 "Could not encode the screenshot." = "Nepodarilo sa zakódovať snímku obrazovky.";
 "Could not save the screenshot: %@" = "Nepodarilo sa uložiť snímku obrazovky: %@";
+"Could not save the screenshot to history." = "Nepodarilo sa uložiť snímku obrazovky do histórie.";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "Automatické posúvanie";

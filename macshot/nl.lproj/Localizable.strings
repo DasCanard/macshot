@@ -436,6 +436,7 @@
 "Save All to Folder…" = "Bewaar alles in map…";
 "Could not encode the screenshot." = "Kon de schermafbeelding niet coderen.";
 "Could not save the screenshot: %@" = "Kon de schermafbeelding niet opslaan: %@";
+"Could not save the screenshot to history." = "Kon de schermafbeelding niet opslaan in de geschiedenis.";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "Automatisch scrollen";

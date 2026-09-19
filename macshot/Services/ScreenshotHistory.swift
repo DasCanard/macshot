@@ -146,10 +146,17 @@ class ScreenshotHistory {
         let annURL = historyDir.appendingPathComponent("\(id)_annotations.json")
         let editURL = historyDir.appendingPathComponent("\(id)_edit.json")
         let histDir = historyDir
+        // Snapshot on the main thread: NSImage is not thread-safe, and this
+        // same instance is also held by the thumbnail panel and the editor.
+        // Reading it from the writer queue made tiffRepresentation return nil
+        // now and then, losing the capture image while the index entry stayed.
+        let snapshot = image.cgImage(forProposedRect: nil, context: nil, hints: nil)
+        let snapshotSize = image.size
         DispatchQueue.global(qos: .utility).async { [weak self] in
             guard let self = self else { return }
-            let thumb = self.makeThumbnail(image: image, maxWidth: 36)
-            let preview = self.makePreview(image: image)
+            let writable: NSImage = snapshot.map { NSImage(cgImage: $0, size: snapshotSize) } ?? image
+            let thumb = self.makeThumbnail(image: writable, maxWidth: 36)
+            let preview = self.makePreview(image: writable)
 
             // Briefly hold the thumbnail in memory so the menu bar can render
             // it before the disk write lands. Cleared once the disk file is
@@ -162,11 +169,15 @@ class ScreenshotHistory {
                 self.saveIndex()
             }
 
-            // Write composited image
-            if let tiff = image.tiffRepresentation,
-               let bitmap = NSBitmapImageRep(data: tiff),
-               let imageData = bitmap.representation(using: .png, properties: [:]) {
-                try? imageData.write(to: fileURL, options: .atomic)
+            // Write composited image. If this fails there is no capture to
+            // show, so drop the entry rather than leaving a row that silently
+            // disappears on the next launch.
+            if !Self.writePNG(writable, to: fileURL) {
+                DispatchQueue.main.async {
+                    self.removeEntry(id: id)
+                    ImageSaveService.reportFailure(L("Could not save the screenshot to history."))
+                }
+                return
             }
             if let thumbTiff = thumb.tiffRepresentation,
                let thumbBitmap = NSBitmapImageRep(data: thumbTiff),
@@ -283,11 +294,8 @@ class ScreenshotHistory {
                 try? prevPng.write(to: previewURL, options: .atomic)
             }
             // Raw image + annotations
-            if let raw = rawImage,
-               let rawTiff = raw.tiffRepresentation,
-               let rawBitmap = NSBitmapImageRep(data: rawTiff),
-               let rawData = rawBitmap.representation(using: .png, properties: [:]) {
-                try? rawData.write(to: rawURL, options: .atomic)
+            if let raw = rawImage, Self.writePNG(raw, to: rawURL) {
+                // kept: the un-annotated original backs "Edit"
             } else {
                 try? FileManager.default.removeItem(at: rawURL)
             }
@@ -459,6 +467,31 @@ class ScreenshotHistory {
             hasAnnotations = c.decodeOptional(.hasAnnotations)
             lastEditedAt = c.decodeOptional(.lastEditedAt)
         }
+    }
+
+    /// Writes `image` as a PNG, trying the CGImage path first and falling back
+    /// to the TIFF round-trip. Returns false when nothing could be written.
+    ///
+    /// The old single path (`tiffRepresentation` → `NSBitmapImageRep` →
+    /// `representation(using: .png)`) silently produced nil now and then, and
+    /// the `try?` swallowed it — leaving an index entry whose capture image
+    /// didn't exist, which then vanished from history on the next launch.
+    @discardableResult
+    nonisolated static func writePNG(_ image: NSImage, to url: URL) -> Bool {
+        if let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) {
+            let rep = NSBitmapImageRep(cgImage: cgImage)
+            if let data = rep.representation(using: .png, properties: [:]),
+               (try? data.write(to: url, options: .atomic)) != nil {
+                return true
+            }
+        }
+        if let tiff = image.tiffRepresentation,
+           let bitmap = NSBitmapImageRep(data: tiff),
+           let data = bitmap.representation(using: .png, properties: [:]),
+           (try? data.write(to: url, options: .atomic)) != nil {
+            return true
+        }
+        return false
     }
 
     private func saveIndex() {

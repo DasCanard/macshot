@@ -438,6 +438,7 @@
 "Save failed" = "Lưu thất bại";
 "Could not encode the screenshot." = "Không thể mã hóa ảnh chụp màn hình.";
 "Could not save the screenshot: %@" = "Không thể lưu ảnh chụp màn hình: %@";
+"Could not save the screenshot to history." = "Không thể lưu ảnh chụp màn hình vào lịch sử.";
 
 /* Barcode Detector */
 /* "Open" and "Copy" are shared with other sections */

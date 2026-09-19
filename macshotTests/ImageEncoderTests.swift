@@ -104,7 +104,7 @@ final class ImageEncoderTests: XCTestCase {
 
     func testLowerQualityMakesSmallerJPEGs() throws {
         // A photo-ish gradient, since flat colors compress the same at any quality.
-        let source = gradientImage(width: 200, height: 200)
+        let source = gradientImage(width: 120, height: 120)
         let low = try encode(format: .jpeg, quality: 0.1, image: source)
         let high = try encode(format: .jpeg, quality: 1.0, image: source)
         XCTAssertLessThan(low.count, high.count, "the quality slider has to actually change the file size")

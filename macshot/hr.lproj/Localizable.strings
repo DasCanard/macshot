@@ -446,6 +446,7 @@
 "Save All to Folder…" = "Spremi sve u mapu...";
 "Could not encode the screenshot." = "Nije moguće kodirati snimku zaslona.";
 "Could not save the screenshot: %@" = "Nije moguće spremiti snimku zaslona: %@";
+"Could not save the screenshot to history." = "Nije moguće spremiti snimku zaslona u povijest.";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "Automatsko pomicanje";

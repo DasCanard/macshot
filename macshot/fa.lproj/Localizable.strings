@@ -439,6 +439,7 @@
 "Save All to Folder…" = "ذخیره همه در پوشه…";
 "Could not encode the screenshot." = "کدگذاری تصویر صفحه ممکن نشد.";
 "Could not save the screenshot: %@" = "ذخیره تصویر صفحه ممکن نشد: %@";
+"Could not save the screenshot to history." = "ذخیره تصویر صفحه در تاریخچه ممکن نشد.";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "پیمایش خودکار";

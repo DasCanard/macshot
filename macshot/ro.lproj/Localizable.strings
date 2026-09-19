@@ -439,6 +439,7 @@
 "Save All to Folder…" = "Salvează toate în dosar...";
 "Could not encode the screenshot." = "Nu s-a putut codifica captura de ecran.";
 "Could not save the screenshot: %@" = "Nu s-a putut salva captura de ecran: %@";
+"Could not save the screenshot to history." = "Nu s-a putut salva captura de ecran în istoric.";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "Derulare automată";

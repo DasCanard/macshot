@@ -439,6 +439,7 @@
 "Save All to Folder…" = "حفظ الكل في مجلد…";
 "Could not encode the screenshot." = "تعذّر ترميز لقطة الشاشة.";
 "Could not save the screenshot: %@" = "تعذّر حفظ لقطة الشاشة: %@";
+"Could not save the screenshot to history." = "تعذّر حفظ لقطة الشاشة في السجل.";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "تمرير تلقائي";

@@ -694,3 +694,4 @@
 "Recording failed: %@" = "Recording failed: %@";
 "Could not encode the screenshot." = "Could not encode the screenshot.";
 "Could not save the screenshot: %@" = "Could not save the screenshot: %@";
+"Could not save the screenshot to history." = "Could not save the screenshot to history.";

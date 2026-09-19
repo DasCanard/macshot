@@ -46,6 +46,7 @@ jobs:
             -configuration Debug \
             -destination 'platform=macOS' \
             -resultBundlePath TestResults.xcresult \
+            -parallel-testing-enabled NO \
             CODE_SIGNING_ALLOWED=NO \
             | tee xcodebuild-test.log \
             | grep -E "Test (Suite|Case|session)|error:|warning: .*(deprecated|unused)|\*\*" || true
