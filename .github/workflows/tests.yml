@@ -52,6 +52,21 @@ jobs:
             | grep -E "Test (Suite|Case|session)|error:|warning: .*(deprecated|unused)|\*\*" || true
           exit ${PIPESTATUS[0]}
 
+      # The offline variant is a shipping product with upload code compiled
+      # out, so the suite has to build and pass there too.
+      - name: Run unit tests (offline variant)
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -scheme macshotTests \
+            -configuration Debug \
+            -destination 'platform=macOS' \
+            -parallel-testing-enabled NO \
+            CODE_SIGNING_ALLOWED=NO \
+            SWIFT_ACTIVE_COMPILATION_CONDITIONS='$(inherited) OFFLINE' \
+            | grep -E "Executed .* tests|error:|\*\*" || true
+          exit ${PIPESTATUS[0]}
+
       - name: Summarize failures
         if: always()
         run: |
