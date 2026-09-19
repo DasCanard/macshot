@@ -158,8 +158,10 @@ enum LaunchCleanup {
 /// Preserves:
 ///   - `macshot-clipboard.png` and `macshot-clipboard-recording.*`
 ///     (fixed paths that are always-overwritten by design).
-///   - `Recording *` files (user-visible when `recordingOnStop = "finder"`;
-///     auto-deleting would silently lose their recording).
+///
+/// `Recording *` files ARE swept after the 24-hour TTL — see the rationale on
+/// `stalePrefixes` below. (An older version of this comment claimed they were
+/// preserved, which contradicted the code.)
 ///
 /// 24-hour TTL so in-flight operations can't get clobbered.
 private struct TmpFileCleaner: LaunchCleaner {

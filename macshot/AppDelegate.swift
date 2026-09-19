@@ -985,6 +985,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUUpdaterDelegate {
     /// then `orderFront` them when the overlay dismisses. Kept in the order
     /// they appeared so restoring preserves relative z-order.
     private var stashedBackgroundWindows: [NSWindow] = []
+    /// Bumped per capture so a previous capture's restore timer can't restore
+    /// the windows this one just stashed.
+    private var backgroundWindowRestoreGeneration: UInt64 = 0
+    private var backgroundWindowRestoreObserver: NSObjectProtocol?
 
     /// True when floating thumbnails or pin windows are visible.
     var hasVisibleFloatingPanels: Bool {
@@ -1686,25 +1690,45 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUUpdaterDelegate {
     private func scheduleBackgroundWindowRestore() {
         guard !stashedBackgroundWindows.isEmpty else { return }
         let ws = NSWorkspace.shared.notificationCenter
+        // Tag this restore so the 1s fallback can tell whether it still owns
+        // the job. Without it, a capture started within a second of the last
+        // one had its windows restored by the *previous* capture's timer —
+        // which then left a titled window on screen, so focus was never handed
+        // back to the app the user came from.
+        backgroundWindowRestoreGeneration &+= 1
+        let generation = backgroundWindowRestoreGeneration
         var token: NSObjectProtocol?
+        let releaseObserver = { [weak self] in
+            guard let token else { return }
+            ws.removeObserver(token)
+            self?.backgroundWindowRestoreObserver = nil
+        }
         token = ws.addObserver(
             forName: NSWorkspace.didActivateApplicationNotification,
             object: nil,
             queue: .main
         ) { [weak self] note in
-            guard let self = self else { return }
+            guard let self = self, self.backgroundWindowRestoreGeneration == generation else {
+                releaseObserver()
+                return
+            }
             if let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
                app.bundleIdentifier != Bundle.main.bundleIdentifier {
-                if let token = token { ws.removeObserver(token) }
+                releaseObserver()
                 self.restoreBackgroundWindowsNow()
             }
         }
+        backgroundWindowRestoreObserver = token
         // Fallback — if no other app ever activates in the next 1s just
         // restore anyway. Otherwise the windows would stay invisible.
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
             guard let self = self else { return }
+            // A newer capture owns the stash now; leave it to that one.
+            guard self.backgroundWindowRestoreGeneration == generation else { return }
+            // Always drop the observer, even when another path already emptied
+            // the stash — otherwise the registration leaked for the session.
+            releaseObserver()
             if !self.stashedBackgroundWindows.isEmpty {
-                if let token = token { ws.removeObserver(token) }
                 self.restoreBackgroundWindowsNow()
             }
         }

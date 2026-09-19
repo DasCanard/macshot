@@ -275,6 +275,13 @@ final class GoogleDriveUploader: NSObject, ASWebAuthenticationPresentationContex
 
     // MARK: - Drive Operations
 
+    /// Forgets the resolved destination folder so the next upload looks it up
+    /// (or recreates it) from scratch.
+    func invalidateFolderCache() {
+        cachedFolderID = nil
+        cachedFolderName = nil
+    }
+
     private func ensureDestinationFolder(completion: @escaping (Result<String, Error>) -> Void) {
         let name = folderName
         if let id = cachedFolderID, cachedFolderName == name { completion(.success(id)); return }
@@ -462,6 +469,12 @@ final class GoogleDriveUploader: NSObject, ASWebAuthenticationPresentationContex
             let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
             if let apiError = json?["error"] as? [String: Any],
                let message = apiError["message"] as? String {
+                // The destination folder can be deleted in Drive while the app
+                // is running. Drop the cached id so the next upload recreates
+                // it instead of posting to a dead parent forever.
+                if statusCode == 404 || message.localizedCaseInsensitiveContains("not found") {
+                    self?.invalidateFolderCache()
+                }
                 DispatchQueue.main.async {
                     self?.onProgress = nil
                     completion(.failure(Self.error("Upload: \(message) (HTTP \(statusCode))")))

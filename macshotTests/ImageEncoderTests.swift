@@ -91,9 +91,13 @@ final class ImageEncoderTests: XCTestCase {
 
     func testPNGIgnoresTheQualitySetting() throws {
         let source = ImageProbe.quadrantImage()
-        let low = try encode(format: .png, quality: 0.1, image: source)
-        let high = try encode(format: .png, quality: 1.0, image: source)
-        XCTAssertEqual(low.count, high.count, "PNG is lossless — quality must not change the output")
+        let low = try XCTUnwrap(NSImage(data: try encode(format: .png, quality: 0.1, image: source)))
+        let high = try XCTUnwrap(NSImage(data: try encode(format: .png, quality: 1.0, image: source)))
+        // Compare pixels rather than byte counts: PNG is lossless, so the
+        // quality slider must not change what comes back, while file size can
+        // legitimately differ by embedded metadata.
+        XCTAssertEqual(FieldDescriber.describe(low), FieldDescriber.describe(high),
+                       "PNG is lossless — quality must not change the image")
     }
 
     // MARK: - Quality
