@@ -27,9 +27,10 @@ enum ImageUploader {
 
         let base64String = pngData.base64EncodedString()
 
-        let urlString = "https://api.imgbb.com/1/upload?key=\(apiKey)"
-        guard let url = URL(string: urlString) else {
-            completion(.failure(NSError(domain: "ImageUploader", code: 2, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])))
+        var components = URLComponents(string: "https://api.imgbb.com/1/upload")
+        components?.queryItems = [URLQueryItem(name: "key", value: apiKey.trimmingCharacters(in: .whitespacesAndNewlines))]
+        guard let url = components?.url else {
+            completion(.failure(NSError(domain: "ImageUploader", code: 2, userInfo: [NSLocalizedDescriptionKey: "Invalid imgbb API key"])))
             return
         }
 
@@ -37,6 +38,7 @@ enum ImageUploader {
         let boundary = UUID().uuidString
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
+        request.timeoutInterval = 60
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
 
         var body = Data()
@@ -62,6 +64,20 @@ enum ImageUploader {
                 return
             }
 
+            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
+            let looksLikeJSON = (try? JSONSerialization.jsonObject(with: data)) != nil
+            if !looksLikeJSON {
+                // A CDN or proxy error page, not an API response.
+                let message = statusCode >= 400
+                    ? "imgbb returned HTTP \(statusCode)"
+                    : "imgbb returned an unreadable response"
+                DispatchQueue.main.async {
+                    completion(.failure(NSError(domain: "ImageUploader", code: 5,
+                                                userInfo: [NSLocalizedDescriptionKey: message])))
+                }
+                return
+            }
+
             do {
                 guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
                       let success = json["success"] as? Bool, success,
@@ -78,7 +94,7 @@ enum ImageUploader {
                               let status = json["status_code"] as? Int {
                         errorMsg = "API error (status \(status))"
                     } else {
-                        errorMsg = "Unknown error"
+                        errorMsg = statusCode >= 400 ? "imgbb returned HTTP \(statusCode)" : "Unknown error"
                     }
                     DispatchQueue.main.async {
                         completion(.failure(NSError(domain: "ImageUploader", code: 4, userInfo: [NSLocalizedDescriptionKey: errorMsg])))

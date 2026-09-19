@@ -425,6 +425,7 @@
 /* Recording Toast */
 "Recording saved" = "Na-save ang recording";
 "%@ • Recording saved" = "%@ • Na-save ang recording";
+"Recording failed: %@" = "Nabigo ang pag-record: %@";
 "Copy Path" = "Kopyahin ang Path";
 "Path copied!" = "Nakopya ang path!";
 
@@ -435,6 +436,8 @@
 "Export failed" = "Nabigo ang pag-export";
 "Saved to %@" = "Na-save sa %@";
 "Save failed" = "Nabigo ang pag-save";
+"Could not encode the screenshot." = "Hindi ma-encode ang screenshot.";
+"Could not save the screenshot: %@" = "Hindi ma-save ang screenshot: %@";
 
 /* Barcode Detector */
 /* "Open" and "Copy" are shared with other sections */

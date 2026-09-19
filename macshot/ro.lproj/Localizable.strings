@@ -418,6 +418,7 @@
 /* Recording Toast */
 "Recording saved" = "Inregistrare salvata";
 "%@ • Recording saved" = "%@ • Inregistrare salvata";
+"Recording failed: %@" = "Înregistrarea a eșuat: %@";
 "Copy Path" = "Copiaza calea";
 "Path copied!" = "Cale copiata!";
 
@@ -436,6 +437,8 @@
 "Save As..." = "Salveaza ca...";
 "Choose a folder" = "Alege un dosar";
 "Save All to Folder…" = "Salveaza toate in dosar...";
+"Could not encode the screenshot." = "Nu s-a putut codifica captura de ecran.";
+"Could not save the screenshot: %@" = "Nu s-a putut salva captura de ecran: %@";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "Derulare automata";

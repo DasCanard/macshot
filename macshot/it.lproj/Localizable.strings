@@ -408,6 +408,7 @@
 /* Recording Toast */
 "Recording saved" = "Registrazione salvata";
 "%@ • Recording saved" = "%@ • Registrazione salvata";
+"Recording failed: %@" = "Registrazione fallita: %@";
 "Copy Path" = "Copia percorso";
 "Path copied!" = "Percorso copiato!";
 
@@ -424,6 +425,8 @@
 "Save Recording" = "Salva registrazione";
 "Choose a folder" = "Scegli una cartella";
 "Save All to Folder…" = "Salva tutto nella cartella…";
+"Could not encode the screenshot." = "Impossibile codificare lo screenshot.";
+"Could not save the screenshot: %@" = "Impossibile salvare lo screenshot: %@";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "Scorrimento auto";

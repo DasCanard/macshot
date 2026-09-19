@@ -422,6 +422,7 @@
 /* Recording Toast */
 "Recording saved" = "Enregistrement sauvegardé";
 "%@ • Recording saved" = "%@ • Enregistrement sauvegardé";
+"Recording failed: %@" = "Échec de l'enregistrement vidéo : %@";
 "Copy Path" = "Copier le chemin";
 "Path copied!" = "Chemin copié !";
 
@@ -441,6 +442,8 @@
 "Save Recording" = "Enregistrer la vidéo";
 "Choose a folder" = "Choisir un dossier";
 "Save All to Folder…" = "Tout enregistrer dans un dossier…";
+"Could not encode the screenshot." = "Impossible d'encoder la capture d'écran.";
+"Could not save the screenshot: %@" = "Impossible d'enregistrer la capture d'écran : %@";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "Défilement auto.";

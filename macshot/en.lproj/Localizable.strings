@@ -691,3 +691,6 @@
 "No nearby edges found" = "No nearby edges found";
 "Selection adjusted" = "Selection adjusted";
 "Selection is already aligned" = "Selection is already aligned";
+"Recording failed: %@" = "Recording failed: %@";
+"Could not encode the screenshot." = "Could not encode the screenshot.";
+"Could not save the screenshot: %@" = "Could not save the screenshot: %@";

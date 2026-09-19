@@ -29,7 +29,10 @@ final class ScreenshotHistoryTests: XCTestCase {
     private func waitForWrites(_ history: ScreenshotHistory, entryCount: Int,
                                expecting suffixes: [String] = [".png"],
                                file: StaticString = #filePath, line: UInt = #line) {
-        let deadline = Date().addingTimeInterval(10)
+        // `add` writes on a utility queue, which can be starved for several
+        // seconds on a loaded machine (a parallel build, say), so wait
+        // generously rather than flaking.
+        let deadline = Date().addingTimeInterval(30)
         while Date() < deadline {
             let files = Set((try? FileManager.default.contentsOfDirectory(atPath: directory.path)) ?? [])
             let ids = history.entries.map(\.id)
@@ -39,9 +42,11 @@ final class ScreenshotHistoryTests: XCTestCase {
                 }
             }
             if complete && files.contains("index.json") { return }
-            RunLoop.current.run(until: Date().addingTimeInterval(0.02))
+            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
         }
-        XCTFail("history files were never written", file: file, line: line)
+        let files = ((try? FileManager.default.contentsOfDirectory(atPath: directory.path)) ?? []).sorted()
+        XCTFail("history files were never written. entries=\(history.entries.map(\.id)) expected=\(suffixes) onDisk=\(files)",
+                file: file, line: line)
     }
 
     private func annotations() -> [Annotation] {

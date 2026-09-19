@@ -425,6 +425,7 @@
 /* Recording Toast */
 "Recording saved" = "錄製已儲存";
 "%@ • Recording saved" = "%@ · 錄製已儲存";
+"Recording failed: %@" = "錄製失敗：%@";
 "Copy Path" = "拷貝路徑";
 "Path copied!" = "路徑已拷貝！";
 
@@ -435,6 +436,8 @@
 "Export failed" = "輸出失敗";
 "Saved to %@" = "已儲存至 %@";
 "Save failed" = "儲存失敗";
+"Could not encode the screenshot." = "無法編碼螢幕截圖。";
+"Could not save the screenshot: %@" = "無法儲存螢幕截圖：%@";
 
 /* Barcode Detector */
 /* "Open" and "Copy" are shared with other sections */

@@ -2188,8 +2188,19 @@ private final class VideoEditorView: NSView {
     }
 
     private func saveToDestination(_ destURL: URL, dirURL: URL?) {
+        // Security-scoped access is reference counted, and the failure paths
+        // below used to return without releasing it — each failed save pinned
+        // another sandbox extension until the app quit. Release exactly once,
+        // whichever way this returns.
+        var scopedDirectory = dirURL
+        func releaseScopedAccess() {
+            guard let url = scopedDirectory else { return }
+            scopedDirectory = nil
+            SaveDirectoryAccess.stopAccessing(url: url)
+        }
+
         guard !isExporting else {
-            if let dirURL = dirURL { SaveDirectoryAccess.stopAccessing(url: dirURL) }
+            releaseScopedAccess()
             return
         }
         let needsExport = hasPendingEdits
@@ -2202,7 +2213,7 @@ private final class VideoEditorView: NSView {
             // fail — losing the user's video. In that case there's nothing to do.
             if destURL.standardizedFileURL == videoURL.standardizedFileURL {
                 savedURL = destURL
-                if let dirURL = dirURL { SaveDirectoryAccess.stopAccessing(url: dirURL) }
+                releaseScopedAccess()
                 showStatus(String(format: L("Saved to %@"), destURL.lastPathComponent))
                 needsDisplay = true
                 return
@@ -2211,11 +2222,13 @@ private final class VideoEditorView: NSView {
             do {
                 try FileManager.default.copyItem(at: videoURL, to: destURL)
                 savedURL = destURL
-                if let dirURL = dirURL { SaveDirectoryAccess.stopAccessing(url: dirURL) }
+                releaseScopedAccess()
                 showStatus(String(format: L("Saved to %@"), destURL.lastPathComponent))
                 needsDisplay = true
             } catch {
-                if dirURL != nil {
+                let hadBookmarkedDirectory = scopedDirectory != nil
+                releaseScopedAccess()
+                if hadBookmarkedDirectory {
                     // Bookmarked directory failed — fall back to Save As
                     saveVideoAs()
                 } else {
@@ -2225,7 +2238,10 @@ private final class VideoEditorView: NSView {
             return
         }
 
-        guard let asset = asset else { return }
+        guard let asset = asset else {
+            releaseScopedAccess()
+            return
+        }
         showStatus(L("Exporting..."), persist: true)
 
         let tmpURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".\(videoURL.pathExtension)")
@@ -2235,12 +2251,12 @@ private final class VideoEditorView: NSView {
 
         performExport(asset: asset, timeRange: timeRange, outputURL: tmpURL) { [weak self] success in
             guard let self = self else { return }
+            defer { releaseScopedAccess() }
             if success {
                 try? FileManager.default.removeItem(at: destURL)
                 do {
                     try FileManager.default.moveItem(at: tmpURL, to: destURL)
                     self.savedURL = destURL
-                    if let dirURL = dirURL { SaveDirectoryAccess.stopAccessing(url: dirURL) }
                     self.showStatus(String(format: L("Saved to %@"), destURL.lastPathComponent))
                     self.needsDisplay = true
                 } catch {

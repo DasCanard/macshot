@@ -426,6 +426,7 @@
 /* Recording Toast */
 "Recording saved" = "பதிவு சேமிக்கப்பட்டது";
 "%@ • Recording saved" = "%@ • பதிவு சேமிக்கப்பட்டது";
+"Recording failed: %@" = "பதிவு தோல்வி: %@";
 "Copy Path" = "பாதையை நகலெடு";
 "Path copied!" = "பாதை நகலெடுக்கப்பட்டது!";
 
@@ -444,6 +445,8 @@
 "Save As..." = "இவ்வாறு சேமி...";
 "Choose a folder" = "கோப்புறையைத் தேர்வுசெய்";
 "Save All to Folder…" = "அனைத்தையும் கோப்புறையில் சேமி…";
+"Could not encode the screenshot." = "திரைப்பிடிப்பைக் குறியாக்கம் செய்ய முடியவில்லை.";
+"Could not save the screenshot: %@" = "திரைப்பிடிப்பைச் சேமிக்க முடியவில்லை: %@";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "தானியங்கு உருள்தல்";

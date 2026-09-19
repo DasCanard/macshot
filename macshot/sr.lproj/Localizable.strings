@@ -425,6 +425,7 @@
 /* Recording Toast */
 "Recording saved" = "Снимак сачуван";
 "%@ • Recording saved" = "%@ • Снимак сачуван";
+"Recording failed: %@" = "Снимање неуспешно: %@";
 "Copy Path" = "Копирај путању";
 "Path copied!" = "Путања копирана!";
 
@@ -443,6 +444,8 @@
 "Save As..." = "Сачувај као...";
 "Choose a folder" = "Изаберите фасциклу";
 "Save All to Folder…" = "Сачувај све у фасциклу…";
+"Could not encode the screenshot." = "Није могуће кодирати снимак екрана.";
+"Could not save the screenshot: %@" = "Није могуће сачувати снимак екрана: %@";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "Аутоматско скроловање";

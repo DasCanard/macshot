@@ -425,6 +425,7 @@
 /* Recording Toast */
 "Recording saved" = "Rekaman disimpan";
 "%@ • Recording saved" = "%@ • Rekaman disimpan";
+"Recording failed: %@" = "Perekaman gagal: %@";
 "Copy Path" = "Salin Path";
 "Path copied!" = "Path disalin!";
 
@@ -435,6 +436,8 @@
 "Export failed" = "Ekspor gagal";
 "Saved to %@" = "Disimpan ke %@";
 "Save failed" = "Gagal menyimpan";
+"Could not encode the screenshot." = "Tidak dapat mengodekan tangkapan layar.";
+"Could not save the screenshot: %@" = "Tidak dapat menyimpan tangkapan layar: %@";
 
 /* Barcode Detector */
 /* "Open" and "Copy" are shared with other sections */

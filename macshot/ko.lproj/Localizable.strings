@@ -414,6 +414,7 @@
 /* Recording Toast */
 "Recording saved" = "녹화 저장됨";
 "%@ • Recording saved" = "%@ · 녹화 저장됨";
+"Recording failed: %@" = "녹화 실패: %@";
 "Copy Path" = "경로 복사";
 "Path copied!" = "경로가 복사되었습니다!";
 
@@ -424,6 +425,8 @@
 "Export failed" = "내보내기 실패";
 "Saved to %@" = "%@에 저장됨";
 "Save failed" = "저장 실패";
+"Could not encode the screenshot." = "스크린샷을 인코딩할 수 없습니다.";
+"Could not save the screenshot: %@" = "스크린샷을 저장할 수 없습니다: %@";
 
 /* Barcode Detector */
 /* "Open" and "Copy" are shared with other sections */

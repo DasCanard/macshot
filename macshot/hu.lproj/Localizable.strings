@@ -426,6 +426,7 @@
 /* Recording Toast */
 "Recording saved" = "Felvétel mentve";
 "%@ • Recording saved" = "%@ • Felvétel mentve";
+"Recording failed: %@" = "Felvétel sikertelen: %@";
 "Copy Path" = "Útvonal másolása";
 "Path copied!" = "Útvonal másolva!";
 
@@ -444,6 +445,8 @@
 "Save As..." = "Mentés másként...";
 "Choose a folder" = "Válassz mappát";
 "Save All to Folder…" = "Összes mentése mappába…";
+"Could not encode the screenshot." = "Nem sikerült kódolni a képernyőképet.";
+"Could not save the screenshot: %@" = "Nem sikerült menteni a képernyőképet: %@";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "Automatikus görgetés";

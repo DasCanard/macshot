@@ -31,6 +31,25 @@ enum SaveActionPreference: Int, CaseIterable {
 enum ImageSaveService {
     typealias Completion = (Bool) -> Void
 
+    /// Called with a user-facing message when a save fails. AppDelegate wires
+    /// this to a toast at launch. Before it existed, a failed write was logged
+    /// in DEBUG only and every call site ignored the `false` completion — the
+    /// overlay dismissed, the thumbnail animated, and the screenshot was gone
+    /// with no indication it had ever been lost.
+    nonisolated(unsafe) static var onFailure: ((String) -> Void)?
+
+    static func reportFailure(_ message: String) {
+        DispatchQueue.main.async { onFailure?(message) }
+    }
+
+    /// Writes a screenshot into `directory` without overwriting an existing
+    /// file. Exposed for tests; the app goes through `save`.
+    static func writeImageForTesting(_ image: NSImage, toDirectory directory: URL,
+                                     filename: String, completion: Completion?) {
+        writeImage(image, toDirectory: directory, filename: filename,
+                   securityScoped: false, completion: completion)
+    }
+
     static func save(
         _ image: NSImage,
         using action: SaveActionPreference = .current,
@@ -103,7 +122,13 @@ enum ImageSaveService {
         }
 
         let handler: (NSApplication.ModalResponse) -> Void = { response in
-            guard response == .OK, let url = panel.url, let imageData = ImageEncoder.encode(image) else {
+            // Cancelling the panel is not a failure — don't report it.
+            guard response == .OK, let url = panel.url else {
+                completionOnMain(completion, false)
+                return
+            }
+            guard let imageData = ImageEncoder.encode(image) else {
+                reportFailure(L("Could not encode the screenshot."))
                 completionOnMain(completion, false)
                 return
             }
@@ -112,9 +137,8 @@ enum ImageSaveService {
                     try imageData.write(to: url)
                     completionOnMain(completion, true)
                 } catch {
-                    #if DEBUG
                     NSLog("macshot: failed to save screenshot to \(url.path): \(error.localizedDescription)")
-                    #endif
+                    reportFailure(String(format: L("Could not save the screenshot: %@"), error.localizedDescription))
                     completionOnMain(completion, false)
                 }
             }
@@ -139,6 +163,7 @@ enum ImageSaveService {
         DispatchQueue.global(qos: .userInitiated).async {
             defer { if securityScoped { SaveDirectoryAccess.stopAccessing(url: dirURL) } }
             guard let imageData = ImageEncoder.encode(image) else {
+                reportFailure(L("Could not encode the screenshot."))
                 completionOnMain(completion, false)
                 return
             }
@@ -147,9 +172,8 @@ enum ImageSaveService {
                 try writeWithoutOverwriting(imageData, in: dirURL, filename: filename)
                 completionOnMain(completion, true)
             } catch {
-                #if DEBUG
                 NSLog("macshot: failed to save screenshot in \(dirURL.path): \(error.localizedDescription)")
-                #endif
+                reportFailure(String(format: L("Could not save the screenshot: %@"), error.localizedDescription))
                 completionOnMain(completion, false)
             }
         }

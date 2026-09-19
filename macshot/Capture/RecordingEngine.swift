@@ -15,6 +15,17 @@ final class RecordingEngine: NSObject {
     enum State { case idle, recording, paused, stopping }
     private(set) var state: State = .idle
 
+    /// Setup runs in a Task and suspends several times (mic permission,
+    /// SCShareableContent, startCapture). `stopRecording` waits on this so it
+    /// never tears down a session whose stream hasn't been assigned yet.
+    private var setupTask: Task<Void, Never>?
+    /// True once the user asked to stop, or setup failed. Checked after every
+    /// suspension point: bringing a stream up after that leaves the daemon
+    /// capturing into a stream nothing can stop.
+    private var sessionEnded: Bool { state == .idle || state == .stopping }
+    /// `onCompletion` must fire exactly once per session.
+    private var didReportCompletion = false
+
     // MARK: - Config (read from UserDefaults at start)
 
     private var fps: Int = 30
@@ -90,7 +101,8 @@ final class RecordingEngine: NSObject {
         let defaultFPS = UserDefaults.standard.integer(forKey: "recordingFPS") > 0
             ? UserDefaults.standard.integer(forKey: "recordingFPS") : 30
         self.fps = fpsOverride ?? defaultFPS
-        Task {
+        didReportCompletion = false
+        setupTask = Task {
             // Resolve mic permission before starting capture so the prompt
             // doesn't block the UI while frames are already being recorded.
             if UserDefaults.standard.bool(forKey: "recordMicAudio") {
@@ -104,6 +116,7 @@ final class RecordingEngine: NSObject {
                     UserDefaults.standard.set(false, forKey: "recordMicAudio")
                 }
             }
+            guard !self.sessionEnded else { return }
             await self.beginCapture(rect: rect)
         }
     }
@@ -139,7 +152,15 @@ final class RecordingEngine: NSObject {
         writerSession?.requestStop()
         progressTimer?.invalidate()
         progressTimer = nil
-        Task { await self.finalizeCapture() }
+        Task {
+            // Setup may still be in flight. Let it observe `.stopping` and
+            // unwind first — otherwise this tears down a session whose stream
+            // and writer don't exist yet, and setup then brings them up with
+            // nothing left to stop them.
+            await self.setupTask?.value
+            self.setupTask = nil
+            await self.finalizeCapture()
+        }
     }
 
     // MARK: - Setup
@@ -148,6 +169,7 @@ final class RecordingEngine: NSObject {
         do {
             // Find the SCDisplay matching our screen by display ID
             let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
+            guard !sessionEnded else { return }
             let screenID = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID
             guard let display = content.displays.first(where: { d in
                 screenID != nil && d.displayID == screenID!
@@ -242,6 +264,16 @@ final class RecordingEngine: NSObject {
             }
             try await stream.startCapture()
 
+            // The user may have stopped while the daemon was starting up. Tear
+            // the session down here rather than leaving a live stream behind.
+            guard !sessionEnded else {
+                try? await stream.stopCapture()
+                self.stream = nil
+                self.streamOutput = nil
+                await discardWriterSession()
+                return
+            }
+
             // Start mic capture if enabled and authorized (permission resolved before capture started)
             if UserDefaults.standard.bool(forKey: "recordMicAudio") &&
                AVCaptureDevice.authorizationStatus(for: .audio) == .authorized {
@@ -264,8 +296,20 @@ final class RecordingEngine: NSObject {
                 self.stream = nil
             }
             self.streamOutput = nil
-            await MainActor.run { self.fail(error) }
+            // The writer may already own an open file in tmp. Dropping the
+            // reference leaves it unfinalized on disk forever.
+            await discardWriterSession()
+            self.fail(error)
         }
+    }
+
+    /// Finish and delete a writer that never produced a usable recording.
+    private func discardWriterSession() async {
+        guard let writer = writerSession else { return }
+        writerSession = nil
+        try? await writer.finish()
+        if let url = outputURL { try? FileManager.default.removeItem(at: url) }
+        outputURL = nil
     }
 
     private func finalizeCapture() async {
@@ -277,7 +321,12 @@ final class RecordingEngine: NSObject {
         stopMicCapture()
 
         guard let writer = writerSession else {
-            succeed()
+            // Nothing was ever written — the session was stopped before the
+            // stream came up. Reporting success with a nil URL made the UI
+            // tear down silently, as if the recording had never happened.
+            if let url = outputURL { try? FileManager.default.removeItem(at: url) }
+            outputURL = nil
+            fail(RecordingError.stoppedBeforeStart)
             return
         }
         do {
@@ -307,6 +356,10 @@ final class RecordingEngine: NSObject {
 
         let session = AVCaptureSession()
         session.beginConfiguration()
+        // Every exit below has to balance beginConfiguration, or the session is
+        // dropped half-configured while still holding the microphone.
+        var configurationCommitted = false
+        defer { if !configurationCommitted { session.commitConfiguration() } }
 
         guard let deviceInput = try? AVCaptureDeviceInput(device: micDevice) else { return }
         guard session.canAddInput(deviceInput) else { return }
@@ -338,6 +391,7 @@ final class RecordingEngine: NSObject {
         session.addOutput(dataOutput)
 
         session.commitConfiguration()
+        configurationCommitted = true
         session.startRunning()
 
         self.micCaptureSession = session
@@ -377,11 +431,12 @@ final class RecordingEngine: NSObject {
     }
 
     enum RecordingError: LocalizedError {
-        case noDisplay, noOutput
+        case noDisplay, noOutput, stoppedBeforeStart
         var errorDescription: String? {
             switch self {
             case .noDisplay: return "Could not find the screen to record."
             case .noOutput: return "Could not create output file."
+            case .stoppedBeforeStart: return "Recording stopped before it started — nothing was captured."
             }
         }
     }

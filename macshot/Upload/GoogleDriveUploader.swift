@@ -23,6 +23,9 @@ final class GoogleDriveUploader: NSObject, ASWebAuthenticationPresentationContex
     private let uploadURL = "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart"
     private let filesURL = "https://www.googleapis.com/drive/v3/files"
 
+    /// Stable address for the progress-observation associated object.
+    private static var progressObservationKey: UInt8 = 0
+
     private var cachedFolderID: String?
     private var cachedFolderName: String?
     private var authSession: ASWebAuthenticationSession?
@@ -423,7 +426,10 @@ final class GoogleDriveUploader: NSObject, ASWebAuthenticationPresentationContex
             }
 
             if let error = error {
-                DispatchQueue.main.async { completion(.failure(error)) }
+                DispatchQueue.main.async {
+                    self?.onProgress = nil
+                    completion(.failure(error))
+                }
                 return
             }
 
@@ -431,7 +437,13 @@ final class GoogleDriveUploader: NSObject, ASWebAuthenticationPresentationContex
             if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 401, attempt < maxRetries {
                 self?.refreshAccessToken { success in
                     guard success else {
-                        completion(.failure(Self.error("Authentication expired")))
+                        // refreshAccessToken calls back synchronously when there
+                        // is no refresh token, so this can still be on the
+                        // URLSession queue — and every consumer touches AppKit.
+                        DispatchQueue.main.async {
+                            self?.onProgress = nil
+                            completion(.failure(Self.error("Authentication expired")))
+                        }
                         return
                     }
                     self?.uploadFileWithRetry(data: fileData, filename: filename, mimeType: mimeType,
@@ -441,17 +453,26 @@ final class GoogleDriveUploader: NSObject, ASWebAuthenticationPresentationContex
             }
             let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
             guard let data = data else {
-                DispatchQueue.main.async { completion(.failure(Self.error("Upload returned no data (HTTP \(statusCode))"))) }
+                DispatchQueue.main.async {
+                    self?.onProgress = nil
+                    completion(.failure(Self.error("Upload returned no data (HTTP \(statusCode))")))
+                }
                 return
             }
             let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
             if let apiError = json?["error"] as? [String: Any],
                let message = apiError["message"] as? String {
-                DispatchQueue.main.async { completion(.failure(Self.error("Upload: \(message) (HTTP \(statusCode))"))) }
+                DispatchQueue.main.async {
+                    self?.onProgress = nil
+                    completion(.failure(Self.error("Upload: \(message) (HTTP \(statusCode))")))
+                }
                 return
             }
             guard let fileID = json?["id"] as? String else {
-                DispatchQueue.main.async { completion(.failure(Self.error("Upload failed (HTTP \(statusCode))"))) }
+                DispatchQueue.main.async {
+                    self?.onProgress = nil
+                    completion(.failure(Self.error("Upload failed (HTTP \(statusCode))")))
+                }
                 return
             }
             let viewLink = "https://drive.google.com/file/d/\(fileID)/view"
@@ -467,8 +488,10 @@ final class GoogleDriveUploader: NSObject, ASWebAuthenticationPresentationContex
                 self?.onProgress?(progress.fractionCompleted)
             }
         }
-        // Store observation to keep it alive; released when task completes
-        objc_setAssociatedObject(task, "progressObservation", observation, .OBJC_ASSOCIATION_RETAIN)
+        // Store observation to keep it alive; released when task completes.
+        // The key must be a stable address — passing a Swift string here makes
+        // a temporary buffer whose address is undefined after the call.
+        objc_setAssociatedObject(task, &Self.progressObservationKey, observation, .OBJC_ASSOCIATION_RETAIN)
 
         task.resume()
     }

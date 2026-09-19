@@ -46,7 +46,7 @@
 "All" = "Alles";
 "Screenshots" = "Schermafbeeldingen";
 "GIFs" = "GIFs";
-"Click to copy · Drag to app" = "Klik om te kopieren · Sleep naar app";
+"Click to copy · Drag to app" = "Klik om te kopiëren · Sleep naar app";
 "No captures yet" = "Nog geen opnames";
 
 /* Floating Thumbnail */
@@ -183,7 +183,7 @@
 "ELEMENT" = "ELEMENT";
 "  (Tab to toggle)" = "  (Tab om te wisselen)";
 "  (Tab to switch)" = "  (Tab om te schakelen)";
-"Right-click to copy" = "Rechtsklik om te kopieren";
+"Right-click to copy" = "Rechtsklik om te kopiëren";
 "Copied %@" = "%@ gekopieerd";
 "Set color %@" = "Kleur %@ ingesteld";
 "Draw something first to use the move tool." = "Teken eerst iets om het verplaatsgereedschap te gebruiken.";
@@ -210,7 +210,7 @@
 "Restart the app to fully apply the new language." = "Herstart de app om de nieuwe taal volledig toe te passen.";
 "Capture" = "Opname";
 "Play sound on capture" = "Geluid afspelen bij opname";
-"Play sound on copy" = "Geluid afspelen bij kopieren";
+"Play sound on copy" = "Geluid afspelen bij kopiëren";
 "Remember last selected tool" = "Laatst geselecteerd gereedschap onthouden";
 "Show floating thumbnail after capture" = "Zwevende miniatuur tonen na opname";
 "Launch at login" = "Open bij inloggen";
@@ -269,9 +269,9 @@
 "Enter any SF Symbol name (e.g. camera.fill) or pick a preset. Browse names in Apple's SF Symbols app. Invalid names fall back to the default icon." = "Voer een willekeurige SF Symbol-naam in (bijv. camera.fill) of kies een voorinstelling. Blader door namen in Apple's SF Symbols-app. Ongeldige namen vallen terug op het standaardpictogram.";
 "OCR Capture:" = "OCR-opname:";
 "OCR & QR Capture:" = "OCR & QR-opname:";
-"Show window + copy to clipboard" = "Venster tonen + kopieren naar klembord";
+"Show window + copy to clipboard" = "Venster tonen + kopiëren naar klembord";
 "Show window only" = "Alleen venster tonen";
-"Copy to clipboard only" = "Alleen kopieren naar klembord";
+"Copy to clipboard only" = "Alleen kopiëren naar klembord";
 "Enter / Quick Capture:" = "Enter / Snelle opname:";
 "Save to file" = "Bewaar als bestand";
 "Save + copy to clipboard" = "Bewaar + kopieer naar klembord";
@@ -381,7 +381,7 @@
 "Upload to Google Drive?" = "Uploaden naar Google Drive?";
 "Upload to S3?" = "Uploaden naar S3?";
 "Upload to imgbb.com?" = "Uploaden naar imgbb.com?";
-"Your screenshot will be uploaded." = "Je schermafbeelding wordt geupload.";
+"Your screenshot will be uploaded." = "Je schermafbeelding wordt geüpload.";
 
 /* Permission Onboarding */
 "Welcome to macshot" = "Welkom bij macshot";
@@ -407,13 +407,14 @@
 "URL copied to the clipboard" = "URL gekopieerd naar het klembord";
 "Uploading... %d%%" = "Uploaden... %d%%";
 "Upload failed: %@" = "Upload mislukt: %@";
-"Uploaded! Link copied." = "Geupload! Link gekopieerd.";
+"Uploaded! Link copied." = "Geüpload! Link gekopieerd.";
 "Uploading to %@... %d%%" = "Uploaden naar %@... %d%%";
 "Open" = "Open";
 
 /* Recording Toast */
 "Recording saved" = "Opname opgeslagen";
 "%@ • Recording saved" = "%@ • Opname opgeslagen";
+"Recording failed: %@" = "Opname mislukt: %@";
 "Copy Path" = "Kopieer pad";
 "Path copied!" = "Pad gekopieerd!";
 
@@ -433,6 +434,8 @@
 "Save Recording" = "Bewaar opname";
 "Choose a folder" = "Kies een map";
 "Save All to Folder…" = "Bewaar alles in map…";
+"Could not encode the screenshot." = "Kon de schermafbeelding niet coderen.";
+"Could not save the screenshot: %@" = "Kon de schermafbeelding niet opslaan: %@";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "Automatisch scrollen";

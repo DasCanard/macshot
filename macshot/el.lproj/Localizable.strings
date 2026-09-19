@@ -426,6 +426,7 @@
 /* Recording Toast */
 "Recording saved" = "Η εγγραφή αποθηκεύτηκε";
 "%@ • Recording saved" = "%@ • Η εγγραφή αποθηκεύτηκε";
+"Recording failed: %@" = "Αποτυχία εγγραφής: %@";
 "Copy Path" = "Αντιγραφή διαδρομής";
 "Path copied!" = "Η διαδρομή αντιγράφηκε!";
 
@@ -444,6 +445,8 @@
 "Save As..." = "Αποθήκευση ως...";
 "Choose a folder" = "Επιλέξτε φάκελο";
 "Save All to Folder…" = "Αποθήκευση όλων σε φάκελο…";
+"Could not encode the screenshot." = "Δεν ήταν δυνατή η κωδικοποίηση του στιγμιότυπου.";
+"Could not save the screenshot: %@" = "Δεν ήταν δυνατή η αποθήκευση του στιγμιότυπου: %@";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "Αυτόματη κύλιση";

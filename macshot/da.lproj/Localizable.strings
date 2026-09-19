@@ -423,6 +423,7 @@
 /* Recording Toast */
 "Recording saved" = "Optagelse gemt";
 "%@ \U2022 Recording saved" = "%@ \U2022 Optagelse gemt";
+"Recording failed: %@" = "Optagelse mislykkedes: %@";
 "Copy Path" = "Kopi\U00E9r sti";
 "Path copied!" = "Sti kopieret!";
 
@@ -441,6 +442,8 @@
 "Save As..." = "Gem som...";
 "Choose a folder" = "V\U00E6lg en mappe";
 "Save All to Folder\U2026" = "Gem alle i mappe\U2026";
+"Could not encode the screenshot." = "Sk\U00E6rmbilledet kunne ikke kodes.";
+"Could not save the screenshot: %@" = "Sk\U00E6rmbilledet kunne ikke gemmes: %@";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "Auto-rul";

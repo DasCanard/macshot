@@ -202,6 +202,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUUpdaterDelegate {
     #if !OFFLINE
     private var uploadToastController: UploadToastController?
     #endif
+    /// Transient toast for failures that would otherwise be invisible — a save
+    /// that couldn't be written, a recording that produced no file.
+    private var errorToastController: UploadToastController?
     private var recordingEngine: RecordingEngine?
     private var audioMergeController: AudioMergeController?
     private var recordingOverlayController: OverlayWindowController?
@@ -256,6 +259,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUUpdaterDelegate {
             )
             NSApp.terminate(nil)
             return
+        }
+
+        // Surface save failures — otherwise a capture that can't be written
+        // (full disk, unmounted volume) disappears without a word.
+        ImageSaveService.onFailure = { [weak self] message in
+            self?.showFailureToast(message)
         }
 
         // Disable App Nap. macshot is LSUIElement with no visible windows
@@ -595,6 +604,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUUpdaterDelegate {
 
     func applicationWillTerminate(_ aNotification: Notification) {
         os_log(.fault, log: timingLog, "macshot terminating — thermalState=%d", ProcessInfo.processInfo.thermalState.rawValue)
+        // Finalize an in-progress recording. Without this the moov atom is
+        // never written and a recording interrupted by a logout or a quit is
+        // an unplayable stub.
+        recordingEngine?.stopRecording()
         for (_, controller) in overlayControllerPool {
             controller.tearDown()
         }
@@ -2039,6 +2052,19 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUUpdaterDelegate {
         showPin(image: image)
     }
 
+    /// Reports a failure the user needs to know about. Losing a capture without
+    /// any indication is worse than any error message.
+    func showFailureToast(_ message: String) {
+        errorToastController?.dismiss()
+        let toast = UploadToastController()
+        errorToastController = toast
+        toast.onDismiss = { [weak self] in
+            self?.errorToastController = nil
+        }
+        toast.show(status: message)
+        toast.showError(message: message)
+    }
+
     func showPin(image: NSImage) {
         let pin = PinWindowController(image: image)
         pin.delegate = self
@@ -2702,9 +2728,9 @@ extension AppDelegate: OverlayWindowControllerDelegate {
                     deliverRecording(url)
                 }
             } else if let error = error {
-                #if DEBUG
-                print("Recording failed: \(error.localizedDescription)")
-                #endif
+                // Without this the HUD just disappears and the user is left to
+                // guess whether anything was recorded.
+                self.showFailureToast(String(format: L("Recording failed: %@"), error.localizedDescription))
             }
         }
         recordingEngine = engine

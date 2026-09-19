@@ -425,6 +425,7 @@
 /* Recording Toast */
 "Recording saved" = "Snimka spremljena";
 "%@ • Recording saved" = "%@ • Snimka spremljena";
+"Recording failed: %@" = "Snimanje neuspjelo: %@";
 "Copy Path" = "Kopiraj putanju";
 "Path copied!" = "Putanja kopirana!";
 
@@ -443,6 +444,8 @@
 "Save As..." = "Spremi kao...";
 "Choose a folder" = "Odaberite mapu";
 "Save All to Folder…" = "Spremi sve u mapu...";
+"Could not encode the screenshot." = "Nije moguće kodirati snimku zaslona.";
+"Could not save the screenshot: %@" = "Nije moguće spremiti snimku zaslona: %@";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "Automatsko pomicanje";

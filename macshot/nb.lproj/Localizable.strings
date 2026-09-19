@@ -423,6 +423,7 @@
 /* Recording Toast */
 "Recording saved" = "Opptak lagret";
 "%@ \U2022 Recording saved" = "%@ \U2022 Opptak lagret";
+"Recording failed: %@" = "Opptaket mislyktes: %@";
 "Copy Path" = "Kopier sti";
 "Path copied!" = "Sti kopiert!";
 
@@ -441,6 +442,8 @@
 "Save As..." = "Lagre som\U2026";
 "Choose a folder" = "Velg en mappe";
 "Save All to Folder\U2026" = "Lagre alle i mappe\U2026";
+"Could not encode the screenshot." = "Kunne ikke kode skjermbildet.";
+"Could not save the screenshot: %@" = "Kunne ikke lagre skjermbildet: %@";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "Autorulling";

@@ -414,6 +414,7 @@
 /* Recording Toast */
 "Recording saved" = "録画を保存しました";
 "%@ • Recording saved" = "%@ · 録画を保存しました";
+"Recording failed: %@" = "録画に失敗しました: %@";
 "Copy Path" = "パスをコピー";
 "Path copied!" = "パスをコピーしました!";
 
@@ -424,6 +425,8 @@
 "Export failed" = "書き出しに失敗しました";
 "Saved to %@" = "%@ に保存しました";
 "Save failed" = "保存に失敗しました";
+"Could not encode the screenshot." = "スクリーンショットをエンコードできませんでした。";
+"Could not save the screenshot: %@" = "スクリーンショットを保存できませんでした: %@";
 
 /* Barcode Detector */
 /* "Open" and "Copy" are shared with other sections */

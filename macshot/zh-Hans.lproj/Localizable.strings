@@ -414,6 +414,7 @@
 /* Recording Toast */
 "Recording saved" = "录制已保存";
 "%@ • Recording saved" = "%@ · 录制已保存";
+"Recording failed: %@" = "录制失败: %@";
 "Copy Path" = "拷贝路径";
 "Path copied!" = "路径已拷贝！";
 
@@ -424,6 +425,8 @@
 "Export failed" = "导出失败";
 "Saved to %@" = "已存储到 %@";
 "Save failed" = "存储失败";
+"Could not encode the screenshot." = "无法编码截图。";
+"Could not save the screenshot: %@" = "无法存储截图: %@";
 
 /* Barcode Detector */
 /* "Open" and "Copy" are shared with other sections */

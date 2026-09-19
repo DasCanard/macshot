@@ -22,7 +22,17 @@ final class S3Uploader {
         let publicRead: Bool      // send `x-amz-acl: public-read` so the object is world-readable
 
         var isValid: Bool {
-            !endpoint.isEmpty && !bucket.isEmpty && !accessKeyID.isEmpty && !secretAccessKey.isEmpty
+            !endpoint.isEmpty && !bucket.isEmpty && !accessKeyID.isEmpty
+                && !secretAccessKey.isEmpty && !effectiveRegion.isEmpty
+        }
+
+        /// The region to sign with. Clearing the settings field stores "", not
+        /// nil, which defeated the `?? "auto"` default and produced a credential
+        /// scope with an empty region — surfacing as SignatureDoesNotMatch,
+        /// which points nowhere near the empty field.
+        var effectiveRegion: String {
+            let trimmed = region.trimmingCharacters(in: .whitespacesAndNewlines)
+            return trimmed.isEmpty ? "auto" : trimmed
         }
     }
 
@@ -106,7 +116,13 @@ final class S3Uploader {
         let scheme = endpointURL.scheme ?? "https"
         let port = endpointURL.port.map { ":\($0)" } ?? ""
         let encodedKey = objectKey.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? objectKey
-        let urlString = "\(scheme)://\(host)\(port)/\(cfg.bucket)/\(encodedKey)"
+        // Keep any path the endpoint carries — a self-hosted MinIO or Ceph
+        // gateway behind a proxy lives at e.g. https://files.example.com/s3,
+        // and dropping the prefix uploaded to the host root instead.
+        let basePath = endpointURL.path
+            .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        let prefixPath = basePath.isEmpty ? "" : "/\(basePath)"
+        let urlString = "\(scheme)://\(host)\(port)\(prefixPath)/\(cfg.bucket)/\(encodedKey)"
         guard let url = URL(string: urlString) else {
             completion(.failure(S3Error.invalidEndpoint))
             return
@@ -125,7 +141,7 @@ final class S3Uploader {
 
         // Sign the request
         let now = Date()
-        signRequest(&request, data: data, date: now, region: cfg.region,
+        signRequest(&request, data: data, date: now, region: cfg.effectiveRegion,
                      accessKeyID: cfg.accessKeyID, secretAccessKey: cfg.secretAccessKey)
 
         // Upload

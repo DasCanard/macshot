@@ -425,6 +425,7 @@
 /* Recording Toast */
 "Recording saved" = "Записът е запазен";
 "%@ • Recording saved" = "%@ • Записът е запазен";
+"Recording failed: %@" = "Записването е неуспешно: %@";
 "Copy Path" = "Копиране на пътя";
 "Path copied!" = "Пътят е копиран!";
 
@@ -443,6 +444,8 @@
 "Save As..." = "Запазване като...";
 "Choose a folder" = "Изберете папка";
 "Save All to Folder…" = "Запазване на всички в папка…";
+"Could not encode the screenshot." = "Екранната снимка не може да бъде кодирана.";
+"Could not save the screenshot: %@" = "Екранната снимка не може да бъде запазена: %@";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "Авто-превъртане";

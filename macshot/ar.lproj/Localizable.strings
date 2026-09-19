@@ -418,6 +418,7 @@
 /* Recording Toast */
 "Recording saved" = "تم حفظ التسجيل";
 "%@ • Recording saved" = "%@ • تم حفظ التسجيل";
+"Recording failed: %@" = "فشل التسجيل: %@";
 "Copy Path" = "نسخ المسار";
 "Path copied!" = "تم نسخ المسار!";
 
@@ -436,6 +437,8 @@
 "Save As..." = "حفظ باسم...";
 "Choose a folder" = "اختيار مجلد";
 "Save All to Folder…" = "حفظ الكل في مجلد…";
+"Could not encode the screenshot." = "تعذّر ترميز لقطة الشاشة.";
+"Could not save the screenshot: %@" = "تعذّر حفظ لقطة الشاشة: %@";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "تمرير تلقائي";

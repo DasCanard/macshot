@@ -418,6 +418,7 @@
 /* Recording Toast */
 "Recording saved" = "Kayıt kaydedildi";
 "%@ • Recording saved" = "%@ • Kayıt kaydedildi";
+"Recording failed: %@" = "Kayıt başarısız: %@";
 "Copy Path" = "Yolu Kopyala";
 "Path copied!" = "Yol kopyalandı!";
 
@@ -436,6 +437,8 @@
 "Save As..." = "Farklı Kaydet...";
 "Choose a folder" = "Bir klasör seçin";
 "Save All to Folder…" = "Tümünü Klasöre Kaydet…";
+"Could not encode the screenshot." = "Ekran görüntüsü kodlanamadı.";
+"Could not save the screenshot: %@" = "Ekran görüntüsü kaydedilemedi: %@";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "Otomatik Kaydır";

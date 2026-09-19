@@ -425,6 +425,7 @@
 /* Recording Toast */
 "Recording saved" = "บันทึกการอัดแล้ว";
 "%@ • Recording saved" = "%@ • บันทึกการอัดแล้ว";
+"Recording failed: %@" = "การอัดล้มเหลว: %@";
 "Copy Path" = "คัดลอกเส้นทาง";
 "Path copied!" = "คัดลอกเส้นทางแล้ว!";
 
@@ -435,6 +436,8 @@
 "Export failed" = "ส่งออกล้มเหลว";
 "Saved to %@" = "บันทึกไปยัง %@";
 "Save failed" = "บันทึกล้มเหลว";
+"Could not encode the screenshot." = "ไม่สามารถเข้ารหัสภาพหน้าจอได้";
+"Could not save the screenshot: %@" = "ไม่สามารถบันทึกภาพหน้าจอได้: %@";
 
 /* Barcode Detector */
 /* "Open" and "Copy" are shared with other sections */

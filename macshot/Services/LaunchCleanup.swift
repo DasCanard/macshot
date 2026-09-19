@@ -60,6 +60,48 @@ enum DirectorySweeper {
         }
         return result
     }
+
+    /// Same idea for subdirectories, which `sweep` deliberately skips. Used for
+    /// the share scratch folder, where each share gets its own directory so two
+    /// files with the same name can't collide.
+    @discardableResult
+    static func sweepDirectories(in directory: URL,
+                                 olderThan ttl: TimeInterval,
+                                 shouldDelete: (String) -> Bool = { _ in true }) -> Result {
+        let fm = FileManager.default
+        guard let contents = try? fm.contentsOfDirectory(
+            at: directory,
+            includingPropertiesForKeys: [.contentModificationDateKey, .isDirectoryKey],
+            options: [.skipsHiddenFiles, .skipsSubdirectoryDescendants]
+        ) else { return Result() }
+
+        let cutoff = Date().addingTimeInterval(-ttl)
+        var result = Result()
+
+        for url in contents {
+            guard shouldDelete(url.lastPathComponent) else { continue }
+            guard let values = try? url.resourceValues(forKeys: [.contentModificationDateKey, .isDirectoryKey]),
+                  values.isDirectory == true,
+                  let modified = values.contentModificationDate,
+                  modified < cutoff else { continue }
+
+            let size = directorySize(at: url)
+            if (try? fm.removeItem(at: url)) != nil {
+                result.removed += 1
+                result.bytesFreed += size
+            }
+        }
+        return result
+    }
+
+    private static func directorySize(at url: URL) -> UInt64 {
+        let contents = (try? FileManager.default.contentsOfDirectory(
+            at: url, includingPropertiesForKeys: [.fileSizeKey],
+            options: [.skipsSubdirectoryDescendants])) ?? []
+        return contents.reduce(0) { total, file in
+            total + UInt64((try? file.resourceValues(forKeys: [.fileSizeKey]))?.fileSize ?? 0)
+        }
+    }
 }
 
 // MARK: - LaunchCleaner
@@ -199,11 +241,20 @@ private struct ScratchDirectoryCleaner: LaunchCleaner {
     private let ttl: TimeInterval = 5 * 60
 
     func sweep() -> DirectorySweeper.Result {
-        return DirectorySweeper.sweep(
+        // Each share writes into its own subfolder (see TmpScratchDirectory),
+        // so both loose files from older builds and those folders need sweeping.
+        var result = DirectorySweeper.sweep(
             directory: TmpScratchDirectory.url,
             olderThan: ttl,
             shouldDelete: { _ in true }
         )
+        let directories = DirectorySweeper.sweepDirectories(
+            in: TmpScratchDirectory.url,
+            olderThan: ttl
+        )
+        result.removed += directories.removed
+        result.bytesFreed += directories.bytesFreed
+        return result
     }
 }
 

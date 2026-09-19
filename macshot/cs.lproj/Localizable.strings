@@ -425,6 +425,7 @@
 /* Recording Toast */
 "Recording saved" = "Nahrávka uložena";
 "%@ • Recording saved" = "%@ • Nahrávka uložena";
+"Recording failed: %@" = "Nahrávka selhala: %@";
 "Copy Path" = "Kopírovat cestu";
 "Path copied!" = "Cesta zkopírována!";
 
@@ -443,6 +444,8 @@
 "Save As..." = "Uložit jako...";
 "Choose a folder" = "Vyberte složku";
 "Save All to Folder…" = "Uložit vše do složky…";
+"Could not encode the screenshot." = "Nepodařilo se zakódovat snímek obrazovky.";
+"Could not save the screenshot: %@" = "Nepodařilo se uložit snímek obrazovky: %@";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "Automatické posouvání";

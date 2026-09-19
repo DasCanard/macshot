@@ -425,6 +425,7 @@
 /* Recording Toast */
 "Recording saved" = "Запись сохранена";
 "%@ • Recording saved" = "%@ • Запись сохранена";
+"Recording failed: %@" = "Ошибка записи: %@";
 "Copy Path" = "Копировать путь";
 "Path copied!" = "Путь скопирован!";
 
@@ -443,6 +444,8 @@
 "Save As..." = "Сохранить как...";
 "Choose a folder" = "Выберите папку";
 "Save All to Folder…" = "Сохранить все в папку…";
+"Could not encode the screenshot." = "Не удалось закодировать снимок экрана.";
+"Could not save the screenshot: %@" = "Не удалось сохранить снимок экрана: %@";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "Авто-прокрутка";

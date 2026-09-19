@@ -418,6 +418,7 @@
 /* Recording Toast */
 "Recording saved" = "ضبط ویدیو ذخیره شد";
 "%@ • Recording saved" = "%@ • ضبط ویدیو ذخیره شد";
+"Recording failed: %@" = "ضبط ویدیو ناموفق: %@";
 "Copy Path" = "کپی مسیر";
 "Path copied!" = "مسیر کپی شد!";
 
@@ -436,6 +437,8 @@
 "Save As..." = "ذخیره به عنوان...";
 "Choose a folder" = "یک پوشه انتخاب کنید";
 "Save All to Folder…" = "ذخیره همه در پوشه…";
+"Could not encode the screenshot." = "کدگذاری تصویر صفحه ممکن نشد.";
+"Could not save the screenshot: %@" = "ذخیره تصویر صفحه ممکن نشد: %@";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "پیمایش خودکار";

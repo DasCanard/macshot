@@ -425,6 +425,7 @@
 /* Recording Toast */
 "Recording saved" = "Đã lưu bản quay";
 "%@ • Recording saved" = "%@ • Đã lưu bản quay";
+"Recording failed: %@" = "Quay màn hình thất bại: %@";
 "Copy Path" = "Sao chép đường dẫn";
 "Path copied!" = "Đã sao chép đường dẫn!";
 
@@ -435,6 +436,8 @@
 "Export failed" = "Xuất thất bại";
 "Saved to %@" = "Đã lưu vào %@";
 "Save failed" = "Lưu thất bại";
+"Could not encode the screenshot." = "Không thể mã hóa ảnh chụp màn hình.";
+"Could not save the screenshot: %@" = "Không thể lưu ảnh chụp màn hình: %@";
 
 /* Barcode Detector */
 /* "Open" and "Copy" are shared with other sections */

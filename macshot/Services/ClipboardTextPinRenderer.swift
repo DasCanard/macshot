@@ -9,14 +9,73 @@ enum ClipboardTextPinRenderer {
     private static let importedTableBlockSpacing: CGFloat = 8
     private static let maxImportedParagraphSpacing: CGFloat = 8
 
+    /// A pin is a screenshot of some text, not a document viewer. Laying out a
+    /// copied log file or JSON blob costs Text Kit a pass over every glyph on
+    /// the main thread, which beachballs the app (and the global hotkeys with
+    /// it). Far more than fits on screen is pointless anyway.
+    static let maxCharacters = 20_000
+
+    /// Truncates text that is too long to lay out, marking the cut so the pin
+    /// doesn't look like the content simply ended.
+    static func truncatedForPinning(_ text: String) -> String {
+        guard text.count > maxCharacters else { return text }
+        return String(text.prefix(maxCharacters)) + "\n…"
+    }
+
+    static func truncatedForPinning(_ attributed: NSAttributedString) -> NSAttributedString {
+        guard attributed.length > maxCharacters else { return attributed }
+        let clipped = NSMutableAttributedString(attributedString: attributed.attributedSubstring(
+            from: NSRange(location: 0, length: maxCharacters)))
+        clipped.append(NSAttributedString(string: "\n…"))
+        return clipped
+    }
+
+    /// Imports HTML from the pasteboard.
+    ///
+    /// AppKit's HTML importer is WebKit, which resolves remote subresources —
+    /// images, stylesheets, CSS `url()` — while parsing. Pinning text copied
+    /// from a web page or an HTML email would therefore issue outbound requests
+    /// (including tracking pixels) during what the user thinks is a local
+    /// operation, and there is no reading option that disables it. So strip the
+    /// remote-loading markup first.
     static func attributedString(html data: Data) -> NSAttributedString? {
         attributedString(
-            data: data,
+            data: sanitizedHTML(data),
             options: [
                 .documentType: NSAttributedString.DocumentType.html,
                 .characterEncoding: String.Encoding.utf8.rawValue,
             ]
         )
+    }
+
+    /// Removes elements and attributes that would make the HTML importer fetch
+    /// something. Deliberately blunt: a pin only needs the text and its styling.
+    static func sanitizedHTML(_ data: Data) -> Data {
+        guard var html = String(data: data, encoding: .utf8)
+            ?? String(data: data, encoding: .utf16)
+            ?? String(data: data, encoding: .isoLatin1) else { return data }
+
+        // Whole elements that exist to load something.
+        for tag in ["script", "style", "iframe", "object", "embed", "video", "audio", "picture"] {
+            html = html.replacingOccurrences(
+                of: "<\(tag)\\b[^>]*>.*?</\(tag)\\s*>",
+                with: "", options: [.regularExpression, .caseInsensitive])
+        }
+        // Self-closing / void elements with a remote source.
+        for tag in ["img", "link", "source", "track", "input"] {
+            html = html.replacingOccurrences(
+                of: "<\(tag)\\b[^>]*>",
+                with: "", options: [.regularExpression, .caseInsensitive])
+        }
+        // Any leftover remote reference in an attribute or inline style.
+        html = html.replacingOccurrences(
+            of: "(src|background|poster|srcset)\\s*=\\s*(\"[^\"]*\"|\'[^\']*\'|[^\\s>]+)",
+            with: "", options: [.regularExpression, .caseInsensitive])
+        html = html.replacingOccurrences(
+            of: "url\\(\\s*[\"\']?\\s*https?:[^)]*\\)",
+            with: "none", options: [.regularExpression, .caseInsensitive])
+
+        return html.data(using: .utf8) ?? data
     }
 
     static func attributedString(rtf data: Data) -> NSAttributedString? {
@@ -96,7 +155,7 @@ enum ClipboardTextPinRenderer {
         let maxContentWidth = max(320, min(980, screenFrame.width * 0.72))
         let maxImageHeight = max(240, screenFrame.height * 0.82)
 
-        let normalized = NSMutableAttributedString(attributedString: attributed)
+        let normalized = NSMutableAttributedString(attributedString: truncatedForPinning(attributed))
         normalizeParagraphs(in: normalized)
 
         let contentSize = measuredSize(for: normalized, maxWidth: maxContentWidth)

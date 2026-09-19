@@ -418,6 +418,7 @@
 /* Recording Toast */
 "Recording saved" = "ההקלטה נשמרה";
 "%@ • Recording saved" = "%@ • ההקלטה נשמרה";
+"Recording failed: %@" = "ההקלטה נכשלה: %@";
 "Copy Path" = "העתק נתיב";
 "Path copied!" = "הנתיב הועתק!";
 
@@ -436,6 +437,8 @@
 "Save As..." = "שמור בשם...";
 "Choose a folder" = "בחר תיקייה";
 "Save All to Folder…" = "שמור הכל לתיקייה…";
+"Could not encode the screenshot." = "לא ניתן היה לקודד את צילום המסך.";
+"Could not save the screenshot: %@" = "לא ניתן היה לשמור את צילום המסך: %@";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "גלילה אוטומטית";

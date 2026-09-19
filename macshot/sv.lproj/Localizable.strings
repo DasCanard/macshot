@@ -423,6 +423,7 @@
 /* Recording Toast */
 "Recording saved" = "Inspelning sparad";
 "%@ \U2022 Recording saved" = "%@ \U2022 Inspelning sparad";
+"Recording failed: %@" = "Inspelningen misslyckades: %@";
 "Copy Path" = "Kopiera s\U00F6kv\U00E4g";
 "Path copied!" = "S\U00F6kv\U00E4g kopierad!";
 
@@ -441,6 +442,8 @@
 "Save As..." = "Spara som...";
 "Choose a folder" = "V\U00E4lj en mapp";
 "Save All to Folder\U2026" = "Spara alla till mapp\U2026";
+"Could not encode the screenshot." = "Det gick inte att koda sk\U00E4rmbilden.";
+"Could not save the screenshot: %@" = "Det gick inte att spara sk\U00E4rmbilden: %@";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "Auto-rullning";

@@ -182,7 +182,17 @@ final class ScrollCaptureController {
     }
 
     func stopSession() {
-        guard isActive else { return }
+        // The HUD (and its Stop button) is on screen before `isActive` becomes
+        // true — startSession first awaits a settled frame, which can take a
+        // couple of seconds on a page with a blinking caret or a clock. A stop
+        // in that window used to do nothing at all, and the session then
+        // installed its scroll monitors anyway.
+        guard isActive || !isCancelled else { return }
+        guard isActive else {
+            isCancelled = true
+            onSessionDone?(nil)
+            return
+        }
         isActive = false
 
         autoScrollTask?.cancel(); autoScrollTask = nil
@@ -393,8 +403,17 @@ final class ScrollCaptureController {
                 }
             }
 
-            // captureAndCompare: settle, capture, compare, stitch
+            // captureAndCompare: settle, capture, compare, stitch.
+            // `isCapturing` serializes this against a manual settledCapture
+            // that may still be running — both mutate shotA/mergedImage/
+            // stripCount around their suspension points.
+            if isCapturing {
+                try? await Task.sleep(nanoseconds: 20_000_000)
+                continue
+            }
+            isCapturing = true
             let success = await captureAndCompare()
+            isCapturing = false
 
             if !success {
                 matchNotFoundCount += 1

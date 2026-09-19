@@ -425,6 +425,7 @@
 /* Recording Toast */
 "Recording saved" = "রেকর্ডিং সংরক্ষিত";
 "%@ • Recording saved" = "%@ • রেকর্ডিং সংরক্ষিত";
+"Recording failed: %@" = "রেকর্ডিং ব্যর্থ: %@";
 "Copy Path" = "পাথ কপি";
 "Path copied!" = "পাথ কপি হয়েছে!";
 
@@ -444,6 +445,8 @@
 "Save As..." = "এইরূপে সংরক্ষণ...";
 "Choose a folder" = "একটি ফোল্ডার নির্বাচন করুন";
 "Save All to Folder…" = "সব ফোল্ডারে সংরক্ষণ করুন…";
+"Could not encode the screenshot." = "স্ক্রিনশট এনকোড করা যায়নি।";
+"Could not save the screenshot: %@" = "স্ক্রিনশট সংরক্ষণ করা যায়নি: %@";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "স্বয়ংক্রিয় স্ক্রল";

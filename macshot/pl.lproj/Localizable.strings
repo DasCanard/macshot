@@ -418,6 +418,7 @@
 /* Recording Toast */
 "Recording saved" = "Nagranie zapisane";
 "%@ • Recording saved" = "%@ • Nagranie zapisane";
+"Recording failed: %@" = "Nagrywanie nie powiodło się: %@";
 "Copy Path" = "Kopiuj ścieżkę";
 "Path copied!" = "Ścieżka skopiowana!";
 
@@ -437,6 +438,8 @@
 "Save Recording" = "Zachowaj nagranie";
 "Choose a folder" = "Wybierz folder";
 "Save All to Folder…" = "Zachowaj wszystkie do folderu…";
+"Could not encode the screenshot." = "Nie udało się zakodować zrzutu ekranu.";
+"Could not save the screenshot: %@" = "Nie udało się zapisać zrzutu ekranu: %@";
 
 /* Scroll Capture HUD */
 "Auto Scroll" = "Auto-przewijanie";
