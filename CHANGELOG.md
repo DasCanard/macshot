@@ -1,5 +1,27 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- **Recordings stopped right after starting produced nothing** — stopping within the first moments left the capture stream running with nothing able to stop it, kept the microphone active, and ended the session silently. Recording failures are now reported instead of disappearing with the HUD.
+- **Screenshots that couldn't be saved vanished without a word** — a full disk or an unmounted save folder now shows an error instead of dismissing the overlay as if the capture had been written. The same applies to a capture that can't be stored in history.
+- **Annotations lost from older captures** — captures saved by earlier versions failed to load their annotations, and a single damaged entry discarded every annotation in that capture. Beautify settings and the capture list itself had the same flaw.
+- **Over-saturated screenshots with crushed greys** — the Vivid effect could stay silently enabled from a much older version, tinting every capture. That state is now cleared once on launch. (#345)
+- **Invert Colors with a window-snapped selection** — inverted the screen behind the capture instead of the capture itself, and image effects were dropped entirely when beautify's window snap was on. (#88)
+- **Scroll capture HUD hidden under the notch** — the Auto Scroll and Stop buttons could land behind the camera housing, leaving no way to stop the capture from the HUD. Stop also works now while the first frame is still settling. (#153)
+- **Unexpected quits** — several code paths crashed when macOS reported no available display, which happens while displays sleep or are being reconfigured. (#387)
+- **Scroll capture stitching** — header and scrollbar detection read pixels at the wrong offsets on displays whose captures use padded rows, which could stitch a sliver of the frozen header into every strip.
+- **Large uploads** — a recording is now streamed from disk instead of being held in memory three times over, which could exhaust memory on long 4K captures.
+- **Pinning copied web content no longer makes network requests** — pasted HTML was parsed by WebKit, which fetched remote images and tracking pixels. Very large pastes no longer freeze the app either.
+- **Undo/redo shortcuts** — Return, Escape and Tab could trigger a bound command when they shouldn't.
+- Missing or damaged accents across Slovak, Romanian, Portuguese, Spanish, Catalan, Croatian, Finnish and Dutch — roughly 1,300 labels repaired, plus duplicate entries removed from every language.
+- GIF export no longer mis-times frames when the requested frame rate is above the 30 fps cap or below 1.
+
+### Changed
+
+- The project now has a unit-test suite (462 tests) that runs on every push and pull request, against both the normal and offline builds.
+
 ## [4.2.2-beta.5] - 2026-09-17
 
 ### Added
