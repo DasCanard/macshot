@@ -2092,7 +2092,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUUpdaterDelegate {
             self?.errorToastController = nil
         }
         toast.show(status: message)
-        toast.showError(message: message)
+        toast.showError(message: message, asUploadFailure: false)
     }
 
     func showPin(image: NSImage) {

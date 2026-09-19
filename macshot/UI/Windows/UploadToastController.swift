@@ -164,7 +164,10 @@ class UploadToastController {
         scheduleDismiss(seconds: 8)
     }
 
-    func showError(message: String) {
+    /// `asUploadFailure` prefixes the message with "Upload failed:". Failures
+    /// that aren't uploads (a save that couldn't be written, a recording that
+    /// produced nothing) pass false and supply their own wording.
+    func showError(message: String, asUploadFailure: Bool = true) {
         spinner?.stopAnimation(nil)
         spinner?.removeFromSuperview()
         spinner = nil
@@ -172,7 +175,7 @@ class UploadToastController {
 
         guard let panel = window, let contentView = panel.contentView else { return }
 
-        let fullMessage = String(format: L("Upload failed: %@"), message)
+        let fullMessage = asUploadFailure ? String(format: L("Upload failed: %@"), message) : message
         let labelFont = NSFont.systemFont(ofSize: 13, weight: .medium)
         let maxLabelW = toastWidth - 66  // 50 left pad + 16 right pad
         let textSize = (fullMessage as NSString).boundingRect(
