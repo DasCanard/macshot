@@ -83,8 +83,18 @@ final class AutoRedactorPatternTests: XCTestCase {
 
     func testCreditCardNumbersAreDetected() {
         for card in ["4111 1111 1111 1111", "4111-1111-1111-1111", "4111111111111111",
-                     "3782 822463 10005"] {
+                     "3782 822463 10005", "5500 0000 0000 0004",
+                     "4111 1111 1111 111"] {   // OCR dropped a digit
             assertRedacted(card, as: "credit_card")
+        }
+    }
+
+    func testOrdinaryNumberPairsAreNotMistakenForCards() {
+        // Two short groups of digits are everywhere — years, resolutions,
+        // totals. Covering them hides content the user wanted to show.
+        for text in ["2026 2026", "1024 768", "Total 1234 5678", "1920 1080 60", "192 168 1 1"] {
+            XCTAssertFalse(matches(text, types: ["credit_card"]).contains("credit_card"),
+                           "\"\(text)\" was covered as a credit card")
         }
     }
 
