@@ -69,6 +69,84 @@ struct CodableAnnotation: Codable {
     var groupID: String?  // UUID string
     var randomSeed: UInt32 = 0  // 0 = legacy capture, regenerate at decode
     var dimOpacity: CGFloat = 0.55  // highlight (spotlight) dim strength
+
+    init(
+        tool: Int, startX: CGFloat, startY: CGFloat, endX: CGFloat, endY: CGFloat,
+        colorRGBA: [CGFloat], strokeWidth: CGFloat
+    ) {
+        self.tool = tool
+        self.startX = startX
+        self.startY = startY
+        self.endX = endX
+        self.endY = endY
+        self.colorRGBA = colorRGBA
+        self.strokeWidth = strokeWidth
+    }
+
+    /// Decoded field by field so a capture saved by an older build — which has
+    /// no key for a field added later — still loads. See `LenientDecoding.swift`:
+    /// the synthesized decoder would throw `keyNotFound` and take every
+    /// annotation in the capture down with it.
+    ///
+    /// Only `tool` is required; an annotation whose tool is unknown can't be
+    /// drawn at all. Everything else falls back to the default above.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        tool = try c.decode(Int.self, forKey: .tool)
+        startX = c.decode(.startX, or: 0)
+        startY = c.decode(.startY, or: 0)
+        endX = c.decode(.endX, or: 0)
+        endY = c.decode(.endY, or: 0)
+        colorRGBA = c.decode(.colorRGBA, or: [1, 0, 0, 1])
+        strokeWidth = c.decode(.strokeWidth, or: 3)
+
+        text = c.decodeOptional(.text)
+        attributedTextRTF = c.decodeOptional(.attributedTextRTF)
+        fontSize = c.decode(.fontSize, or: 20)
+        isBold = c.decode(.isBold, or: false)
+        isItalic = c.decode(.isItalic, or: false)
+        isUnderline = c.decode(.isUnderline, or: false)
+        isStrikethrough = c.decode(.isStrikethrough, or: false)
+        textDrawRect = c.decodeOptional(.textDrawRect)
+        textBgColorRGBA = c.decodeOptional(.textBgColorRGBA)
+        textOutlineColorRGBA = c.decodeOptional(.textOutlineColorRGBA)
+        textGlyphStrokeColorRGBA = c.decodeOptional(.textGlyphStrokeColorRGBA)
+        textAlignment = c.decode(.textAlignment, or: 0)
+        fontFamilyName = c.decodeOptional(.fontFamilyName)
+        textImagePNG = c.decodeOptional(.textImagePNG)
+
+        number = c.decodeOptional(.number)
+        numberFormat = c.decode(.numberFormat, or: 0)
+
+        points = c.decodeOptional(.points)
+        pressures = c.decodeOptional(.pressures)
+
+        controlPointXY = c.decodeOptional(.controlPointXY)
+        anchorPoints = c.decodeOptional(.anchorPoints)
+
+        rotation = c.decode(.rotation, or: 0)
+        rectCornerRadius = c.decode(.rectCornerRadius, or: 0)
+        lineStyle = c.decode(.lineStyle, or: 0)
+        arrowStyle = c.decode(.arrowStyle, or: 0)
+        arrowReversed = c.decode(.arrowReversed, or: false)
+        rectFillStyle = c.decode(.rectFillStyle, or: 0)
+        outlineColorRGBA = c.decodeOptional(.outlineColorRGBA)
+
+        stampImagePNG = c.decodeOptional(.stampImagePNG)
+        isCaptureStamp = c.decodeOptional(.isCaptureStamp)
+
+        bakedBlurPNG = c.decodeOptional(.bakedBlurPNG)
+
+        loupeMagnification = c.decodeOptional(.loupeMagnification)
+        loupeSourceRect = c.decodeOptional(.loupeSourceRect)
+        loupeOutlineEnabled = c.decode(.loupeOutlineEnabled, or: false)
+
+        measureInPoints = c.decode(.measureInPoints, or: false)
+        censorMode = c.decode(.censorMode, or: 0)
+        groupID = c.decodeOptional(.groupID)
+        randomSeed = c.decode(.randomSeed, or: 0)
+        dimOpacity = c.decode(.dimOpacity, or: 0.55)
+    }
 }
 
 extension Annotation {
@@ -291,7 +369,9 @@ enum AnnotationSerializer {
     }
 
     static func decode(_ data: Data) -> [Annotation]? {
-        guard let codables = try? JSONDecoder().decode([CodableAnnotation].self, from: data) else { return nil }
+        // Element-wise so one unreadable annotation costs that annotation
+        // rather than every annotation in the capture.
+        guard let codables = LenientArrayDecoder.decode(CodableAnnotation.self, from: data) else { return nil }
         let annotations = codables.compactMap { Annotation.fromCodable($0) }
         return annotations.isEmpty ? nil : annotations
     }

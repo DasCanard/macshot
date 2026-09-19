@@ -22,10 +22,15 @@ final class GIFEncoder {
 
     init(url: URL, fps: Int, sourceFPS: Int) {
         self.url = url
-        self.sourceEstimatedFPS = max(sourceFPS, fps)
-        // Cap GIF at 30fps for reasonable file size
-        let gifFPS = min(fps, 30)
+        // Cap GIF at 30fps for reasonable file size. The floor matters as much:
+        // fps <= 0 would divide by zero in addFrame and turn the delay
+        // computation into Int(infinity), which traps.
+        let gifFPS = max(1, min(fps, 30))
         self.targetFPS = gifFPS
+        // Decimate against the CAPPED rate, as GifskiExporter does. Using the
+        // requested rate here would drop frames from a source slower than the
+        // request and then stamp the GIF with delays it never matches.
+        self.sourceEstimatedFPS = max(sourceFPS, gifFPS)
         gifProperties = [
             kCGImagePropertyGIFDictionary: [
                 kCGImagePropertyGIFLoopCount: 0,

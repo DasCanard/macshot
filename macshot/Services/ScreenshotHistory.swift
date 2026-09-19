@@ -423,7 +423,7 @@ class ScreenshotHistory {
 
     // MARK: - Persistence
 
-    private struct IndexEntry: Codable {
+    struct IndexEntry: Codable {
         let id: String
         let fileExtension: String
         let timestamp: Date
@@ -431,6 +431,31 @@ class ScreenshotHistory {
         let pixelHeight: Int
         var hasAnnotations: Bool?  // optional for backward compat with old index files
         var lastEditedAt: Date?    // optional for backward compat (nil = never edited)
+
+        init(id: String, fileExtension: String, timestamp: Date, pixelWidth: Int,
+             pixelHeight: Int, hasAnnotations: Bool?, lastEditedAt: Date?) {
+            self.id = id
+            self.fileExtension = fileExtension
+            self.timestamp = timestamp
+            self.pixelWidth = pixelWidth
+            self.pixelHeight = pixelHeight
+            self.hasAnnotations = hasAnnotations
+            self.lastEditedAt = lastEditedAt
+        }
+
+        /// Only `id` is required: a row missing anything else is still worth
+        /// showing, and throwing here would discard the user's entire capture
+        /// history rather than one row. See `LenientDecoding.swift`.
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            id = try c.decode(String.self, forKey: .id)
+            fileExtension = c.decode(.fileExtension, or: "png")
+            timestamp = c.decode(.timestamp, or: Date(timeIntervalSince1970: 0))
+            pixelWidth = c.decode(.pixelWidth, or: 0)
+            pixelHeight = c.decode(.pixelHeight, or: 0)
+            hasAnnotations = c.decodeOptional(.hasAnnotations)
+            lastEditedAt = c.decodeOptional(.lastEditedAt)
+        }
     }
 
     private func saveIndex() {
@@ -447,7 +472,7 @@ class ScreenshotHistory {
 
     private func loadIndex() {
         guard let data = try? Data(contentsOf: indexFile),
-              let indexEntries = try? JSONDecoder().decode([IndexEntry].self, from: data) else { return }
+              let indexEntries = LenientArrayDecoder.decode(IndexEntry.self, from: data) else { return }
 
         entries = indexEntries.compactMap { ie in
             // Only include entries whose image file still exists

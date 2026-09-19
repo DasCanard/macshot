@@ -62,6 +62,33 @@ struct CaptureEditState: Codable, Equatable {
     }
 }
 
+extension CaptureEditState {
+
+    /// Decoded field by field so edit state saved before a field existed still
+    /// loads. The synthesized decoder throws `keyNotFound` for a missing key
+    /// even though every field here has a default, which would silently discard
+    /// the whole post-processing state of that capture. See `LenientDecoding.swift`.
+    /// Declared in an extension so the memberwise initializer survives.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        self.init()
+        effectsPresetRaw = c.decode(.effectsPresetRaw, or: ImageEffectPreset.none.rawValue)
+        effectsBrightness = c.decode(.effectsBrightness, or: 0)
+        effectsContrast = c.decode(.effectsContrast, or: 1)
+        effectsSaturation = c.decode(.effectsSaturation, or: 1)
+        effectsSharpness = c.decode(.effectsSharpness, or: 0)
+        beautifyEnabled = c.decode(.beautifyEnabled, or: false)
+        beautifyModeRaw = c.decode(.beautifyModeRaw, or: BeautifyMode.window.rawValue)
+        beautifyStyleIndex = c.decode(.beautifyStyleIndex, or: 0)
+        beautifyPadding = c.decode(.beautifyPadding, or: 48)
+        beautifyCornerRadius = c.decode(.beautifyCornerRadius, or: 10)
+        beautifyShadowRadius = c.decode(.beautifyShadowRadius, or: 20)
+        beautifyBackgroundBlur = c.decode(.beautifyBackgroundBlur, or: 0)
+        beautifyIsWindowSnap = c.decode(.beautifyIsWindowSnap, or: false)
+        customBeautifyBackgroundPNG = c.decodeOptional(.customBeautifyBackgroundPNG)
+    }
+}
+
 extension OverlayView {
     func captureEditState() -> CaptureEditState {
         let customBackgroundData: Data? = {
