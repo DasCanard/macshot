@@ -41,7 +41,6 @@
 
 /* History Panel */
 "Copy" = "Kopírovat";
-"Save As..." = "Uložit jako...";
 "Open in Editor" = "Otevřít v editoru";
 "Pin to Screen" = "Připnout na obrazovku";
 "Quick Look" = "Rychlý náhled";
@@ -54,7 +53,6 @@
 
 /* Floating Thumbnail */
 "Close All" = "Zavřít vše";
-"Save All to Folder…" = "Uložit vše do složky…";
 "Save" = "Uložit";
 
 /* Editor Top Bar */

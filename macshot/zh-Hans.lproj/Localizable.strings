@@ -41,7 +41,6 @@
 
 /* History Panel */
 "Copy" = "拷贝";
-"Save As..." = "存储为...";
 "Open in Editor" = "在编辑器中打开";
 "Pin to Screen" = "固定到屏幕";
 "Quick Look" = "快速预览";
@@ -54,7 +53,6 @@
 
 /* Floating Thumbnail */
 "Close All" = "关闭全部";
-"Save All to Folder…" = "全部存储到文件夹…";
 "Save" = "存储";
 
 /* Editor Top Bar */

@@ -43,7 +43,6 @@
 
 /* History Panel */
 "Copy" = "কপি";
-"Save As..." = "এইরূপে সংরক্ষণ...";
 "Open in Editor" = "সম্পাদকে খুলুন";
 "Open With" = "এর সাহায্যে খুলুন";
 "Pin to Screen" = "স্ক্রিনে পিন করুন";
@@ -57,7 +56,6 @@
 
 /* Floating Thumbnail */
 "Close All" = "সব বন্ধ করুন";
-"Save All to Folder…" = "সব ফোল্ডারে সংরক্ষণ করুন…";
 "Save" = "সংরক্ষণ";
 
 /* Editor Top Bar */

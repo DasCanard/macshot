@@ -41,7 +41,6 @@
 
 /* History Panel */
 "Copy" = "Másolás";
-"Save As..." = "Mentés másként...";
 "Open in Editor" = "Megnyitás a szerkesztőben";
 "Open With" = "Megnyitás ezzel";
 "Open Link" = "Hivatkozás megnyitása";
@@ -57,7 +56,6 @@
 
 /* Floating Thumbnail */
 "Close All" = "Összes bezárása";
-"Save All to Folder…" = "Összes mentése mappába…";
 "Save" = "Mentés";
 
 /* Editor Top Bar */

@@ -41,7 +41,6 @@
 
 /* History Panel */
 "Copy" = "Kopioi";
-"Save As..." = "Tallenna nimella...";
 "Open in Editor" = "Avaa editorissa";
 "Pin to Screen" = "Kiinnita ruudulle";
 "Quick Look" = "Pika-esikatselu";
@@ -54,7 +53,6 @@
 
 /* Floating Thumbnail */
 "Close All" = "Sulje kaikki";
-"Save All to Folder…" = "Tallenna kaikki kansioon…";
 "Save" = "Tallenna";
 
 /* Editor Top Bar */

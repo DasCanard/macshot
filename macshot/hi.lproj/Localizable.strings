@@ -41,7 +41,6 @@
 
 /* History Panel */
 "Copy" = "कॉपी करें";
-"Save As..." = "इस रूप में सहेजें...";
 "Open in Editor" = "संपादक में खोलें";
 "Open Link" = "लिंक खोलें";
 "Open With" = "इसके साथ खोलें";
@@ -56,7 +55,6 @@
 
 /* Floating Thumbnail */
 "Close All" = "सभी बंद करें";
-"Save All to Folder…" = "सभी को फ़ोल्डर में सहेजें…";
 "Save" = "सहेजें";
 
 /* Editor Top Bar */

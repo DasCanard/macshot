@@ -41,7 +41,6 @@
 
 /* History Panel */
 "Copy" = "Kopiuj";
-"Save As..." = "Zachowaj jako...";
 "Open in Editor" = "Otwórz w edytorze";
 "Pin to Screen" = "Przypnij do ekranu";
 "Quick Look" = "Szybki podgląd";
@@ -54,7 +53,6 @@
 
 /* Floating Thumbnail */
 "Close All" = "Zamknij wszystkie";
-"Save All to Folder…" = "Zachowaj wszystkie do folderu…";
 "Save" = "Zachowaj";
 
 /* Editor Top Bar */

@@ -39,7 +39,6 @@
 
 /* History Panel */
 "Copy" = "Kopieer";
-"Save As..." = "Bewaar als...";
 "Open in Editor" = "Open in editor";
 "Pin to Screen" = "Vastpinnen op scherm";
 "Quick Look" = "Snelle weergave";
@@ -52,7 +51,6 @@
 
 /* Floating Thumbnail */
 "Close All" = "Sluit alles";
-"Save All to Folder…" = "Bewaar alles in map…";
 "Save" = "Bewaar";
 
 /* Editor Top Bar */

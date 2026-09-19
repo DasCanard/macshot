@@ -41,7 +41,6 @@
 
 /* History Panel */
 "Copy" = "Kopyahin";
-"Save As..." = "I-save Bilang...";
 "Open in Editor" = "Buksan sa Editor";
 "Pin to Screen" = "I-pin sa Screen";
 "Quick Look" = "Mabilisang Tingin";
@@ -54,7 +53,6 @@
 
 /* Floating Thumbnail */
 "Close All" = "Isara Lahat";
-"Save All to Folder…" = "I-save Lahat sa Folder…";
 "Save" = "I-save";
 
 /* Editor Top Bar */

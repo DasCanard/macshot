@@ -39,7 +39,6 @@
 
 /* History Panel */
 "Copy" = "Copiar";
-"Save As..." = "Desar com a...";
 "Open in Editor" = "Obrir a l'editor";
 "Open With" = "Obrir amb";
 "Open Link" = "Obrir enllaç";
@@ -56,7 +55,6 @@
 
 /* Floating Thumbnail */
 "Close All" = "Tancar tot";
-"Save All to Folder…" = "Desar tot a la carpeta...";
 "Save" = "Desar";
 
 /* Editor Top Bar */

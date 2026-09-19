@@ -41,7 +41,6 @@
 
 /* History Panel */
 "Copy" = "Копирај";
-"Save As..." = "Сачувај као...";
 "Open in Editor" = "Отвори у уређивачу";
 "Pin to Screen" = "Закачи на екран";
 "Quick Look" = "Брзи преглед";
@@ -54,7 +53,6 @@
 
 /* Floating Thumbnail */
 "Close All" = "Затвори све";
-"Save All to Folder…" = "Сачувај све у фасциклу…";
 "Save" = "Сачувај";
 
 /* Editor Top Bar */

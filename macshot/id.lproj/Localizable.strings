@@ -41,7 +41,6 @@
 
 /* History Panel */
 "Copy" = "Salin";
-"Save As..." = "Simpan Sebagai...";
 "Open in Editor" = "Buka di Editor";
 "Pin to Screen" = "Sematkan ke Layar";
 "Quick Look" = "Lihat Cepat";
@@ -54,7 +53,6 @@
 
 /* Floating Thumbnail */
 "Close All" = "Tutup Semua";
-"Save All to Folder…" = "Simpan Semua ke Folder…";
 "Save" = "Simpan";
 
 /* Editor Top Bar */

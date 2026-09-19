@@ -41,7 +41,6 @@
 
 /* History Panel */
 "Copy" = "Kopiera";
-"Save As..." = "Spara som...";
 "Open in Editor" = "\U00D6ppna i redigeraren";
 "Pin to Screen" = "F\U00E4st p\U00E5 sk\U00E4rmen";
 "Quick Look" = "\U00D6verblick";
@@ -54,7 +53,6 @@
 
 /* Floating Thumbnail */
 "Close All" = "St\U00E4ng alla";
-"Save All to Folder\U2026" = "Spara alla till mapp\U2026";
 "Save" = "Spara";
 
 /* Editor Top Bar */

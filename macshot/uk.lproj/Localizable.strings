@@ -41,7 +41,6 @@
 
 /* History Panel */
 "Copy" = "Копіювати";
-"Save As..." = "Зберегти як...";
 "Open in Editor" = "Відкрити в редакторі";
 "Pin to Screen" = "Закріпити на екрані";
 "Quick Look" = "Швидкий перегляд";
@@ -54,7 +53,6 @@
 
 /* Floating Thumbnail */
 "Close All" = "Закрити всі";
-"Save All to Folder…" = "Зберегти всі в теку…";
 "Save" = "Зберегти";
 
 /* Editor Top Bar */

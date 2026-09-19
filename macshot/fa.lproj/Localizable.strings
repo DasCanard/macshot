@@ -39,7 +39,6 @@
 
 /* History Panel */
 "Copy" = "کپی";
-"Save As..." = "ذخیره به عنوان...";
 "Open in Editor" = "باز کردن در ویرایشگر";
 "Open With" = "باز کردن با";
 "Open Link" = "باز کردن پیوند";
@@ -56,7 +55,6 @@
 
 /* Floating Thumbnail */
 "Close All" = "بستن همه";
-"Save All to Folder…" = "ذخیره همه در پوشه…";
 "Save" = "ذخیره";
 
 /* Editor Top Bar */

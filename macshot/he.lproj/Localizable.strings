@@ -39,7 +39,6 @@
 
 /* History Panel */
 "Copy" = "העתק";
-"Save As..." = "שמור בשם...";
 "Open in Editor" = "פתח בעורך";
 "Open With" = "פתח באמצעות";
 "Open Link" = "פתח קישור";
@@ -56,7 +55,6 @@
 
 /* Floating Thumbnail */
 "Close All" = "סגור הכל";
-"Save All to Folder…" = "שמור הכל לתיקייה…";
 "Save" = "שמור";
 
 /* Editor Top Bar */

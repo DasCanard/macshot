@@ -41,7 +41,6 @@
 
 /* History Panel */
 "Copy" = "Kopi\U00E9r";
-"Save As..." = "Gem som...";
 "Open in Editor" = "\U00C5bn i redigering";
 "Pin to Screen" = "Fastg\U00F8r til sk\U00E6rm";
 "Quick Look" = "Smugkig";
@@ -54,7 +53,6 @@
 
 /* Floating Thumbnail */
 "Close All" = "Luk alle";
-"Save All to Folder\U2026" = "Gem alle i mappe\U2026";
 "Save" = "Gem";
 
 /* Editor Top Bar */

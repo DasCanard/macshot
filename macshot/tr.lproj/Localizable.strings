@@ -39,7 +39,6 @@
 
 /* History Panel */
 "Copy" = "Kopyala";
-"Save As..." = "Farklı Kaydet...";
 "Open in Editor" = "Düzenleyicide Aç";
 "Open With" = "Birlikte Aç";
 "Open Link" = "Bağlantıyı Aç";
@@ -56,7 +55,6 @@
 
 /* Floating Thumbnail */
 "Close All" = "Tümünü Kapat";
-"Save All to Folder…" = "Tümünü Klasöre Kaydet…";
 "Save" = "Kaydet";
 
 /* Editor Top Bar */

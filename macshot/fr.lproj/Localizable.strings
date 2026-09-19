@@ -39,7 +39,6 @@
 
 /* History Panel */
 "Copy" = "Copier";
-"Save As..." = "Enregistrer sous...";
 "Open in Editor" = "Ouvrir dans l'éditeur";
 "Pin to Screen" = "Épingler à l'écran";
 "Quick Look" = "Coup d'œil";
@@ -52,7 +51,6 @@
 
 /* Floating Thumbnail */
 "Close All" = "Tout fermer";
-"Save All to Folder…" = "Tout enregistrer dans un dossier…";
 "Save" = "Enregistrer";
 
 /* Editor Top Bar */

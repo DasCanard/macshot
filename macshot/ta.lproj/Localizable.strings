@@ -43,7 +43,6 @@
 
 /* History Panel */
 "Copy" = "நகலெடு";
-"Save As..." = "இவ்வாறு சேமி...";
 "Open in Editor" = "திருத்தியில் திற";
 "Open With" = "இதனுடன் திற";
 "Open Link" = "இணைப்பைத் திற";
@@ -58,7 +57,6 @@
 
 /* Floating Thumbnail */
 "Close All" = "அனைத்தையும் மூடு";
-"Save All to Folder…" = "அனைத்தையும் கோப்புறையில் சேமி…";
 "Save" = "சேமி";
 
 /* Editor Top Bar */

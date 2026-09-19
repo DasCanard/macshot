@@ -39,7 +39,6 @@
 
 /* History Panel */
 "Copy" = "Copiaza";
-"Save As..." = "Salveaza ca...";
 "Open in Editor" = "Deschide in editor";
 "Open With" = "Deschide cu";
 "Open Link" = "Deschide linkul";
@@ -55,7 +54,6 @@
 
 /* Floating Thumbnail */
 "Close All" = "Inchide toate";
-"Save All to Folder…" = "Salveaza toate in dosar...";
 "Save" = "Salveaza";
 
 /* Editor Top Bar */

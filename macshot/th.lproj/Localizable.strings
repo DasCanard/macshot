@@ -41,7 +41,6 @@
 
 /* History Panel */
 "Copy" = "คัดลอก";
-"Save As..." = "บันทึกเป็น...";
 "Open in Editor" = "เปิดในตัวแก้ไข";
 "Pin to Screen" = "ปักหมุดบนหน้าจอ";
 "Quick Look" = "ดูตัวอย่าง";
@@ -54,7 +53,6 @@
 
 /* Floating Thumbnail */
 "Close All" = "ปิดทั้งหมด";
-"Save All to Folder…" = "บันทึกทั้งหมดไปยังโฟลเดอร์…";
 "Save" = "บันทึก";
 
 /* Editor Top Bar */

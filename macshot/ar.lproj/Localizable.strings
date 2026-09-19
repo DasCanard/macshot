@@ -39,7 +39,6 @@
 
 /* History Panel */
 "Copy" = "نسخ";
-"Save As..." = "حفظ باسم...";
 "Open in Editor" = "فتح في المحرر";
 "Open With" = "فتح باستخدام";
 "Open Link" = "فتح الرابط";
@@ -56,7 +55,6 @@
 
 /* Floating Thumbnail */
 "Close All" = "إغلاق الكل";
-"Save All to Folder…" = "حفظ الكل في مجلد…";
 "Save" = "حفظ";
 
 /* Editor Top Bar */

@@ -41,7 +41,6 @@
 
 /* History Panel */
 "Copy" = "Sao chép";
-"Save As..." = "Lưu thành...";
 "Open in Editor" = "Mở trong trình chỉnh sửa";
 "Pin to Screen" = "Ghim lên màn hình";
 "Quick Look" = "Xem nhanh";
@@ -54,7 +53,6 @@
 
 /* Floating Thumbnail */
 "Close All" = "Đóng tất cả";
-"Save All to Folder…" = "Lưu tất cả vào thư mục…";
 "Save" = "Lưu";
 
 /* Editor Top Bar */

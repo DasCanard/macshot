@@ -41,7 +41,6 @@
 
 /* History Panel */
 "Copy" = "복사";
-"Save As..." = "다른 이름으로 저장...";
 "Open in Editor" = "편집기에서 열기";
 "Pin to Screen" = "화면에 고정";
 "Quick Look" = "훑어보기";
@@ -54,7 +53,6 @@
 
 /* Floating Thumbnail */
 "Close All" = "모두 닫기";
-"Save All to Folder…" = "모두 폴더에 저장…";
 "Save" = "저장";
 
 /* Editor Top Bar */

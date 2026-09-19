@@ -41,7 +41,6 @@
 
 /* History Panel */
 "Copy" = "Kopier";
-"Save As..." = "Lagre som\U2026";
 "Open in Editor" = "\U00C5pne i redigering";
 "Pin to Screen" = "Fest til skjerm";
 "Quick Look" = "Hurtigvisning";
@@ -54,7 +53,6 @@
 
 /* Floating Thumbnail */
 "Close All" = "Lukk alle";
-"Save All to Folder\U2026" = "Lagre alle i mappe\U2026";
 "Save" = "Lagre";
 
 /* Editor Top Bar */

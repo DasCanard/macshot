@@ -31,7 +31,6 @@
 "Open Image..." = "Open Image...";
 "Open from Clipboard" = "Open from Clipboard";
 "Pin from Clipboard" = "Pin from Clipboard";
-"Settings..." = "Settings...";
 "Check for Updates..." = "Check for Updates...";
 "Quit macshot" = "Quit macshot";
 "No recent captures" = "No recent captures";
@@ -39,7 +38,6 @@
 
 /* History Panel */
 "Copy" = "Copy";
-"Save As..." = "Save As...";
 "Open in Editor" = "Open in Editor";
 "Pin to Screen" = "Pin to Screen";
 "Quick Look" = "Quick Look";
@@ -52,7 +50,6 @@
 
 /* Floating Thumbnail */
 "Close All" = "Close All";
-"Save All to Folder…" = "Save All to Folder…";
 "Save Recording" = "Save Recording";
 "Save" = "Save";
 
