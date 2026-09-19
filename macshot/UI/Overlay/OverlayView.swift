@@ -40,7 +40,11 @@ enum UndoEntry {
     case added(Annotation)  // annotation was added; undo removes it
     case deleted(Annotation, Int)  // annotation was deleted at index; undo re-inserts it
     /// Image transform (crop/flip): stores the previous image and annotation offsets to restore.
-    case imageTransform(previousImage: NSImage, annotationOffsets: [(Annotation, CGFloat, CGFloat)])
+    /// `previousSnappedWindowImage` is non-nil only for transforms that also
+    /// changed the separately-captured window image beautify's window-snap
+    /// mode draws from.
+    case imageTransform(previousImage: NSImage, previousSnappedWindowImage: NSImage?,
+                        annotationOffsets: [(Annotation, CGFloat, CGFloat)])
     /// Property change: stores the annotation and a snapshot taken before the edit.
     case propertyChange(annotation: Annotation, snapshot: Annotation)
 
@@ -3219,7 +3223,11 @@ class OverlayView: NSView {
                     color: NSColor.black.withAlphaComponent(
                         BeautifyRenderer.contactShadowAlpha(for: shadowRadius)).cgColor)
                 if let windowImg = snappedWindowImage {
-                    windowImg.draw(in: imageRect, from: .zero, operation: .sourceOver, fraction: 1.0)
+                    // Effects apply to the snapped window capture too, or the
+                    // preview shows unprocessed colours while the toolbar says
+                    // an effect is on (#88).
+                    let drawImage = effectsActive ? ImageEffects.apply(to: windowImg, config: effectsConfig) : windowImg
+                    drawImage.draw(in: imageRect, from: .zero, operation: .sourceOver, fraction: 1.0)
                 } else if let image = screenshotImage {
                     let drawImage = effectsActive ? effectsProcessedScreenshot(image) : image
                     drawImage.draw(
@@ -3234,7 +3242,11 @@ class OverlayView: NSView {
                     color: NSColor.black.withAlphaComponent(
                         BeautifyRenderer.shadowAlpha(for: shadowRadius)).cgColor)
                 if let windowImg = snappedWindowImage {
-                    windowImg.draw(in: imageRect, from: .zero, operation: .sourceOver, fraction: 1.0)
+                    // Effects apply to the snapped window capture too, or the
+                    // preview shows unprocessed colours while the toolbar says
+                    // an effect is on (#88).
+                    let drawImage = effectsActive ? ImageEffects.apply(to: windowImg, config: effectsConfig) : windowImg
+                    drawImage.draw(in: imageRect, from: .zero, operation: .sourceOver, fraction: 1.0)
                 } else if let image = screenshotImage {
                     let drawImage = effectsActive ? effectsProcessedScreenshot(image) : image
                     drawImage.draw(
@@ -3569,7 +3581,7 @@ class OverlayView: NSView {
 
         // Save state for undo
         let prevImage = original.copy() as! NSImage
-        undoStack.append(.imageTransform(previousImage: prevImage, annotationOffsets: []))
+        undoStack.append(.imageTransform(previousImage: prevImage, previousSnappedWindowImage: nil, annotationOffsets: []))
         redoStack.removeAll()
 
         let w = cgImage.width
@@ -3618,7 +3630,7 @@ class OverlayView: NSView {
         else { return }
 
         let prevImage = original.copy() as! NSImage
-        undoStack.append(.imageTransform(previousImage: prevImage, annotationOffsets: []))
+        undoStack.append(.imageTransform(previousImage: prevImage, previousSnappedWindowImage: nil, annotationOffsets: []))
         redoStack.removeAll()
 
         let w = cgImage.width
@@ -3767,7 +3779,7 @@ class OverlayView: NSView {
         let shiftDx = -targetRect.origin.x
         let shiftDy = -targetRect.origin.y
         let offsets = annotations.map { ($0, shiftDx, shiftDy) }
-        undoStack.append(.imageTransform(previousImage: prevImage, annotationOffsets: offsets))
+        undoStack.append(.imageTransform(previousImage: prevImage, previousSnappedWindowImage: nil, annotationOffsets: offsets))
 
         screenshotImage = NSImage(cgImage: newCG, size: NSSize(width: newPtW, height: newPtH))
         cachedOpaqueRect = nil  // invalidate — image content changed
@@ -3840,24 +3852,37 @@ class OverlayView: NSView {
 
     private func invertImageColors() {
         guard let original = screenshotImage,
-            let cgImage = original.cgImage(forProposedRect: nil, context: nil, hints: nil)
+              let invertedScreenshot = Self.invertedCopy(of: original)
         else { return }
 
-        let prevImage = original.copy() as! NSImage
-        undoStack.append(.imageTransform(previousImage: prevImage, annotationOffsets: []))
+        // A selection snapped to a window draws — and exports — from
+        // snappedWindowImage, a separately captured image. Inverting only the
+        // screenshot left the capture itself in its original colours while
+        // everything around it flipped (#88).
+        let previousSnapped = snappedWindowImage
+        let invertedSnapped = snappedWindowImage.flatMap { Self.invertedCopy(of: $0) }
+
+        undoStack.append(.imageTransform(
+            previousImage: original.copy() as? NSImage ?? original,
+            previousSnappedWindowImage: previousSnapped,
+            annotationOffsets: []))
         redoStack.removeAll()
 
-        let ciImage = CIImage(cgImage: cgImage)
-        guard let filter = CIFilter(name: "CIColorInvert") else { return }
-        filter.setValue(ciImage, forKey: kCIInputImageKey)
-        guard let output = filter.outputImage else { return }
-
-        let ciCtx = CIContext()
-        guard let inverted = ciCtx.createCGImage(output, from: output.extent) else { return }
-
-        screenshotImage = NSImage(cgImage: inverted, size: original.size)
+        screenshotImage = invertedScreenshot
+        if invertedSnapped != nil { snappedWindowImage = invertedSnapped }
         cachedCompositedImage = nil
+        cachedEffectsScreenshot = nil
         needsDisplay = true
+    }
+
+    /// Colour-inverted copy of an image, or nil when it can't be read.
+    static func invertedCopy(of image: NSImage) -> NSImage? {
+        guard let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil),
+              let filter = CIFilter(name: "CIColorInvert") else { return nil }
+        filter.setValue(CIImage(cgImage: cgImage), forKey: kCIInputImageKey)
+        guard let output = filter.outputImage,
+              let inverted = CIContext().createCGImage(output, from: output.extent) else { return nil }
+        return NSImage(cgImage: inverted, size: image.size)
     }
 
     // MARK: - Snap/Alignment Guides
@@ -4365,7 +4390,7 @@ class OverlayView: NSView {
 
         // Save state for undo before modifying
         let prevImage = originalImage.copy() as! NSImage
-        undoStack.append(.imageTransform(previousImage: prevImage, annotationOffsets: []))
+        undoStack.append(.imageTransform(previousImage: prevImage, previousSnappedWindowImage: nil, annotationOffsets: []))
         redoStack.removeAll()
 
         let dx = selectionRect.minX - canvasRect.minX
@@ -9522,11 +9547,15 @@ class OverlayView: NSView {
             ann.copyProperties(from: snapshot)
             redoStack.append(.propertyChange(annotation: ann, snapshot: currentSnapshot))
             cachedCompositedImage = nil
-        case .imageTransform(let previousImage, _):
+        case .imageTransform(let previousImage, let previousSnapped, _):
             // Undo crop/flip — swap the current image with the saved one
             let currentImage = screenshotImage?.copy() as? NSImage ?? previousImage
-            redoStack.append(.imageTransform(previousImage: currentImage, annotationOffsets: []))
+            let currentSnapped = previousSnapped != nil ? snappedWindowImage : nil
+            redoStack.append(.imageTransform(previousImage: currentImage,
+                                             previousSnappedWindowImage: currentSnapped,
+                                             annotationOffsets: []))
             screenshotImage = previousImage
+            if previousSnapped != nil { snappedWindowImage = previousSnapped }
             // Update selectionRect to match restored image size
             if isEditorMode {
                 selectionRect = NSRect(origin: .zero, size: previousImage.size)
@@ -9583,11 +9612,15 @@ class OverlayView: NSView {
             ann.copyProperties(from: snapshot)
             undoStack.append(.propertyChange(annotation: ann, snapshot: currentSnapshot))
             cachedCompositedImage = nil
-        case .imageTransform(let redoImage, _):
+        case .imageTransform(let redoImage, let redoSnapped, _):
             // Redo crop/flip — swap back
             let currentImage = screenshotImage?.copy() as? NSImage ?? redoImage
-            undoStack.append(.imageTransform(previousImage: currentImage, annotationOffsets: []))
+            let currentSnapped = redoSnapped != nil ? snappedWindowImage : nil
+            undoStack.append(.imageTransform(previousImage: currentImage,
+                                             previousSnappedWindowImage: currentSnapped,
+                                             annotationOffsets: []))
             screenshotImage = redoImage
+            if redoSnapped != nil { snappedWindowImage = redoSnapped }
             if isEditorMode {
                 selectionRect = NSRect(origin: .zero, size: redoImage.size)
                 if isInsideScrollView { frame.size = redoImage.size }

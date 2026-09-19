@@ -258,7 +258,7 @@ final class OverlayCanvasTests: XCTestCase {
         let original = try XCTUnwrap(view.screenshotImage)
         let flipped = ImageProbe.solidImage(width: 60, height: 40)
 
-        view.undoStack.append(.imageTransform(previousImage: original, annotationOffsets: []))
+        view.undoStack.append(.imageTransform(previousImage: original, previousSnappedWindowImage: nil, annotationOffsets: []))
         view.screenshotImage = flipped
 
         view.undo()
