@@ -16,7 +16,7 @@ class UploadToastController {
     private let cornerRadius: CGFloat = 14
 
     func show(status: String) {
-        let screen = NSScreen.main ?? NSScreen.screens[0]
+        guard let screen = NSScreen.preferred else { return }
         let screenFrame = screen.frame
         let visibleFrame = screen.visibleFrame
         let toastHeight: CGFloat = 56
@@ -116,7 +116,7 @@ class UploadToastController {
         let toastHeight = max(64, linkH + 42)
 
         // Resize and reposition (stay top-center)
-        let screen = NSScreen.main ?? NSScreen.screens[0]
+        guard let screen = NSScreen.preferred else { return }
         let visibleFrame = screen.visibleFrame
         let topPadding: CGFloat = 12
         let x = screen.frame.midX - toastWidth / 2
@@ -184,7 +184,7 @@ class UploadToastController {
         let toastHeight = max(56, ceil(textSize.height) + 28)
 
         // Resize and reposition
-        let screen = NSScreen.main ?? NSScreen.screens[0]
+        guard let screen = NSScreen.preferred else { return }
         let visibleFrame = screen.visibleFrame
         let topPadding: CGFloat = 12
         let x = screen.frame.midX - toastWidth / 2
@@ -243,7 +243,7 @@ class UploadToastController {
     private func animateOut() {
         guard let window = window else { return }
         let frame = window.frame
-        let screen = NSScreen.main ?? NSScreen.screens[0]
+        guard let screen = NSScreen.preferred else { return }
         let offscreenY = screen.visibleFrame.maxY + 10
 
         NSAnimationContext.runAnimationGroup({ ctx in

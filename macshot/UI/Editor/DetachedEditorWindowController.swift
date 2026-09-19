@@ -73,8 +73,9 @@ class DetachedEditorWindowController: NSObject, NSWindowDelegate {
 
     private func show(image: NSImage, tool: AnnotationTool?, color: NSColor?, strokeWidth: CGFloat?, annotations: [Annotation]) {
         let imgSize = image.size
-        let screen = NSScreen.main ?? NSScreen.screens.first!
-        let screenFrame = screen.visibleFrame
+        // screens can be empty while displays are asleep; a force unwrap here
+        // would take the app down rather than open the editor.
+        let screenFrame = NSScreen.preferredVisibleFrame
 
         let minW: CGFloat = 800
         let minH: CGFloat = 400

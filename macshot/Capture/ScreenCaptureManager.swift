@@ -233,7 +233,8 @@ class ScreenCaptureManager {
         // The two only coincide for the primary display — non-primary screens
         // captured with the raw AppKit frame come back vertically shifted with a
         // black stripe where the rect fell off the display (#291, #294).
-        let primaryHeight = screens[0].frame.maxY
+        guard let primaryScreen = screens.first else { return [] }
+        let primaryHeight = primaryScreen.frame.maxY
         let captures = await withTaskGroup(
             of: ScreenCapture?.self,
             returning: [ScreenCapture].self

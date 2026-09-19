@@ -1273,7 +1273,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUUpdaterDelegate {
     }
 
     private func showPreCaptureCountdown(seconds: Int) {
-        let screen = NSScreen.main ?? NSScreen.screens[0]
+        // No display to show a countdown on (all asleep, or headless).
+        guard let screen = NSScreen.preferred else { return }
         let size = NSSize(width: 140, height: 140)
         let origin = NSPoint(
             x: screen.frame.midX - size.width / 2,
@@ -1807,7 +1808,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUUpdaterDelegate {
             thumbnailControllers.removeAll()
         }
 
-        let screen = NSScreen.main ?? NSScreen.screens[0]
+        guard let screen = NSScreen.preferred else { return }
         let screenFrame = screen.visibleFrame
         let padding: CGFloat = 16
         let gap: CGFloat = 8
@@ -1964,7 +1965,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUUpdaterDelegate {
     }
 
     private func reflowThumbnails() {
-        let screen = NSScreen.main ?? NSScreen.screens[0]
+        // Thumbnails reflow from a timer, which can fire while displays sleep.
+        guard let screen = NSScreen.preferred else { return }
         let padding: CGFloat = 16
         let gap: CGFloat = 8
         let frame = screen.visibleFrame

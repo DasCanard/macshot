@@ -245,7 +245,7 @@ class FloatingThumbnailController: NSObject, NSDraggingSource, QLPreviewPanelDat
 
     func show(at origin: NSPoint, corner: FloatingThumbnailCorner) {
         self.corner = corner
-        let screen = NSScreen.main ?? NSScreen.screens[0]
+        guard let screen = NSScreen.preferred else { return }
         let screenFrame = screen.visibleFrame
 
         // Fit image within max bounds preserving aspect ratio, then enforce
@@ -523,7 +523,7 @@ class FloatingThumbnailController: NSObject, NSDraggingSource, QLPreviewPanelDat
         if let screen = NSScreen.screens.first(where: { $0.visibleFrame.intersects(frame) || $0.frame.intersects(frame) }) {
             return screen.visibleFrame
         }
-        return (NSScreen.main ?? NSScreen.screens[0]).visibleFrame
+        return NSScreen.preferredVisibleFrame
     }
 
     private func offscreenX(for frame: NSRect) -> CGFloat {
