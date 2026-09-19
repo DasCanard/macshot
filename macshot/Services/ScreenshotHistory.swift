@@ -45,9 +45,12 @@ class ScreenshotHistory {
         return 10  // default
     }
 
-    private init() {
+    /// `directory` exists so tests can drive a real save/reload cycle against a
+    /// temporary folder instead of the user's capture history. The app always
+    /// uses `shared`, which passes nil.
+    init(directory: URL? = nil) {
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        historyDir = appSupport.appendingPathComponent("com.sw33tlie.macshot/history")
+        historyDir = directory ?? appSupport.appendingPathComponent("com.sw33tlie.macshot/history")
         indexFile = historyDir.appendingPathComponent("index.json")
 
         // Create directory with 0700 permissions (owner only)
