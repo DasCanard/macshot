@@ -468,7 +468,7 @@
 
 /* Recording — Input Monitoring Permission */
 "Input Monitoring Required" = "Invoerbewaking vereist";
-"macshot needs Input Monitoring permission to show keystrokes during recording. Please grant access in System Settings, then try again." = "macshot heeft de toestemming Invoerbewaking nodig om toetsaanslagen te tonen tijdens de opname. Verleen toegang in System Settings en probeer het opnieuw.";
+"macshot needs Input Monitoring permission to highlight mouse clicks or show keystrokes during recording. Please grant access in System Settings, then try again." = "macshot heeft toestemming voor Invoerbewaking nodig om muisklikken te markeren of toetsaanslagen te tonen tijdens de opname. Verleen toegang in Systeeminstellingen en probeer het opnieuw.";
 "macshot needs Accessibility permission to snap to individual interface elements. Please grant access in System Settings, then try again." = "macshot heeft toegankelijkheidstoestemming nodig om uit te lijnen op afzonderlijke interface-elementen. Verleen toegang in Systeeminstellingen en probeer het opnieuw.";
 
 /* Recording — Keystroke Overlay */

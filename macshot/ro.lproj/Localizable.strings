@@ -471,7 +471,7 @@
 
 /* Recording — Input Monitoring Permission */
 "Input Monitoring Required" = "Monitorizarea tastaturii este necesară";
-"macshot needs Input Monitoring permission to show keystrokes during recording. Please grant access in System Settings, then try again." = "macshot are nevoie de permisiunea Monitorizare intrare pentru a afișa apăsările de taste în timpul înregistrării. Acordă acces din System Settings, apoi încearcă din nou.";
+"macshot needs Input Monitoring permission to highlight mouse clicks or show keystrokes during recording. Please grant access in System Settings, then try again." = "macshot are nevoie de permisiunea Monitorizare intrare pentru a evidenția clicurile de mouse sau a afișa apăsările de taste în timpul înregistrării. Acordă acces în Configurări sistem și încearcă din nou.";
 "macshot needs Accessibility permission to snap to individual interface elements. Please grant access in System Settings, then try again." = "macshot are nevoie de permisiunea Accesibilitate pentru alinierea la elementele individuale ale interfeței. Acordați acces în Setările Sistemului și încercați din nou.";
 
 /* Recording — Keystroke Overlay */

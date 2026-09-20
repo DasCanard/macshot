@@ -713,6 +713,10 @@ class OverlayView: NSView {
     private var overlayErrorTimer: Timer? = nil
 
     // Recording state
+    var hasRecordingInputMonitoringPermission: Bool {
+        KeystrokeOverlay.hasInputMonitoringPermission
+    }
+
     var isRecording: Bool = false {  // true when recording toolbar is shown (pre-recording setup)
         didSet {
             if isRecording {
@@ -725,11 +729,16 @@ class OverlayView: NSView {
                 hoveredAnnotation = nil
                 selectedAnnotation = nil
                 needsDisplay = true
-                // Pre-check Input Monitoring permission if keystroke overlay is enabled
-                if UserDefaults.standard.bool(forKey: "recordKeystroke") && !KeystrokeOverlay.hasInputMonitoringPermission {
-                    UserDefaults.standard.set(false, forKey: "recordKeystroke")
+                // Both global input overlays require Input Monitoring. Recheck
+                // saved options too, since access may have been revoked.
+                let enabledInputOverlays = ["recordMouseHighlight", "recordKeystroke"].filter {
+                    UserDefaults.standard.bool(forKey: $0)
+                }
+                if !enabledInputOverlays.isEmpty && !hasRecordingInputMonitoringPermission {
+                    for key in enabledInputOverlays { UserDefaults.standard.set(false, forKey: key) }
                     rebuildToolbarLayout()
                     overlayDelegate?.overlayViewDidRequestInputMonitoringPermission()
+                    return
                 }
 
                 // Pre-check mic + camera permissions sequentially so dialogs don't overlap
@@ -7584,11 +7593,10 @@ class OverlayView: NSView {
             && KeyboardShortcutMatcher.toolCharacters(for: event).contains(keyboardMoveSelectionShortcut)
     }
 
-    private func canStartKeyboardMoveSelection() -> Bool {
+    func canStartKeyboardMoveSelection() -> Bool {
         state == .selected
             && !isEditorMode
             && textEditView == nil
-            && !isRecording
             && !isScrollCapturing
             && !isAnchoredSelecting
             && !isResizingSelection
@@ -7603,7 +7611,7 @@ class OverlayView: NSView {
     }
 
     @discardableResult
-    private func startKeyboardMoveSelection() -> Bool {
+    func startKeyboardMoveSelection() -> Bool {
         guard canStartKeyboardMoveSelection(), let win = window else { return false }
         var moveButton = moveSelectionButtonView()
 
@@ -8316,11 +8324,9 @@ class OverlayView: NSView {
             isRecording = false
             overlayDelegate?.overlayViewDidCancel()
         case .mouseHighlight:
-            let current = UserDefaults.standard.bool(forKey: "recordMouseHighlight")
-            UserDefaults.standard.set(!current, forKey: "recordMouseHighlight")
-            rebuildToolbarLayout()
+            toggleInputMonitoredRecordingOverlay(forKey: "recordMouseHighlight")
         case .showKeystrokes:
-            toggleKeystrokeOverlay()
+            toggleInputMonitoredRecordingOverlay(forKey: "recordKeystroke")
         case .systemAudio:
             let current = UserDefaults.standard.bool(forKey: "recordSystemAudio")
             UserDefaults.standard.set(!current, forKey: "recordSystemAudio")
@@ -8849,20 +8855,15 @@ class OverlayView: NSView {
         needsDisplay = true
     }
 
-    private func toggleKeystrokeOverlay() {
-        let current = UserDefaults.standard.bool(forKey: "recordKeystroke")
-        if current {
-            UserDefaults.standard.set(false, forKey: "recordKeystroke")
-            rebuildToolbarLayout()
+    private func toggleInputMonitoredRecordingOverlay(forKey key: String) {
+        let current = UserDefaults.standard.bool(forKey: key)
+        // Turning an option off must still work after access is revoked.
+        guard current || hasRecordingInputMonitoringPermission else {
+            overlayDelegate?.overlayViewDidRequestInputMonitoringPermission()
             return
         }
-        // Requires Input Monitoring permission for CGEvent tap
-        if KeystrokeOverlay.hasInputMonitoringPermission {
-            UserDefaults.standard.set(true, forKey: "recordKeystroke")
-            rebuildToolbarLayout()
-        } else {
-            overlayDelegate?.overlayViewDidRequestInputMonitoringPermission()
-        }
+        UserDefaults.standard.set(!current, forKey: key)
+        rebuildToolbarLayout()
     }
 
     func commitTextFieldIfNeeded() {
@@ -9158,10 +9159,14 @@ class OverlayView: NSView {
     }
 
     override func keyDown(with event: NSEvent) {
-        // In recording mode, only allow Escape (to exit recording mode)
+        // Recording setup allows Move and Escape, without activating screenshot
+        // tools or output shortcuts. The actual recording uses a separate HUD.
         if isRecording {
             if event.keyCode == 53 { // Escape
                 handleToolbarAction(.stopRecord)
+            } else if !event.isARepeat, !isKeyboardMoveSelectionActive,
+                      eventMatchesToolShortcut(event, action: .moveSelection) {
+                _ = startKeyboardMoveSelection()
             }
             return
         }

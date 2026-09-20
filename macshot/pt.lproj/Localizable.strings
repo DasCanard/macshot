@@ -469,7 +469,7 @@
 
 /* Recording — Input Monitoring Permission */
 "Input Monitoring Required" = "Monitorização de Entrada Necessária";
-"macshot needs Input Monitoring permission to show keystrokes during recording. Please grant access in System Settings, then try again." = "O macshot necessita da permissão de Monitorização de Entrada para mostrar as teclas premidas durante a gravação. Conceda acesso em System Settings e tente novamente.";
+"macshot needs Input Monitoring permission to highlight mouse clicks or show keystrokes during recording. Please grant access in System Settings, then try again." = "O macshot necessita da permissão de Monitorização de Entrada para realçar os cliques do rato ou mostrar as teclas premidas durante a gravação. Conceda acesso nas Definições do Sistema e tente novamente.";
 "macshot needs Accessibility permission to snap to individual interface elements. Please grant access in System Settings, then try again." = "O macshot necessita da permissão de Acessibilidade para se ajustar a elementos individuais da interface. Conceda acesso nas Definições do Sistema e tente novamente.";
 
 /* Recording — Keystroke Overlay */

@@ -478,7 +478,7 @@
 
 /* Recording — Input Monitoring Permission */
 "Input Monitoring Required" = "Vyžaduje sa monitorovanie vstupu";
-"macshot needs Input Monitoring permission to show keystrokes during recording. Please grant access in System Settings, then try again." = "macshot potrebuje povolenie na monitorovanie vstupu pre zobrazenie stlačení kláves počas nahrávania. Udeľte prístup v System Settings a skúste to znova.";
+"macshot needs Input Monitoring permission to highlight mouse clicks or show keystrokes during recording. Please grant access in System Settings, then try again." = "macshot potrebuje povolenie na monitorovanie vstupu na zvýraznenie kliknutí myšou alebo zobrazenie stlačení klávesov počas nahrávania. Udeľte prístup v Systémových nastaveniach a skúste to znova.";
 "macshot needs Accessibility permission to snap to individual interface elements. Please grant access in System Settings, then try again." = "macshot potrebuje povolenie Prístupnosti pre prichytávanie k jednotlivým prvkom rozhrania. Udeľte prístup v Nastaveniach systému a skúste to znova.";
 
 /* Recording — Keystroke Overlay */

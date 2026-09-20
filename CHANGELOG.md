@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- **Mouse click highlighting permissions** — enabling click highlights now requests Input Monitoring access, just like Show Keystrokes. Recording setup also checks saved options if access has been revoked.
+- **Move shortcut before recording** — the configured Move shortcut, including Space, now moves the selected recording area before recording starts.
 - **Recordings stopped right after starting produced nothing** — stopping within the first moments left the capture stream running with nothing able to stop it, kept the microphone active, and ended the session silently. Recording failures are now reported instead of disappearing with the HUD.
 - **Screenshots that couldn't be saved vanished without a word** — a full disk or an unmounted save folder now shows an error instead of dismissing the overlay as if the capture had been written. The same applies to a capture that can't be stored in history.
 - **Annotations lost from older captures** — captures saved by earlier versions failed to load their annotations, and a single damaged entry discarded every annotation in that capture. Beautify settings and the capture list itself had the same flaw.

@@ -3152,7 +3152,7 @@ extension AppDelegate: OverlayWindowControllerDelegate {
         KeystrokeOverlay.requestInputMonitoringPermission()
         let alert = NSAlert()
         alert.messageText = L("Input Monitoring Required")
-        alert.informativeText = L("macshot needs Input Monitoring permission to show keystrokes during recording. Please grant access in System Settings, then try again.")
+        alert.informativeText = L("macshot needs Input Monitoring permission to highlight mouse clicks or show keystrokes during recording. Please grant access in System Settings, then try again.")
         alert.alertStyle = .warning
         alert.addButton(withTitle: L("Open Settings"))
         alert.addButton(withTitle: L("Cancel"))

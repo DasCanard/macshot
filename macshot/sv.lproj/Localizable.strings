@@ -476,7 +476,7 @@
 
 /* Recording \U2014 Input Monitoring Permission */
 "Input Monitoring Required" = "Inmatnings\U00F6vervakning kr\U00E4vs";
-"macshot needs Input Monitoring permission to show keystrokes during recording. Please grant access in System Settings, then try again." = "macshot beh\U00F6ver beh\U00F6righet f\U00F6r inmatnings\U00F6vervakning f\U00F6r att visa tangenttryckningar under inspelning. Ge \U00E5tkomst i System Settings och f\U00F6rs\U00F6k sedan igen.";
+"macshot needs Input Monitoring permission to highlight mouse clicks or show keystrokes during recording. Please grant access in System Settings, then try again." = "macshot behöver behörighet för inmatningsövervakning för att markera musklick eller visa tangenttryckningar under inspelning. Ge åtkomst i Systeminställningar och försök igen.";
 "macshot needs Accessibility permission to snap to individual interface elements. Please grant access in System Settings, then try again." = "macshot behöver behörighet för Tillgänglighet för att fästa mot enskilda gränssnittselement. Ge åtkomst i Systeminställningar och försök igen.";
 
 /* Recording \U2014 Keystroke Overlay */

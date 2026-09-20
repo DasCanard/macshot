@@ -478,7 +478,7 @@
 
 /* Recording — Input Monitoring Permission */
 "Input Monitoring Required" = "Yêu cầu quyền Giám sát đầu vào";
-"macshot needs Input Monitoring permission to show keystrokes during recording. Please grant access in System Settings, then try again." = "macshot cần quyền Giám sát đầu vào để hiển thị phím bấm trong khi quay. Vui lòng cấp quyền trong System Settings, rồi thử lại.";
+"macshot needs Input Monitoring permission to highlight mouse clicks or show keystrokes during recording. Please grant access in System Settings, then try again." = "macshot cần quyền Giám sát đầu vào để làm nổi bật thao tác nhấp chuột hoặc hiển thị phím bấm trong khi ghi. Hãy cấp quyền truy cập trong Cài đặt hệ thống rồi thử lại.";
 "macshot needs Accessibility permission to snap to individual interface elements. Please grant access in System Settings, then try again." = "macshot cần quyền Trợ năng để bám vào từng thành phần giao diện. Vui lòng cấp quyền trong Cài đặt Hệ thống, rồi thử lại.";
 
 /* Recording — Keystroke Overlay */

@@ -478,7 +478,7 @@
 
 /* Recording — Input Monitoring Permission */
 "Input Monitoring Required" = "Pemantauan Input Diperlukan";
-"macshot needs Input Monitoring permission to show keystrokes during recording. Please grant access in System Settings, then try again." = "macshot memerlukan kebenaran Pemantauan Input untuk menunjukkan ketukan kekunci semasa rakaman. Sila berikan akses dalam System Settings, kemudian cuba lagi.";
+"macshot needs Input Monitoring permission to highlight mouse clicks or show keystrokes during recording. Please grant access in System Settings, then try again." = "macshot memerlukan kebenaran Pemantauan Input untuk menyerlahkan klik tetikus atau menunjukkan ketukan kekunci semasa rakaman. Berikan akses dalam Tetapan Sistem, kemudian cuba lagi.";
 "macshot needs Accessibility permission to snap to individual interface elements. Please grant access in System Settings, then try again." = "macshot memerlukan kebenaran Kebolehcapaian untuk melekap pada elemen antara muka individu. Sila berikan akses dalam Tetapan Sistem, kemudian cuba lagi.";
 
 /* Recording — Keystroke Overlay */
