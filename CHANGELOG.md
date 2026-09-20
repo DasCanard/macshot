@@ -29,6 +29,7 @@
 
 ### Changed
 
+- Video editor menus open upward from the bottom toolbar, and taller editor windows show up to eight effect rows. (#405, #406)
 - Automated tests and Release builds run on every push and pull request for both the normal and Offline variants. The runner fails on empty or unreadable test results instead of reporting false success.
 - History now stores immutable revisions selected by an atomic index. Older builds cannot directly read the new layout; see [local recovery and downgrade instructions](docs/history-recovery.md) before downgrading.
 

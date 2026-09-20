@@ -310,7 +310,14 @@ private final class VideoEditorView: NSView {
     private let effectsRowStride: CGFloat = 22 + 2
     /// Number of rows visible without scrolling inside the effects scroll view.
     /// Beyond this the scroll view scrolls vertically.
-    private let effectsVisibleRowCount: Int = 4
+    /// 4 rows in a small window, up to 8 when the window is tall enough (the video keeps
+    /// most of the height). Re-evaluated on resize.
+    private var effectsVisibleRowCount: Int {
+        let fixed = buttonsAreaH + textOptionsPanelH + scrollToLabelsGap + trimBarH
+            + labelsAboveTrimGap + labelsRowH + topPadH
+        let room = bounds.height * 0.45 - fixed - 6
+        return max(4, min(8, Int(room / effectsRowStride)))
+    }
 
     // Vertical layout of the controls band (bottom-up):
     //   [buttons 12→40]          fixed 48pt
@@ -2111,6 +2118,7 @@ private final class VideoEditorView: NSView {
         textOptionsPanelH = targetH
         textOptionsPanel?.isHidden = (targetH == 0)
         textOptionsPanelHeightConstraint?.animator().constant = targetH
+        effectsBandHeightConstraint?.animator().constant = effectsScrollViewHeight(forRowCount: currentEffectRowCount)
         playerBottomConstraint?.animator().constant = -controlsH
         needsDisplay = true
     }
@@ -2785,6 +2793,17 @@ private final class VideoEditorView: NSView {
     }
 
     // MARK: - EffectsBandView integration
+
+    override func setFrameSize(_ newSize: NSSize) {
+        super.setFrameSize(newSize)
+        // More / fewer timeline rows fit after a resize.
+        let h = effectsScrollViewHeight(forRowCount: currentEffectRowCount)
+        if let c = effectsBandHeightConstraint, abs(c.constant - h) > 0.5 {
+            c.constant = h
+            playerBottomConstraint?.constant = -controlsH
+            needsDisplay = true
+        }
+    }
 
     /// Compute the scroll view's visible height for a given row count,
     /// capped at `effectsVisibleRowCount` rows so the editor window doesn't
