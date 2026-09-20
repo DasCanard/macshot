@@ -49,7 +49,7 @@ final class RecordingSetupTests: XCTestCase {
         }
     }
 
-    func testRecordingSetupChecksPreviouslyEnabledMouseHighlightOnItsOwn() {
+    func testSavedMouseHighlightPromptsOnceAndIsOffWhenRecordingSetupReopens() {
         withOverlay { view, delegate in
             view.permissionGranted = false
             UserDefaults.standard.set(true, forKey: "recordMouseHighlight")
@@ -57,6 +57,18 @@ final class RecordingSetupTests: XCTestCase {
             XCTAssertFalse(UserDefaults.standard.bool(forKey: "recordMouseHighlight"))
             XCTAssertFalse(UserDefaults.standard.bool(forKey: "recordKeystroke"))
             XCTAssertEqual(delegate.inputPermissionRequests, 1)
+
+            // The permission flow dismisses the old capture. A fresh capture
+            // must show both options off without requesting permission again.
+            let reopened = RecordingSetupOverlay(frame: view.frame)
+            reopened.permissionGranted = false
+            reopened.overlayDelegate = delegate
+            reopened.applySelection(view.selectionRect)
+            reopened.isRecording = true
+            XCTAssertEqual(delegate.inputPermissionRequests, 1)
+            let buttons = ToolbarLayout.rightButtons(isRecording: true)
+            XCTAssertEqual(buttons.first { if case .mouseHighlight = $0.action { return true }; return false }?.isSelected, false)
+            XCTAssertEqual(buttons.first { if case .showKeystrokes = $0.action { return true }; return false }?.isSelected, false)
         }
     }
 

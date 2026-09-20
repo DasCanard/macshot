@@ -3,14 +3,14 @@ import ScreenCaptureKit
 import XCTest
 
 enum RecordingMediaFixture {
-    static func mixedMovie(in directory: URL, size: CGSize = CGSize(width: 64, height: 64),
+    static func mixedMovie(in directory: URL, size: CGSize = CGSize(width: 64, height: 64), frameCount: Int = 60,
                            pixelsForFrame: ((Int) throws -> CVPixelBuffer)? = nil) async throws -> URL {
         let url = directory.appendingPathComponent(UUID().uuidString + ".mp4")
         let queue = DispatchQueue(label: "macshot.tests.mix-source")
         let writer = try MP4WriterSession.make(queue: queue, url: url, width: Int(size.width), height: Int(size.height), fps: 30,
                                                recordSystemAudio: true, recordMicAudio: true)
         let defaultPixels = try RecordingMediaFixture.pixels(width: Int(size.width), height: Int(size.height))
-        for tick in 0..<60 { // two seconds at 30 fps, 48 kHz; distinct tones identify each track
+        for tick in 0..<frameCount { // 30 fps, 48 kHz; distinct tones identify each track
             let pixels = try pixelsForFrame?(tick) ?? defaultPixels
             let time = CMTime(value: Int64(4_800_000 + tick * 1600), timescale: 48_000)
             let mic = try RecordingMediaFixture.audio(samples: 1600, pts: time,
@@ -24,7 +24,7 @@ enum RecordingMediaFixture {
             }
             queue.sync { writer.handleMicSample(mic); writer.handleSystemAudioSample(system) }
         }
-        writer.requestStop(atSourceTime: CMTime(value: 102, timescale: 1))
+        writer.requestStop(atSourceTime: CMTime(value: Int64(3000 + frameCount), timescale: 30))
         try await writer.finish()
         return url
     }

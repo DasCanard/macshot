@@ -1911,8 +1911,7 @@ private final class VideoEditorView: NSView {
                     for: processed.composition,
                     videoTrack: processed.videoTrack,
                     renderSize: renderSize,
-                    timeMap: processed.timeMap,
-                    timeRangeDuration: processed.duration
+                    timeMap: processed.timeMap
                 )
             } else {
                 // Scale-only: no custom compositor needed, use a plain layer
@@ -1920,7 +1919,7 @@ private final class VideoEditorView: NSView {
                 session.videoComposition = buildScaleOnlyComposition(
                     videoTrack: processed.videoTrack,
                     renderSize: renderSize,
-                    totalDuration: processed.duration
+                    totalDuration: processed.composition.duration
                 )
             }
             guard session.videoComposition != nil else { return nil }
@@ -2189,8 +2188,7 @@ private final class VideoEditorView: NSView {
         let composition: AVMutableVideoComposition
         if !zoomSegments.isEmpty || !censorSegments.isEmpty || !textSegments.isEmpty || !freezeSegments.isEmpty {
             guard let effects = buildEffectsVideoComposition(for: processed.composition,
-                videoTrack: processed.videoTrack, renderSize: renderSize, timeMap: processed.timeMap,
-                timeRangeDuration: processed.duration) else { throw GIFExporter.ExportError.invalidSetup }
+                videoTrack: processed.videoTrack, renderSize: renderSize, timeMap: processed.timeMap) else { throw GIFExporter.ExportError.invalidSetup }
             composition = effects
             composition.frameDuration = cadence
         } else {
@@ -2320,8 +2318,7 @@ private final class VideoEditorView: NSView {
                     for: processed.composition,
                     videoTrack: processed.videoTrack,
                     renderSize: CGSize(width: outW, height: outH),
-                    timeMap: processed.timeMap,
-                    timeRangeDuration: processed.duration
+                    timeMap: processed.timeMap
                 )
                 guard readerComposition != nil else { return nil }
             } else {
@@ -2501,7 +2498,6 @@ private final class VideoEditorView: NSView {
                 videoTrack: asset.tracks(withMediaType: .video).first,
                 renderSize: nil,
                 timeMap: singleShiftTimeMap(shift: 0, duration: CMTimeGetSeconds(asset.duration)),
-                timeRangeDuration: CMTimeGetSeconds(asset.duration),
                 suspendZoom: previewSuspendsZoom,
                 excludingTextSegmentID: inlineTextEditingSegmentID
             )
@@ -2522,7 +2518,6 @@ private final class VideoEditorView: NSView {
                     videoTrack: cvt,
                     renderSize: nil,
                     timeMap: previewTimeline.entries,
-                    timeRangeDuration: CMTimeGetSeconds(compAsset.duration),
                     suspendZoom: previewSuspendsZoom,
                     excludingTextSegmentID: inlineTextEditingSegmentID
                 )
@@ -2550,7 +2545,6 @@ private final class VideoEditorView: NSView {
                 videoTrack: processed.videoTrack,
                 renderSize: nil,
                 timeMap: processed.timeMap,
-                timeRangeDuration: processed.duration,
                 suspendZoom: previewSuspendsZoom,
                 excludingTextSegmentID: inlineTextEditingSegmentID
             )
@@ -2631,10 +2625,10 @@ private final class VideoEditorView: NSView {
     /// Applies preferredTransform + uniform scale via setTransform — cheap, no
     /// custom compositor cost.
     private func buildScaleOnlyComposition(videoTrack: AVAssetTrack, renderSize: CGSize,
-                                           totalDuration: Double) -> AVMutableVideoComposition? {
+                                           totalDuration: CMTime) -> AVMutableVideoComposition? {
         do {
             return try VideoCompositionRendering.scaleComposition(track: videoTrack, renderSize: renderSize,
-                duration: CMTime(seconds: totalDuration, preferredTimescale: 1_000_000_000),
+                duration: totalDuration,
                 frameDuration: sourceFrameDuration)
         } catch {
             showStatus(error.localizedDescription, isError: true)
@@ -2659,13 +2653,10 @@ private final class VideoEditorView: NSView {
     ///   - renderSize: nil means "use natural-size rendering."
     ///   - timeMap: composition-time → source-asset-time mapping. Callers
     ///     without cuts pass a single entry spanning the whole composition.
-    ///   - timeRangeDuration: total length (in composition time) of the
-    ///     instruction's timeRange.
     private func buildEffectsVideoComposition(for asset: AVAsset,
                                               videoTrack: AVAssetTrack?,
                                               renderSize: CGSize?,
                                               timeMap: [EffectsCompositionInstruction.TimeMapEntry],
-                                              timeRangeDuration: Double,
                                               suspendZoom: Bool = false,
                                               excludingTextSegmentID: UUID? = nil) -> AVMutableVideoComposition? {
         let track = videoTrack ?? asset.tracks(withMediaType: .video).first
@@ -2687,8 +2678,6 @@ private final class VideoEditorView: NSView {
             return nil
         }
 
-        let baseTransform = layout.coreImageTransform
-
         // Snapshot segments *by value* into plain arrays. The compositor runs
         // on background queues; we must not share main-actor state with it.
         let zoomSnapshot = suspendZoom ? [] : zoomSegments
@@ -2709,28 +2698,10 @@ private final class VideoEditorView: NSView {
                                                  naturalSize: CGSize(width: naturalW, height: naturalH),
                                                  excluding: excludingTextSegmentID)
 
-        let instruction = EffectsCompositionInstruction(
-            timeRange: CMTimeRange(
-                start: .zero,
-                duration: CMTime(seconds: timeRangeDuration, preferredTimescale: 1_000_000_000)
-            ),
-            videoTrackID: videoTrack.trackID,
-            naturalSize: CGSize(width: naturalW, height: naturalH),
-            renderSize: CGSize(width: renderW, height: renderH),
-            baseTransform: baseTransform,
-            timeMap: timeMap,
-            zoomSegments: zoomSnapshot,
-            censorSegments: censorSnapshot,
-            textSnapshots: textSnapshots
-        )
-
-        let composition = AVMutableVideoComposition()
-        composition.customVideoCompositorClass = EffectsVideoCompositor.self
-        composition.instructions = [instruction]
-        composition.renderSize = CGSize(width: renderW, height: renderH)
-        composition.frameDuration = sourceFrameDuration
-
-        return composition
+        return VideoCompositionRendering.effectsComposition(
+            asset: asset, track: videoTrack, layout: layout, frameDuration: sourceFrameDuration,
+            timeMap: timeMap, zoomSegments: zoomSnapshot, censorSegments: censorSnapshot,
+            textSnapshots: textSnapshots)
     }
 
     /// Convenience: build a single-entry time map from a scalar shift. All

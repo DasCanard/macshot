@@ -4,6 +4,7 @@
 
 ### Fixed
 
+- **Video effects preview and saving** — preserve exact recording end times so fractional-second clips do not lose effect previews or fail to save with “Operation Stopped”.
 - **Mouse click highlighting permissions** — enabling click highlights now requests Input Monitoring access, just like Show Keystrokes. Recording setup also checks saved options if access has been revoked.
 - **Move shortcut before recording** — the configured Move shortcut, including Space, now moves the selected recording area before recording starts.
 - **Recordings stopped right after starting produced nothing** — stopping within the first moments left the capture stream running with nothing able to stop it, kept the microphone active, and ended the session silently. Recording failures are now reported instead of disappearing with the HUD.
