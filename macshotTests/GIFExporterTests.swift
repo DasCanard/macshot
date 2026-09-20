@@ -44,11 +44,20 @@ final class GIFExporterTests: XCTestCase {
         let built = try VideoCompositionBuilder.build(asset: AVAsset(url: source), pieces: pieces, includeAudio: false)
         XCTAssertFalse(built.videoTrack.segments.contains(where: \.isEmpty), "Freeze/speed scaling must not leave even a sub-frame hole")
         XCTAssertEqual(built.videoTrack.segments.count, built.timeMap.count)
+        // The builder chooses a clock compatible with the source. Converting
+        // its Double time map back through a fixed 1 GHz clock rounds valid
+        // endpoints; compare on the composition track's actual clock instead.
+        let editClock = built.videoTrack.naturalTimeScale
         for (segment, expected) in zip(built.videoTrack.segments, built.timeMap) {
             XCTAssertEqual(CMTimeCompare(segment.timeMapping.target.start,
-                CMTime(seconds: expected.compStart, preferredTimescale: 1_000_000_000)), 0)
+                CMTime(seconds: expected.compStart, preferredTimescale: editClock)), 0)
             XCTAssertEqual(CMTimeCompare(segment.timeMapping.target.end,
-                CMTime(seconds: expected.compEnd, preferredTimescale: 1_000_000_000)), 0)
+                CMTime(seconds: expected.compEnd, preferredTimescale: editClock)), 0)
+        }
+        // Keep an exact rational-time check so a real gap or overlap still
+        // fails, independently of the Double time map's representation.
+        for (previous, next) in zip(built.videoTrack.segments, built.videoTrack.segments.dropFirst()) {
+            XCTAssertEqual(CMTimeCompare(previous.timeMapping.target.end, next.timeMapping.target.start), 0)
         }
         for custom in Array(repeating: [false, true], count: 3).flatMap({ $0 }) {
             let request = try request(built, custom: custom)
