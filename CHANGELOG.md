@@ -4,8 +4,9 @@
 
 ### Fixed
 
+- **Cuts and speed edits** — use a compatible editing clock so fractional-second recording tails do not trigger “invalid time range” or leave playback on the uncut timeline.
 - **Video effects preview and saving** — preserve exact recording end times so fractional-second clips do not lose effect previews or fail to save with “Operation Stopped”.
-- **Mouse click highlighting permissions** — enabling click highlights now requests Input Monitoring access, just like Show Keystrokes. Recording setup also checks saved options if access has been revoked.
+- **Mouse click highlighting permissions** — enabling click highlights now requests Input Monitoring access, just like Show Keystrokes. Entering recording setup keeps unavailable saved options off and requests access only when you enable one.
 - **Move shortcut before recording** — the configured Move shortcut, including Space, now moves the selected recording area before recording starts.
 - **Recordings stopped right after starting produced nothing** — stopping within the first moments left the capture stream running with nothing able to stop it, kept the microphone active, and ended the session silently. Recording failures are now reported instead of disappearing with the HUD.
 - **Screenshots that couldn't be saved vanished without a word** — a full disk or an unmounted save folder now shows an error instead of dismissing the overlay as if the capture had been written. The same applies to a capture that can't be stored in history.

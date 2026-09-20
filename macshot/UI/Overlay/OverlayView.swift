@@ -729,16 +729,15 @@ class OverlayView: NSView {
                 hoveredAnnotation = nil
                 selectedAnnotation = nil
                 needsDisplay = true
-                // Both global input overlays require Input Monitoring. Recheck
-                // saved options too, since access may have been revoked.
+                // Unavailable optional overlays stay off. Ask for Input
+                // Monitoring only when the user explicitly enables one, not
+                // merely on entering recording setup with saved preferences.
                 let enabledInputOverlays = ["recordMouseHighlight", "recordKeystroke"].filter {
                     UserDefaults.standard.bool(forKey: $0)
                 }
                 if !enabledInputOverlays.isEmpty && !hasRecordingInputMonitoringPermission {
                     for key in enabledInputOverlays { UserDefaults.standard.set(false, forKey: key) }
                     rebuildToolbarLayout()
-                    overlayDelegate?.overlayViewDidRequestInputMonitoringPermission()
-                    return
                 }
 
                 // Pre-check mic + camera permissions sequentially so dialogs don't overlap

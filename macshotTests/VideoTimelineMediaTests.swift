@@ -163,6 +163,36 @@ final class VideoTimelineMediaTests: XCTestCase {
         }
     }
 
+    func testCutsAndSpeedKeepFractionalSourceEndAndSkipRemovedFrames() async throws {
+        // An endpoint of 32/30 rounds OUTWARD on the old 1 GHz edit clock.
+        // Unlike whole-second fixtures, even a single cut used to fail the
+        // final source-range containment check and leave preview uncut.
+        let url = try await RecordingMediaFixture.mixedMovie(in: directory, frameCount: 32,
+                                                            pixelsForFrame: indexedPixels)
+        let asset = AVURLAsset(url: url)
+        let end = asset.tracks(withMediaType: .video)[0].timeRange.end.seconds
+        let cut = VideoCutSegment(startTime: 0.2, endTime: 0.4)
+        for speeds: [VideoSpeedSegment] in [[], [.init(startTime: 0.1, endTime: 0.8, speedFactor: 2)]] {
+            let kept = VideoCuts.keptRanges(trimStart: 0, trimEnd: end, cuts: [cut])
+            let pieces = VideoSpeeds.pieces(keptRanges: kept, speeds: speeds)
+            let built = try VideoCompositionBuilder.build(asset: asset, pieces: pieces, includeAudio: true)
+            XCTAssertEqual(built.duration, VideoSpeeds.totalCompositionDuration(pieces), accuracy: 0.000001)
+            XCTAssertEqual(try XCTUnwrap(built.timeMap.last).sourceStart +
+                (built.timeMap.last!.compEnd - built.timeMap.last!.compStart) * built.timeMap.last!.factor,
+                end, accuracy: 0.000001)
+            for pair in zip(built.timeMap, built.timeMap.dropFirst()) {
+                XCTAssertEqual(pair.0.compEnd, pair.1.compStart)
+            }
+            let output = try await exportPlain(built, usingEffects: true)
+            let frames = try frameIDs(output)
+            XCTAssertFalse(frames.isEmpty)
+            XCTAssertEqual(frames.last?.1, 31, "The last source frame must survive")
+            XCTAssertTrue(frames.allSatisfy { !(6..<12).contains($0.1) }, "Playback/export must skip the cut")
+            XCTAssertEqual(output.duration.seconds, built.duration, accuracy: 1.0 / 30)
+            XCTAssertEqual(output.tracks(withMediaType: .audio).count, 2)
+        }
+    }
+
     func testFreezeAtAnExactRationalFrameBoundaryHoldsThatFrame() async throws {
         let source = try await RecordingMediaFixture.mixedMovie(in: directory, pixelsForFrame: indexedPixels)
         let pieces = VideoSpeeds.pieces(keptRanges: [(0, 2)], speeds: [],

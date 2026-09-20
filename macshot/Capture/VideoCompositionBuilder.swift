@@ -30,43 +30,50 @@ enum VideoCompositionBuilder {
         let composition = AVMutableComposition()
         guard let video = composition.addMutableTrack(withMediaType: .video,
             preferredTrackID: kCMPersistentTrackID_Invalid) else { throw BuildError.missingVideo }
-        // Avoid rounding each edit to a coarse track clock.
-        video.naturalTimeScale = 1_000_000_000
-        video.preferredTransform = sourceVideo.preferredTransform
         let sourceAudio = includeAudio ? asset.tracks(withMediaType: .audio) : []
+        let frameDuration = sourceFrameDuration ?? VideoFrameCadence.declaredDuration(in: asset.metadata)
+            ?? VideoFrameCadence.Inspection(track: sourceVideo).duration()
+        let timeScale = editingTimeScale(tracks: [sourceVideo] + sourceAudio, frameDuration: frameDuration)
+        video.naturalTimeScale = timeScale
+        video.preferredTransform = sourceVideo.preferredTransform
         let audio = try sourceAudio.map { _ -> AVMutableCompositionTrack in
             guard let track = composition.addMutableTrack(withMediaType: .audio,
                 preferredTrackID: kCMPersistentTrackID_Invalid) else { throw BuildError.invalidTimeline }
-            track.naturalTimeScale = 1_000_000_000
+            track.naturalTimeScale = timeScale
             return track
         }
-        let frameDuration = sourceFrameDuration ?? VideoFrameCadence.declaredDuration(in: asset.metadata)
-            ?? VideoFrameCadence.Inspection(track: sourceVideo).duration()
+        // Keep every edited endpoint on the same compatible clock. With a
+        // fixed 1 GHz clock, subtracting a 1/600-second endpoint can overflow
+        // CMTime's timescale and round a valid final range past the source.
+        let sourceStart = CMTimeConvertScale(sourceVideo.timeRange.start, timescale: timeScale,
+                                            method: .roundTowardPositiveInfinity)
+        let sourceEnd = CMTimeConvertScale(sourceVideo.timeRange.end, timescale: timeScale,
+                                          method: .roundTowardNegativeInfinity)
         var cursor = CMTime.zero
         var map: [EffectsCompositionInstruction.TimeMapEntry] = []
         for piece in pieces {
             guard piece.srcStart.isFinite, piece.srcEnd.isFinite, piece.compositionDuration.isFinite,
                   piece.srcStart >= 0, piece.srcEnd >= piece.srcStart, piece.compositionDuration > 0,
-                  piece.srcEnd <= asset.duration.seconds + 0.000000001,
+                  piece.srcEnd <= sourceVideo.timeRange.end.seconds + 0.000000001,
                   piece.compositionDuration < 9_000_000_000 else {
                 throw BuildError.invalidTimeline
             }
-            var duration = CMTime(seconds: piece.compositionDuration, preferredTimescale: 1_000_000_000)
+            var duration = CMTime(seconds: piece.compositionDuration, preferredTimescale: timeScale)
             guard duration.isNumeric, duration.value > 0 else { throw BuildError.invalidTimeline }
-            let start = CMTime(seconds: piece.srcStart, preferredTimescale: 1_000_000_000)
+            let start = CMTime(seconds: piece.srcStart, preferredTimescale: timeScale)
             let sourceRange: CMTimeRange
             if piece.kind == .freeze {
                 guard piece.srcStart == piece.srcEnd else { throw BuildError.invalidTimeline }
                 sourceRange = try frameRange(at: start, in: sourceVideo, fallbackDuration: frameDuration)
             } else {
-                let end = CMTime(seconds: piece.srcEnd, preferredTimescale: 1_000_000_000)
+                let end = CMTime(seconds: piece.srcEnd, preferredTimescale: timeScale)
                 // A seconds-to-ticks conversion may round a rational endpoint
                 // outward by a fraction of a nanosecond. Preserve exact track
                 // boundaries rather than rejecting a valid full-length trim.
                 let exactStart = abs(start.seconds - sourceVideo.timeRange.start.seconds) <= 0.000000001
-                    ? sourceVideo.timeRange.start : start
+                    ? sourceStart : start
                 let exactEnd = abs(end.seconds - sourceVideo.timeRange.end.seconds) <= 0.000000001
-                    ? sourceVideo.timeRange.end : end
+                    ? sourceEnd : end
                 sourceRange = CMTimeRange(start: exactStart, end: exactEnd)
                 if piece.kind == .normal {
                     guard abs(piece.compositionDuration - piece.sourceDuration) <= 0.000000001 else {
@@ -105,6 +112,26 @@ enum VideoCompositionBuilder {
         }
         return Result(composition: composition, videoTrack: video, audioTracks: audio,
                       timeMap: map, frameDuration: frameDuration)
+    }
+
+    private static func editingTimeScale(tracks: [AVAssetTrack], frameDuration: CMTime) -> CMTimeScale {
+        func gcd(_ lhs: Int64, _ rhs: Int64) -> Int64 {
+            var a = lhs, b = rhs
+            while b != 0 { let remainder = a % b; a = b; b = remainder }
+            return a
+        }
+        let limit: Int64 = 1_000_000_000
+        // Prefer exact track boundaries, then include sample clocks wherever
+        // a common timescale fits. Exotic incompatible clocks are rounded
+        // inward at the source bounds by at most one high-resolution tick.
+        let scales = tracks.flatMap { [$0.timeRange.start.timescale, $0.timeRange.duration.timescale] }
+            + [frameDuration.timescale] + tracks.map(\.naturalTimeScale)
+        var common: Int64 = 1
+        for scale in scales where scale > 0 {
+            let candidate = common / gcd(common, Int64(scale)) * Int64(scale)
+            if candidate <= limit { common = candidate }
+        }
+        return CMTimeScale(common * (limit / common))
     }
 
     private static func appendAudio(source: AVAssetTrack, destination: AVMutableCompositionTrack,

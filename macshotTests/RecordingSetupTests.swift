@@ -49,30 +49,33 @@ final class RecordingSetupTests: XCTestCase {
         }
     }
 
-    func testSavedMouseHighlightPromptsOnceAndIsOffWhenRecordingSetupReopens() {
+    func testSavedMouseHighlightWithoutPermissionStaysOffWithoutPromptingOnEntry() {
         withOverlay { view, delegate in
             view.permissionGranted = false
             UserDefaults.standard.set(true, forKey: "recordMouseHighlight")
             view.isRecording = true
             XCTAssertFalse(UserDefaults.standard.bool(forKey: "recordMouseHighlight"))
             XCTAssertFalse(UserDefaults.standard.bool(forKey: "recordKeystroke"))
-            XCTAssertEqual(delegate.inputPermissionRequests, 1)
+            XCTAssertEqual(delegate.inputPermissionRequests, 0)
 
-            // The permission flow dismisses the old capture. A fresh capture
-            // must show both options off without requesting permission again.
+            // A fresh capture must also keep unavailable options off without
+            // interrupting recording setup with an optional permission prompt.
             let reopened = RecordingSetupOverlay(frame: view.frame)
             reopened.permissionGranted = false
             reopened.overlayDelegate = delegate
             reopened.applySelection(view.selectionRect)
             reopened.isRecording = true
-            XCTAssertEqual(delegate.inputPermissionRequests, 1)
+            XCTAssertEqual(delegate.inputPermissionRequests, 0)
             let buttons = ToolbarLayout.rightButtons(isRecording: true)
             XCTAssertEqual(buttons.first { if case .mouseHighlight = $0.action { return true }; return false }?.isSelected, false)
             XCTAssertEqual(buttons.first { if case .showKeystrokes = $0.action { return true }; return false }?.isSelected, false)
+            reopened.handleToolbarAction(.mouseHighlight)
+            XCTAssertEqual(delegate.inputPermissionRequests, 1)
+            XCTAssertFalse(UserDefaults.standard.bool(forKey: "recordMouseHighlight"))
         }
     }
 
-    func testRecordingSetupRequestsPermissionOnceForBothSavedOptions() {
+    func testRecordingSetupDisablesBothUnavailableSavedOptionsWithoutPrompting() {
         withOverlay { view, delegate in
             view.permissionGranted = false
             UserDefaults.standard.set(true, forKey: "recordMouseHighlight")
@@ -80,7 +83,7 @@ final class RecordingSetupTests: XCTestCase {
             view.isRecording = true
             XCTAssertFalse(UserDefaults.standard.bool(forKey: "recordMouseHighlight"))
             XCTAssertFalse(UserDefaults.standard.bool(forKey: "recordKeystroke"))
-            XCTAssertEqual(delegate.inputPermissionRequests, 1)
+            XCTAssertEqual(delegate.inputPermissionRequests, 0)
         }
     }
 
