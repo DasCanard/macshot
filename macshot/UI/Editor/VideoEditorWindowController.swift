@@ -1487,7 +1487,7 @@ private final class VideoEditorView: NSView {
         // "+ Effect" button — reuse the band's add-effect menu at the playhead
         if addEffectBtnRect.contains(point), let band = effectsBand {
             let menu = band.addEffectMenu(clickTime: currentPlaybackTime)
-            menu.popUp(positioning: nil, at: NSPoint(x: addEffectBtnRect.minX, y: addEffectBtnRect.maxY), in: self)
+            popUpAbove(menu, addEffectBtnRect)
             return
         }
 
@@ -1749,8 +1749,7 @@ private final class VideoEditorView: NSView {
         let pathItem = NSMenuItem(title: L("Copy Path"), action: #selector(copyPathAction), keyEquivalent: "")
         pathItem.target = self
         menu.addItem(pathItem)
-        let pos = NSPoint(x: copyArrowRect.minX, y: copyArrowRect.maxY)
-        menu.popUp(positioning: nil, at: pos, in: self)
+        popUpAbove(menu, copyArrowRect)
     }
 
     @objc private func copyPathAction() {
@@ -1883,8 +1882,7 @@ private final class VideoEditorView: NSView {
             menu.addItem(item)
         }
 
-        let pos = NSPoint(x: dimensionsBtnRect.minX, y: dimensionsBtnRect.maxY)
-        menu.popUp(positioning: nil, at: pos, in: self)
+        popUpAbove(menu, dimensionsBtnRect)
     }
 
     @objc private func dimensionSelected(_ sender: NSMenuItem) {
@@ -1892,6 +1890,14 @@ private final class VideoEditorView: NSView {
         UserDefaults.standard.set(Double(exportScale), forKey: Self.exportScaleDefaultsKey)
         savedURL = nil
         needsDisplay = true
+    }
+
+    /// Menus of the bottom button row open UPWARD: the editor usually sits low on the screen,
+    /// and a menu opened downward got cut off (long ones — + Effect, GIF fps — needed scrolling).
+    private func popUpAbove(_ menu: NSMenu, _ rect: NSRect) {
+        // NSMenu has no reliable size before it is shown, so anchor its LAST item just above
+        // the button: the rest of the menu then grows upward.
+        menu.popUp(positioning: menu.items.last, at: NSPoint(x: rect.minX, y: rect.maxY + 24), in: self)
     }
 
     private func showQualityMenu() {
@@ -1908,8 +1914,7 @@ private final class VideoEditorView: NSView {
             item.state = (q == exportQuality) ? .on : .off
             menu.addItem(item)
         }
-        let pos = NSPoint(x: qualityBtnRect.minX, y: qualityBtnRect.maxY)
-        menu.popUp(positioning: nil, at: pos, in: self)
+        popUpAbove(menu, qualityBtnRect)
     }
 
     // MARK: - Text options panel (selected text segment)
@@ -1995,8 +2000,7 @@ private final class VideoEditorView: NSView {
             item.state = (fps == gifExportFPS) ? .on : .off
             menu.addItem(item)
         }
-        let pos = NSPoint(x: gifFPSBtnRect.minX, y: gifFPSBtnRect.maxY)
-        menu.popUp(positioning: nil, at: pos, in: self)
+        popUpAbove(menu, gifFPSBtnRect)
     }
 
     @objc private func gifFPSSelected(_ sender: NSMenuItem) {
