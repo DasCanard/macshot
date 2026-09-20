@@ -119,8 +119,12 @@ final class VideoZoomSegment: Codable {
         // the edge of the scaled content minus half the output.
         let maxTx = (zoom - 1) * videoSize.width / (2 * zoom)
         let maxTy = (zoom - 1) * videoSize.height / (2 * zoom)
-        let clampedTx = min(max(rawTx / zoom, -maxTx), maxTx)
-        let clampedTy = min(max(rawTy / zoom, -maxTy), maxTy)
+        // The compositor maps p → (p − C)·zoom + C + t·zoom, so t = C − center puts the
+        // chosen center exactly at the output center. (Dividing by zoom here panned only
+        // part of the way, so the video zoomed into a spot between the drawn rect and
+        // the frame center.)
+        let clampedTx = min(max(rawTx, -maxTx), maxTx)
+        let clampedTy = min(max(rawTy, -maxTy), maxTy)
         return CGPoint(x: clampedTx, y: clampedTy)
     }
 
