@@ -694,3 +694,12 @@
 "Selection is already aligned" = "Markeringen flugter allerede med kanterne";
 "Space to move. Release to annotate and edit" = "Hold mellemrumstasten nede for at flytte. Slip for at annotere og redigere";
 "Space to move. Release to finish" = "Hold mellemrumstasten nede for at flytte. Slip for at afslutte";
+
+"Saving..." = "Gemmer…";
+
+"Show Recordings in Finder" = "Vis optagelser i Finder";
+
+"Cancelled" = "Annulleret";
+
+"Cancelling..." = "Annullerer...";
+"Preparing video..." = "Forbereder video...";

@@ -30,6 +30,7 @@ enum DirectorySweeper {
     @discardableResult
     static func sweep(directory: URL,
                       olderThan ttl: TimeInterval?,
+                      now: Date = Date(),
                       shouldDelete: (String) -> Bool) -> Result {
         let fm = FileManager.default
         guard let contents = try? fm.contentsOfDirectory(
@@ -38,7 +39,7 @@ enum DirectorySweeper {
             options: [.skipsHiddenFiles, .skipsSubdirectoryDescendants]
         ) else { return Result() }
 
-        let cutoff: Date? = ttl.map { Date().addingTimeInterval(-$0) }
+        let cutoff: Date? = ttl.map { now.addingTimeInterval(-$0) }
         var result = Result()
 
         for url in contents {
@@ -127,6 +128,7 @@ enum LaunchCleanup {
     /// `LaunchCleaner`-conforming type.
     static let all: [LaunchCleaner] = [
         TmpFileCleaner(),
+        EditorSourceCleaner(),
         ScratchDirectoryCleaner(),
         LegacyClipboardBackingDirectoryCleaner(),
         LegacyClipboardTmpDirectoryCleaner(),
@@ -149,6 +151,15 @@ enum LaunchCleanup {
 }
 
 // MARK: - Concrete cleaners
+
+private struct EditorSourceCleaner: LaunchCleaner {
+    let name = "EditorSourceCleaner"
+    func sweep() -> DirectorySweeper.Result {
+        // APFS clones can share blocks with the original, so a file's logical
+        // size is not a meaningful estimate of reclaimed storage here.
+        DirectorySweeper.Result(removed: VideoSourceSnapshot.removeAbandonedTemporaryCopies())
+    }
+}
 
 /// Sweeps macshot-owned files from `NSTemporaryDirectory()` that match
 /// known stale patterns — legacy UUID-named clipboard PNGs, date-named

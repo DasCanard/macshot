@@ -696,3 +696,12 @@
 "Selection is already aligned" = "चयन पहले से संरेखित है";
 "Space to move. Release to annotate and edit" = "स्थानांतरित करने के लिए Spacebar दबाए रखें। एनोटेट और संपादित करने के लिए छोड़ें";
 "Space to move. Release to finish" = "स्थानांतरित करने के लिए Spacebar दबाए रखें। समाप्त करने के लिए छोड़ें";
+
+"Saving..." = "सहेजा जा रहा है…";
+
+"Show Recordings in Finder" = "Finder में रिकॉर्डिंग दिखाएँ";
+
+"Cancelled" = "रद्द किया गया";
+
+"Cancelling..." = "रद्द किया जा रहा है...";
+"Preparing video..." = "वीडियो तैयार किया जा रहा है...";

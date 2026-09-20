@@ -246,7 +246,7 @@ class UploadToastController {
     private func animateOut() {
         guard let window = window else { return }
         let frame = window.frame
-        guard let screen = NSScreen.preferred else { return }
+        guard let screen = NSScreen.preferred else { dismiss(); return }
         let offscreenY = screen.visibleFrame.maxY + 10
 
         NSAnimationContext.runAnimationGroup({ ctx in

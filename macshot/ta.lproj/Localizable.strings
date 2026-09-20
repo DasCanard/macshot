@@ -696,3 +696,12 @@
 "Selection is already aligned" = "தேர்வு ஏற்கனவே சீரமைக்கப்பட்டுள்ளது";
 "Space to move. Release to annotate and edit" = "நகர்த்த ஸ்பேஸ் விசையைப் பிடிக்கவும். குறிப்புரையிட்டு திருத்த விடுவிக்கவும்";
 "Space to move. Release to finish" = "நகர்த்த ஸ்பேஸ் விசையைப் பிடிக்கவும். முடிக்க விடுவிக்கவும்";
+
+"Saving..." = "சேமிக்கப்படுகிறது…";
+
+"Show Recordings in Finder" = "Finder-இல் பதிவுகளைக் காட்டு";
+
+"Cancelled" = "ரத்துசெய்யப்பட்டது";
+
+"Cancelling..." = "ரத்துசெய்யப்படுகிறது...";
+"Preparing video..." = "வீடியோ தயாராகிறது...";

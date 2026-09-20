@@ -696,3 +696,12 @@
 "Selection is already aligned" = "选区已对齐";
 "Space to move. Release to annotate and edit" = "按住空格键移动。松开后进行标注和编辑";
 "Space to move. Release to finish" = "按住空格键移动。松开后完成";
+
+"Saving..." = "正在保存…";
+
+"Show Recordings in Finder" = "在访达中显示录制文件";
+
+"Cancelled" = "已取消";
+
+"Cancelling..." = "正在取消...";
+"Preparing video..." = "正在准备视频...";

@@ -49,7 +49,7 @@ jobs:
             -parallel-testing-enabled NO \
             CODE_SIGNING_ALLOWED=NO \
             | tee xcodebuild-test.log \
-            | grep -E "Test (Suite|Case|session)|error:|warning: .*(deprecated|unused)|\*\*" || true
+            | { grep -E "Test (Suite|Case|session)|error:|warning: .*(deprecated|unused)|\*\*" || true; }
           exit ${PIPESTATUS[0]}
 
       # The offline variant is a shipping product with upload code compiled
@@ -61,10 +61,12 @@ jobs:
             -scheme macshotTests \
             -configuration Debug \
             -destination 'platform=macOS' \
+            -resultBundlePath OfflineTestResults.xcresult \
             -parallel-testing-enabled NO \
             CODE_SIGNING_ALLOWED=NO \
             SWIFT_ACTIVE_COMPILATION_CONDITIONS='$(inherited) OFFLINE' \
-            | grep -E "Executed .* tests|error:|\*\*" || true
+            | tee xcodebuild-test-offline.log \
+            | { grep -E "Executed .* tests|error:|\*\*" || true; }
           exit ${PIPESTATUS[0]}
 
       - name: Summarize failures
@@ -92,7 +94,9 @@ jobs:
           name: test-results
           path: |
             TestResults.xcresult
+            OfflineTestResults.xcresult
             xcodebuild-test.log
+            xcodebuild-test-offline.log
           retention-days: 7
 
   # The release build uses -Owholemodule with strict concurrency, which Debug
@@ -119,7 +123,7 @@ jobs:
             -configuration Release \
             -destination 'platform=macOS' \
             CODE_SIGNING_ALLOWED=NO \
-            | grep -E "error:|\*\* BUILD" || true
+            | { grep -E "error:|\*\* BUILD" || true; }
           exit ${PIPESTATUS[0]}
 
       - name: Build Release (offline variant)
@@ -131,5 +135,5 @@ jobs:
             -destination 'platform=macOS' \
             CODE_SIGNING_ALLOWED=NO \
             SWIFT_ACTIVE_COMPILATION_CONDITIONS='$(inherited) OFFLINE' \
-            | grep -E "error:|\*\* BUILD" || true
+            | { grep -E "error:|\*\* BUILD" || true; }
           exit ${PIPESTATUS[0]}

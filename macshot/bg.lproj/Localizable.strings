@@ -694,3 +694,12 @@
 "Selection is already aligned" = "Селекцията вече е подравнена";
 "Space to move. Release to annotate and edit" = "Задръжте интервала за преместване. Отпуснете за анотиране и редактиране";
 "Space to move. Release to finish" = "Задръжте интервала за преместване. Отпуснете за завършване";
+
+"Saving..." = "Запазване…";
+
+"Show Recordings in Finder" = "Показване на записите във Finder";
+
+"Cancelled" = "Отменено";
+
+"Cancelling..." = "Отменяне...";
+"Preparing video..." = "Подготовка на видеото...";

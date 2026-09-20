@@ -694,3 +694,12 @@
 "Selection is already aligned" = "ขอบเขตการเลือกตรงแนวอยู่แล้ว";
 "Space to move. Release to annotate and edit" = "กด Space ค้างไว้เพื่อย้าย ปล่อยเพื่อใส่คำอธิบายประกอบและแก้ไข";
 "Space to move. Release to finish" = "กด Space ค้างไว้เพื่อย้าย ปล่อยเพื่อเสร็จสิ้น";
+
+"Saving..." = "กำลังบันทึก…";
+
+"Show Recordings in Finder" = "แสดงไฟล์บันทึกใน Finder";
+
+"Cancelled" = "ยกเลิกแล้ว";
+
+"Cancelling..." = "กำลังยกเลิก...";
+"Preparing video..." = "กำลังเตรียมวิดีโอ...";

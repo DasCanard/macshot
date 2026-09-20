@@ -694,3 +694,12 @@
 "Selection is already aligned" = "Виділення вже вирівняно";
 "Space to move. Release to annotate and edit" = "Утримуйте Пробіл, щоб перемістити. Відпустіть, щоб додати анотацію та редагувати";
 "Space to move. Release to finish" = "Утримуйте Пробіл, щоб перемістити. Відпустіть, щоб завершити";
+
+"Saving..." = "Збереження…";
+
+"Show Recordings in Finder" = "Показати записи у Finder";
+
+"Cancelled" = "Скасовано";
+
+"Cancelling..." = "Скасування...";
+"Preparing video..." = "Підготовка відео...";

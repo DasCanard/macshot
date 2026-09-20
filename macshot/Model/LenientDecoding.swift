@@ -17,14 +17,14 @@ extension KeyedDecodingContainer {
     /// Decodes `key`, falling back to `fallback` when it is absent, null, or
     /// stored with an unexpected type (all of which happen with files written
     /// by older or newer builds).
-    func decode<T: Decodable>(_ key: Key, or fallback: T) -> T {
+    nonisolated func decode<T: Decodable>(_ key: Key, or fallback: T) -> T {
         guard let value = try? decodeIfPresent(T.self, forKey: key) else { return fallback }
-        return value ?? fallback
+        return value
     }
 
     /// Optional variant: absent or unreadable decodes to nil rather than
     /// throwing.
-    func decodeOptional<T: Decodable>(_ key: Key, as type: T.Type = T.self) -> T? {
+    nonisolated func decodeOptional<T: Decodable>(_ key: Key, as type: T.Type = T.self) -> T? {
         guard let value = try? decodeIfPresent(T.self, forKey: key) else { return nil }
         return value
     }

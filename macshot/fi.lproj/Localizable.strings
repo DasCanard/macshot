@@ -694,3 +694,12 @@
 "Selection is already aligned" = "Valinta on jo kohdistettu";
 "Space to move. Release to annotate and edit" = "Siirrä pitämällä välilyöntiä painettuna. Vapauta lisätäksesi merkintöjä ja muokataksesi";
 "Space to move. Release to finish" = "Siirrä pitämällä välilyöntiä painettuna. Vapauta lopettaaksesi";
+
+"Saving..." = "Tallennetaan…";
+
+"Show Recordings in Finder" = "Näytä tallenteet Finderissa";
+
+"Cancelled" = "Peruutettu";
+
+"Cancelling..." = "Peruutetaan...";
+"Preparing video..." = "Valmistellaan videota...";

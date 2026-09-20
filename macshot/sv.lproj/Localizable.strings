@@ -694,3 +694,12 @@
 "Selection is already aligned" = "Markeringen är redan justerad";
 "Space to move. Release to annotate and edit" = "Håll ned mellanslag för att flytta. Släpp för att kommentera och redigera";
 "Space to move. Release to finish" = "Håll ned mellanslag för att flytta. Släpp för att slutföra";
+
+"Saving..." = "Sparar…";
+
+"Show Recordings in Finder" = "Visa inspelningar i Finder";
+
+"Cancelled" = "Avbrutet";
+
+"Cancelling..." = "Avbryter...";
+"Preparing video..." = "Förbereder video...";

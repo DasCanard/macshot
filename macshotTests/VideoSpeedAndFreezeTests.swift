@@ -115,15 +115,15 @@ final class VideoSpeedAndFreezeTests: XCTestCase {
         let frozen = result.filter { $0.kind == .freeze }
         XCTAssertEqual(frozen.count, 1)
         XCTAssertEqual(frozen[0].compositionDuration, 3, accuracy: 0.0001)
-        XCTAssertLessThan(frozen[0].sourceDuration, 0.01,
-                          "a freeze consumes almost no source time — it repeats one frame")
+        XCTAssertEqual(frozen[0].sourceDuration, 0, "a freeze adds time without removing footage")
+        XCTAssertEqual(frozen[0].factor, 0, "source-time effects must remain stationary during a hold")
     }
 
     func testAFreezeAddsToTheTotalRuntime() {
         let plain = pieces(kept: [(0, 10)]).reduce(0.0) { $0 + $1.compositionDuration }
         let withFreeze = pieces(kept: [(0, 10)], freezes: [freeze(at: 5, hold: 2)])
             .reduce(0.0) { $0 + $1.compositionDuration }
-        XCTAssertEqual(withFreeze, plain + 2, accuracy: 0.01)
+        XCTAssertEqual(withFreeze, plain + 2, accuracy: 0.000000001)
     }
 
     func testSpeedSegmentsOutsideTheKeptRangesAreDropped() {
@@ -156,12 +156,35 @@ final class VideoSpeedAndFreezeTests: XCTestCase {
 
         XCTAssertFalse(result.isEmpty)
         let sourceCovered = result.filter { $0.kind != .freeze }.reduce(0.0) { $0 + $1.sourceDuration }
-        XCTAssertEqual(sourceCovered, 28, accuracy: 0.05, "28s of footage survives a 2s cut")
+        XCTAssertEqual(sourceCovered, 28, accuracy: 0.000000001, "28s of footage survives a 2s cut")
 
         // Nothing may map into the cut-out range.
         for piece in result where piece.kind != .freeze {
             let overlapsCut = piece.srcStart < 12 && piece.srcEnd > 10
             XCTAssertFalse(overlapsCut, "piece \(piece.srcStart)–\(piece.srcEnd) replays cut footage")
         }
+    }
+
+    func testManyFreezesIncludingTheTrimStartNeverConsumeOriginalFootage() {
+        let holds = (0..<100).map { freeze(at: Double($0) / 10, hold: 0.25) }
+        let result = pieces(kept: [(0, 10)], freezes: holds)
+        XCTAssertEqual(result.filter { $0.kind == .freeze }.count, 100)
+        XCTAssertEqual(result.reduce(0) { $0 + $1.sourceDuration }, 10, accuracy: 0.000000001)
+        XCTAssertEqual(result.reduce(0) { $0 + $1.compositionDuration }, 35, accuracy: 0.000000001)
+    }
+
+    func testAnOverriddenSpeedResumesAfterTheInnerRangeEnds() {
+        let result = pieces(kept: [(0, 10)], speeds: [speed(2, 8, 2), speed(4, 6, 4)])
+        XCTAssertEqual(result.map(\.srcStart), [0, 2, 4, 6, 8])
+        XCTAssertEqual(result.map(\.factor), [1, 2, 4, 2, 1])
+        XCTAssertEqual(result.reduce(0) { $0 + $1.compositionDuration }, 6.5, accuracy: 0.000000001)
+    }
+
+    func testSubmillisecondKeptRangesAreNotSilentlyRemoved() {
+        let kept = VideoCuts.keptRanges(trimStart: 0, trimEnd: 1,
+            cuts: [VideoCutSegment(startTime: 0.0005, endTime: 0.5),
+                   VideoCutSegment(startTime: 0.5005, endTime: 0.9995)])
+        XCTAssertEqual(kept.count, 3)
+        XCTAssertEqual(VideoCuts.totalDuration(for: kept), 0.0015, accuracy: 0.000000001)
     }
 }

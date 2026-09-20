@@ -694,3 +694,12 @@
 "Selection is already aligned" = "Область уже выровнена";
 "Space to move. Release to annotate and edit" = "Пробел — перемещение. Отпустите, чтобы добавить аннотации и перейти к редактированию";
 "Space to move. Release to finish" = "Пробел — перемещение. Отпустите, чтобы завершить";
+
+"Saving..." = "Сохранение…";
+
+"Show Recordings in Finder" = "Показать записи в Finder";
+
+"Cancelled" = "Отменено";
+
+"Cancelling..." = "Отмена...";
+"Preparing video..." = "Подготовка видео...";

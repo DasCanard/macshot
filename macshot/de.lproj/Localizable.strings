@@ -696,3 +696,12 @@
 "Selection is already aligned" = "Auswahl ist bereits ausgerichtet";
 "Space to move. Release to annotate and edit" = "Leertaste zum Verschieben gedrückt halten. Loslassen, um zu kommentieren und zu bearbeiten";
 "Space to move. Release to finish" = "Leertaste zum Verschieben gedrückt halten. Loslassen, um abzuschließen";
+
+"Saving..." = "Speichern…";
+
+"Show Recordings in Finder" = "Aufnahmen im Finder anzeigen";
+
+"Cancelled" = "Abgebrochen";
+
+"Cancelling..." = "Wird abgebrochen...";
+"Preparing video..." = "Video wird vorbereitet...";

@@ -696,3 +696,12 @@
 "Selection is already aligned" = "محدودهٔ انتخاب از قبل تراز است";
 "Space to move. Release to annotate and edit" = "برای جابه‌جایی، کلید فاصله را نگه دارید. برای حاشیه‌نویسی و ویرایش رها کنید";
 "Space to move. Release to finish" = "برای جابه‌جایی، کلید فاصله را نگه دارید. برای پایان دادن رها کنید";
+
+"Saving..." = "در حال ذخیره…";
+
+"Show Recordings in Finder" = "نمایش ضبط‌ها در Finder";
+
+"Cancelled" = "لغو شد";
+
+"Cancelling..." = "در حال لغو...";
+"Preparing video..." = "در حال آماده‌سازی ویدیو...";

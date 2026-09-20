@@ -41,11 +41,11 @@ enum VideoCuts {
     static func keptRanges(trimStart: Double,
                             trimEnd: Double,
                             cuts: [VideoCutSegment]) -> [(Double, Double)] {
-        guard trimEnd > trimStart else { return [] }
+        guard trimStart.isFinite, trimEnd.isFinite, trimStart >= 0, trimEnd > trimStart else { return [] }
 
         // Normalize + clip cuts to the trim range, drop zero-length results.
         var clipped: [(Double, Double)] = cuts
-            .filter { $0.endTime > $0.startTime }
+            .filter { $0.startTime.isFinite && $0.endTime.isFinite && $0.endTime > $0.startTime }
             .map { c in
                 (max(trimStart, c.startTime), min(trimEnd, c.endTime))
             }
@@ -55,7 +55,7 @@ enum VideoCuts {
         // Merge overlapping / touching cuts.
         var merged: [(Double, Double)] = []
         for c in clipped {
-            if let last = merged.last, c.0 <= last.1 + 0.001 {
+            if let last = merged.last, c.0 <= last.1 {
                 merged[merged.count - 1] = (last.0, max(last.1, c.1))
             } else {
                 merged.append(c)
@@ -67,12 +67,12 @@ enum VideoCuts {
         var kept: [(Double, Double)] = []
         var cursor = trimStart
         for (cs, ce) in clipped {
-            if cs > cursor + 0.001 {
+            if cs > cursor {
                 kept.append((cursor, cs))
             }
             cursor = max(cursor, ce)
         }
-        if cursor < trimEnd - 0.001 {
+        if cursor < trimEnd {
             kept.append((cursor, trimEnd))
         }
         return kept

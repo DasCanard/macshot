@@ -696,3 +696,12 @@
 "Selection is already aligned" = "التحديد محاذى بالفعل";
 "Space to move. Release to annotate and edit" = "اضغط على مفتاح المسافة للتحريك. حرّره لإضافة التعليقات التوضيحية والتحرير";
 "Space to move. Release to finish" = "اضغط على مفتاح المسافة للتحريك. حرّره للإنهاء";
+
+"Saving..." = "جارٍ الحفظ…";
+
+"Show Recordings in Finder" = "إظهار التسجيلات في Finder";
+
+"Cancelled" = "تم الإلغاء";
+
+"Cancelling..." = "جارٍ الإلغاء...";
+"Preparing video..." = "جارٍ تجهيز الفيديو...";

@@ -695,3 +695,12 @@
 "Could not encode the screenshot." = "Could not encode the screenshot.";
 "Could not save the screenshot: %@" = "Could not save the screenshot: %@";
 "Could not save the screenshot to history." = "Could not save the screenshot to history.";
+
+"Saving..." = "Saving...";
+
+"Show Recordings in Finder" = "Show Recordings in Finder";
+
+"Cancelled" = "Cancelled";
+
+"Cancelling..." = "Cancelling...";
+"Preparing video..." = "Preparing video...";

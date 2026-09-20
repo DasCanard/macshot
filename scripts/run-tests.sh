@@ -1,64 +1,69 @@
 #!/bin/bash
-# Run the macshot unit tests and print a readable summary of any failures.
-#
-# Usage:
-#   scripts/run-tests.sh                        # all tests
-#   scripts/run-tests.sh AnnotationTests        # one test class
-#   scripts/run-tests.sh AnnotationTests/testX  # one test
+# Run headless tests. Failures retain the full log and xcresult for inspection.
+# Usage: scripts/run-tests.sh [--offline] [ClassName[/testName] ...]
 set -uo pipefail
 
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/.." || exit 1
 
-CONFIGURATION="${CONFIGURATION:-Debug}"
-RESULT_BUNDLE="${TMPDIR:-/tmp}/macshot-tests-$$.xcresult"
-rm -rf "$RESULT_BUNDLE"
-
-ARGS=(
+test_directory=$(mktemp -d "${TMPDIR:-/tmp}/macshot-tests.XXXXXX") || exit 1
+test_result="$test_directory/results.xcresult"
+test_log="$test_directory/xcodebuild.log"
+test_args=(
   -scheme macshotTests
-  -configuration "$CONFIGURATION"
+  -configuration "${CONFIGURATION:-Debug}"
   -destination 'platform=macOS'
-  -resultBundlePath "$RESULT_BUNDLE"
-  # Serial: parallel test processes share one UserDefaults domain, so tests
-  # that set a preference (image format, history size, shortcuts) clobber each
-  # other at random. The whole suite runs in a few seconds anyway.
+  -resultBundlePath "$test_result"
+  # Tests temporarily change preferences in the same xctest domain.
   -parallel-testing-enabled NO
+  CODE_SIGNING_ALLOWED=NO
 )
-for filter in "$@"; do
-  ARGS+=(-only-testing:"macshotTests/$filter")
+for test_filter in "$@"; do
+  if [[ "$test_filter" == --offline ]]; then
+    test_args+=('SWIFT_ACTIVE_COMPILATION_CONDITIONS=$(inherited) OFFLINE')
+  else
+    test_args+=(-only-testing:"macshotTests/$test_filter")
+  fi
 done
 
-xcodebuild "${ARGS[@]}" test > "${TMPDIR:-/tmp}/macshot-tests-$$.log" 2>&1
-STATUS=$?
+xcodebuild "${test_args[@]}" test > "$test_log" 2>&1
+test_build_status=$?
 
-LOG="${TMPDIR:-/tmp}/macshot-tests-$$.log"
-
-# Compile errors only — a failing assertion is also reported with "error:",
-# and those belong in the summary below, not here.
-if grep -qE "^/.*\.swift:[0-9]+:[0-9]+: error:" "$LOG"; then
-  echo "=== Build errors ==="
-  grep -E "^/.*\.swift:[0-9]+:[0-9]+: error:" "$LOG" | sort -u | head -40
-  rm -rf "$RESULT_BUNDLE"
-  exit 1
-fi
-
-# Per-test results come from the result bundle; xcodebuild's own output no
-# longer includes assertion messages.
-xcrun xcresulttool get test-results summary --path "$RESULT_BUNDLE" --format json 2>/dev/null \
+xcrun xcresulttool get test-results summary --path "$test_result" --format json 2>/dev/null \
   | python3 -c '
 import json, sys
 try:
-    d = json.load(sys.stdin)
+    result = json.load(sys.stdin)
 except Exception:
-    sys.exit(0)
-print("=== %s: %d passed, %d failed, %d skipped (%.1fs) ===" % (
-    d.get("result", "?"), d.get("passedTests", 0), d.get("failedTests", 0),
-    d.get("skippedTests", 0), d.get("totalTestCount", 0) and d.get("duration", 0) or 0))
-for t in d.get("testFailures", []):
-    print("\nFAIL %s.%s" % (t.get("targetName", ""), t.get("testName", "")))
-    msg = (t.get("failureText") or "").strip()
-    for line in msg.splitlines():
+    print("Could not read the test result bundle.", file=sys.stderr)
+    sys.exit(1)
+passed = result.get("passedTests", 0)
+failed = result.get("failedTests", 0)
+skipped = result.get("skippedTests", 0)
+print("=== %s: %d passed, %d failed, %d skipped ===" % (
+    result.get("result", "Unknown"), passed, failed, skipped))
+for failure in result.get("testFailures", []):
+    print("\nFAIL %s.%s" % (failure.get("targetName", ""), failure.get("testName", "")))
+    for line in (failure.get("failureText") or "").strip().splitlines():
         print("     " + line)
+if passed + failed == 0:
+    print("No tests ran; check the selected test filter.", file=sys.stderr)
+    sys.exit(1)
+sys.exit(1 if failed or result.get("testFailures") else 0)
 '
+test_summary_status=$?
 
-rm -rf "$RESULT_BUNDLE"
-exit $STATUS
+if (( test_build_status != 0 || test_summary_status != 0 )); then
+  # Include non-Swift failures too: signing, dependency resolution, linker,
+  # test discovery and runner crashes all need an actionable diagnostic.
+  tail -n 60 "$test_log"
+  echo "Full log: $test_log"
+  echo "Result bundle: $test_result"
+  if (( test_build_status != 0 )); then exit "$test_build_status"; fi
+  exit 1
+fi
+
+if [[ "${MACSHOT_KEEP_TEST_RESULTS:-0}" == 1 ]]; then
+  echo "Test artifacts: $test_directory"
+else
+  rm -rf "$test_directory"
+fi

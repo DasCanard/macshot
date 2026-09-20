@@ -696,3 +696,12 @@
 "Selection is already aligned" = "La selección ya está alineada";
 "Space to move. Release to annotate and edit" = "Mantén pulsada la barra espaciadora para mover. Suéltala para anotar y editar";
 "Space to move. Release to finish" = "Mantén pulsada la barra espaciadora para mover. Suéltala para terminar";
+
+"Saving..." = "Guardando…";
+
+"Show Recordings in Finder" = "Mostrar grabaciones en Finder";
+
+"Cancelled" = "Cancelado";
+
+"Cancelling..." = "Cancelando...";
+"Preparing video..." = "Preparando vídeo...";

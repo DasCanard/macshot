@@ -696,3 +696,12 @@
 "Selection is already aligned" = "Seçim zaten hizalı";
 "Space to move. Release to annotate and edit" = "Taşımak için Boşluk tuşunu basılı tutun. Açıklama eklemek ve düzenlemek için bırakın";
 "Space to move. Release to finish" = "Taşımak için Boşluk tuşunu basılı tutun. Bitirmek için bırakın";
+
+"Saving..." = "Kaydediliyor…";
+
+"Show Recordings in Finder" = "Kayıtları Finder’da Göster";
+
+"Cancelled" = "İptal edildi";
+
+"Cancelling..." = "İptal ediliyor...";
+"Preparing video..." = "Video hazırlanıyor...";

@@ -35,10 +35,10 @@ final class ScreenshotHistoryTests: XCTestCase {
         let deadline = Date().addingTimeInterval(30)
         while Date() < deadline {
             let files = Set((try? FileManager.default.contentsOfDirectory(atPath: directory.path)) ?? [])
-            let ids = history.entries.map(\.id)
-            let complete = ids.count >= entryCount && ids.allSatisfy { id in
+            let complete = !history.hasPendingWrites && history.entries.count >= entryCount && history.entries.allSatisfy { entry in
                 suffixes.allSatisfy { suffix in
-                    files.contains(suffix == ".png" ? "\(id).png" : "\(id)\(suffix)")
+                    let url = suffix == ".png" ? history.fileURL(for: entry) : history.sidecarURL(for: entry, suffix: suffix)
+                    return FileManager.default.fileExists(atPath: url.path)
                 }
             }
             if complete && files.contains("index.json") { return }
@@ -114,7 +114,7 @@ final class ScreenshotHistoryTests: XCTestCase {
         waitForWrites(history, entryCount: 1, expecting: [".png", "_thumb.png", "_preview.png", "_annotations.json"])
 
         let entry = try XCTUnwrap(history.entries.first)
-        let annotationFile = directory.appendingPathComponent("\(entry.id)_annotations.json")
+        let annotationFile = history.sidecarURL(for: entry, suffix: "_annotations.json")
         try Data("""
         [{"tool":3,"startX":1,"startY":2,"endX":30,"endY":40,"colorRGBA":[1,0,0,1],"strokeWidth":5}]
         """.utf8).write(to: annotationFile)
@@ -136,7 +136,7 @@ final class ScreenshotHistoryTests: XCTestCase {
         waitForWrites(history, entryCount: 1, expecting: [".png", "_thumb.png", "_preview.png", "_annotations.json"])
 
         let entry = try XCTUnwrap(history.entries.first)
-        try Data("truncated{".utf8).write(to: directory.appendingPathComponent("\(entry.id)_annotations.json"))
+        try Data("truncated{".utf8).write(to: history.sidecarURL(for: entry, suffix: "_annotations.json"))
 
         let reloaded = makeHistory()
         let reloadedEntry = try XCTUnwrap(reloaded.entries.first)
@@ -155,7 +155,7 @@ final class ScreenshotHistoryTests: XCTestCase {
         let entry = try XCTUnwrap(history.entries.first)
         let index = """
         [{"garbage":true},
-         {"id":"\(entry.id)","fileExtension":"png","timestamp":0,"pixelWidth":40,"pixelHeight":40}]
+         {"id":"\(entry.id)","revision":"\(entry.revision!)","fileExtension":"png","timestamp":0,"pixelWidth":40,"pixelHeight":40}]
         """
         try Data(index.utf8).write(to: directory.appendingPathComponent("index.json"))
 
@@ -172,6 +172,7 @@ final class ScreenshotHistoryTests: XCTestCase {
             for index in 0..<5 {
                 history.add(image: ImageProbe.solidImage(width: 20 + index, height: 20), rawImage: nil, annotations: nil)
             }
+            waitForWrites(history, entryCount: 3)
             XCTAssertEqual(history.entries.count, 3)
         }
     }
@@ -182,6 +183,7 @@ final class ScreenshotHistoryTests: XCTestCase {
             history.add(image: ImageProbe.solidImage(width: 10, height: 10), rawImage: nil, annotations: nil)
             history.add(image: ImageProbe.solidImage(width: 20, height: 20), rawImage: nil, annotations: nil)
         }
+        waitForWrites(history, entryCount: 2)
         XCTAssertEqual(history.entries.first?.pixelWidth ?? 0, history.entries.last.map { $0.pixelWidth * 2 } ?? -1,
                        "the 20pt capture should be first")
     }
@@ -204,6 +206,7 @@ final class ScreenshotHistoryTests: XCTestCase {
         waitForWrites(history, entryCount: 3)
 
         history.clear()
+        waitForWrites(history, entryCount: 0)
         XCTAssertTrue(history.entries.isEmpty)
 
         let reloaded = makeHistory()
@@ -221,6 +224,7 @@ final class ScreenshotHistoryTests: XCTestCase {
 
         let doomed = try XCTUnwrap(history.entries.first?.id)
         history.removeEntry(id: doomed)
+        waitForWrites(history, entryCount: 2)
         XCTAssertEqual(history.entries.count, 2)
         XCTAssertFalse(history.entries.contains { $0.id == doomed })
 
@@ -236,7 +240,7 @@ final class ScreenshotHistoryTests: XCTestCase {
         waitForWrites(history, entryCount: 1)
 
         let entry = try XCTUnwrap(history.entries.first)
-        try FileManager.default.removeItem(at: directory.appendingPathComponent("\(entry.id).png"))
+        try FileManager.default.removeItem(at: history.fileURL(for: entry))
 
         let reloaded = makeHistory()
         XCTAssertTrue(reloaded.entries.isEmpty, "an entry with no image would show as a broken thumbnail")

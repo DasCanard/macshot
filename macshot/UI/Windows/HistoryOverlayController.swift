@@ -90,7 +90,11 @@ final class HistoryOverlayController: NSObject, QLPreviewPanelDataSource, QLPrev
         NotificationCenter.default.addObserver(
             self, selector: #selector(appDidResignActive),
             name: NSApplication.didResignActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(historyDidChange),
+            name: ScreenshotHistory.didChange, object: ScreenshotHistory.shared)
     }
+
+    @objc private func historyDidChange() { contentView?.loadEntries() }
 
     @objc private func appDidResignActive() {
         dismiss()
@@ -114,6 +118,7 @@ final class HistoryOverlayController: NSObject, QLPreviewPanelDataSource, QLPrev
     }
 
     private func dismiss(immediate: Bool) {
+        NotificationCenter.default.removeObserver(self, name: ScreenshotHistory.didChange, object: nil)
         NotificationCenter.default.removeObserver(self,
             name: NSApplication.didResignActiveNotification, object: nil)
 
@@ -444,9 +449,9 @@ private final class HistoryPanelView: NSView, NSDraggingSource {
     /// to the end; eviction pops the front. Bounded so memory stays roughly
     /// constant regardless of total history size.
     private var previewLRU: [String] = []
-    /// In-flight load ids — guards against duplicate work when a card is
-    /// drawn multiple times before the load resolves.
-    private var previewLoadsInFlight: Set<String> = []
+    /// Tokens keep an obsolete revision's completion from replacing a newer
+    /// preview (or clearing the newer revision's in-flight request).
+    private var previewLoadsInFlight: [String: UUID] = [:]
     /// Soft cap on cached previews. Three screens of cards (~50 each) leaves
     /// headroom for fast back-scrolling without re-loading from disk, while
     /// keeping peak footprint bounded (~75 MB worst case at typical preview
@@ -509,7 +514,19 @@ private final class HistoryPanelView: NSView, NSDraggingSource {
     // MARK: - Data Loading
 
     func loadEntries() {
-        entries = ScreenshotHistory.shared.entries
+        let updated = ScreenshotHistory.shared.entries
+        let updatedByID = Dictionary(uniqueKeysWithValues: updated.map { ($0.id, $0) })
+        let changedIDs = Set(entries.compactMap { old -> String? in
+            guard let new = updatedByID[old.id],
+                  new.revision == old.revision else { return old.id }
+            return nil
+        })
+        for id in changedIDs {
+            previews.removeValue(forKey: id)
+            previewLoadsInFlight.removeValue(forKey: id)
+        }
+        previewLRU.removeAll { changedIDs.contains($0) }
+        entries = updated
         applyFilter()
         // Previews are loaded lazily as cards become visible — see
         // requestPreviewIfNeeded(for:) and prefetchPreviewsAroundVisible().
@@ -538,15 +555,20 @@ private final class HistoryPanelView: NSView, NSDraggingSource {
 
     private func requestPreviewIfNeeded(for entry: HistoryEntry) {
         let id = entry.id
-        guard previews[id] == nil, !previewLoadsInFlight.contains(id) else { return }
-        previewLoadsInFlight.insert(id)
+        guard previews[id] == nil, previewLoadsInFlight[id] == nil else { return }
+        let token = UUID()
+        previewLoadsInFlight[id] = token
+        // Resolve the immutable revision URLs while history is main-isolated.
+        // Only ImageIO decoding belongs on the worker, never shared NSImage or
+        // the mutable history index.
+        let urls = ScreenshotHistory.shared.previewURLs(for: entry)
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            let preview = ScreenshotHistory.shared.loadPreview(for: entry)
+            let pixels = HistoryImageSnapshot.preview(at: urls)
             DispatchQueue.main.async {
-                guard let self = self else { return }
-                self.previewLoadsInFlight.remove(id)
-                guard let preview = preview else { return }
-                self.previews[id] = preview
+                guard let self, self.previewLoadsInFlight[id] == token else { return }
+                self.previewLoadsInFlight.removeValue(forKey: id)
+                guard let pixels else { return }
+                self.previews[id] = NSImage(cgImage: pixels, size: .zero)
                 self.previewLRU.append(id)
                 self.evictPreviewsIfNeeded()
                 self.needsDisplay = true

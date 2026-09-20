@@ -696,3 +696,12 @@
 "Selection is already aligned" = "선택 영역이 이미 정렬되어 있습니다";
 "Space to move. Release to annotate and edit" = "스페이스바로 이동. 놓으면 주석 및 편집";
 "Space to move. Release to finish" = "스페이스바로 이동. 놓으면 완료";
+
+"Saving..." = "저장 중…";
+
+"Show Recordings in Finder" = "Finder에서 녹화 파일 보기";
+
+"Cancelled" = "취소됨";
+
+"Cancelling..." = "취소 중...";
+"Preparing video..." = "비디오 준비 중...";

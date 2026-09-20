@@ -696,3 +696,12 @@
 "Selection is already aligned" = "Izbor je već poravnat";
 "Space to move. Release to annotate and edit" = "Držite razmaknicu za pomeranje. Otpustite za dodavanje napomena i uređivanje";
 "Space to move. Release to finish" = "Držite razmaknicu za pomeranje. Otpustite da završite";
+
+"Saving..." = "Чување…";
+
+"Show Recordings in Finder" = "Прикажи снимке у Finder-у";
+
+"Cancelled" = "Отказано";
+
+"Cancelling..." = "Отказивање...";
+"Preparing video..." = "Припрема видеа...";

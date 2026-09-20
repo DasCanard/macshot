@@ -6,7 +6,7 @@ import CoreGraphics
 /// - `startTime` / `endTime` are in seconds, relative to the full (untrimmed)
 ///   source asset. Export code clips these to the active trim range.
 /// - `zoomLevel` is a multiplier: 1.0 = no zoom, 2.0 = 2x magnification.
-/// - `center` is normalized to the source video's natural (non-transformed)
+/// - `center` is normalized to the source video's displayed, orientation-applied
 ///   bounds: (0, 0) = top-left, (1, 1) = bottom-right. The current UI keeps it
 ///   inside the range where the selected zoom window remains in-frame.
 /// - `fadeIn` / `fadeOut` are the transition ramp durations at each edge.
@@ -57,39 +57,12 @@ final class VideoZoomSegment: Codable {
     /// Effective fade duration — honors the user's fadeIn/fadeOut but always
     /// clamps to half the segment so there's at least one plateau frame.
     /// Never exceeds duration/2 (otherwise in+out would overlap).
-    var effectiveFadeIn: Double {
-        let cap = max(0, duration / 2 - 0.001)
-        return min(max(fadeIn, 0), cap)
-    }
-    var effectiveFadeOut: Double {
-        let cap = max(0, duration / 2 - 0.001)
-        return min(max(fadeOut, 0), cap)
-    }
+    var effectiveFadeIn: Double { VideoEffectTiming.effectiveFade(fadeIn, duration: duration) }
+    var effectiveFadeOut: Double { VideoEffectTiming.effectiveFade(fadeOut, duration: duration) }
 
-    /// Interpolated zoom level at time `t` (in seconds, source-asset clock).
-    /// Returns 1.0 outside the segment.
+    /// Uses the same value calculation as the background compositor.
     func zoomLevel(at t: Double) -> CGFloat {
-        guard t >= startTime, t <= endTime, duration > 0 else { return 1.0 }
-        let fIn = effectiveFadeIn
-        let fOut = effectiveFadeOut
-        let into = t - startTime
-        let toEnd = endTime - t
-
-        if into < fIn, fIn > 0 {
-            let p = into / fIn
-            return 1.0 + (zoomLevel - 1.0) * easeInOut(CGFloat(p))
-        } else if toEnd < fOut, fOut > 0 {
-            let p = toEnd / fOut
-            return 1.0 + (zoomLevel - 1.0) * easeInOut(CGFloat(p))
-        } else {
-            return zoomLevel
-        }
-    }
-
-    /// Smoothstep / cubic ease for zoom ramps. Input and output on [0, 1].
-    private func easeInOut(_ x: CGFloat) -> CGFloat {
-        let c = max(0, min(1, x))
-        return c * c * (3 - 2 * c)
+        VideoZoomSnapshot(self).zoomLevel(at: t)
     }
 
     /// Clamp a normalized center so the visible zoom window (1/zoom of each
@@ -108,20 +81,7 @@ final class VideoZoomSegment: Codable {
     /// `videoSize`. Clamped so the zoom window never shows area outside the
     /// video's bounds (no black bars at edges from over-pan).
     func translation(zoom: CGFloat, videoSize: CGSize) -> CGPoint {
-        guard zoom > 1.0001 else { return .zero }
-        // Pixel coords of the chosen center
-        let cx = center.x * videoSize.width
-        let cy = center.y * videoSize.height
-        // Amount to shift so that (cx, cy) lands at the center of the output
-        let rawTx = videoSize.width / 2 - cx
-        let rawTy = videoSize.height / 2 - cy
-        // After zoom, max allowed translation is the distance from center to
-        // the edge of the scaled content minus half the output.
-        let maxTx = (zoom - 1) * videoSize.width / (2 * zoom)
-        let maxTy = (zoom - 1) * videoSize.height / (2 * zoom)
-        let clampedTx = min(max(rawTx / zoom, -maxTx), maxTx)
-        let clampedTy = min(max(rawTy / zoom, -maxTy), maxTy)
-        return CGPoint(x: clampedTx, y: clampedTy)
+        VideoZoomSnapshot(self).translation(zoom: zoom, videoSize: videoSize)
     }
 
     /// Whether this segment's time range overlaps another. Touching endpoints

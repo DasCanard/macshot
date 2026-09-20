@@ -135,15 +135,15 @@ final class LegacyDecodingTests: XCTestCase {
     func testHistoryIndexRowsSurviveMissingAndCorruptFields() throws {
         // Row 1: oldest format. Row 2: corrupt. Row 3: current format.
         let json = """
-        [{"id":"aaa","fileExtension":"png","timestamp":0,"pixelWidth":100,"pixelHeight":50},
+        [{"id":"00000000-0000-0000-0000-000000000001","fileExtension":"png","timestamp":0,"pixelWidth":100,"pixelHeight":50},
          {"nope":true},
-         {"id":"ccc","fileExtension":"jpg","timestamp":1000,"pixelWidth":10,"pixelHeight":20,
+         {"id":"00000000-0000-0000-0000-000000000003","fileExtension":"jpg","timestamp":1000,"pixelWidth":10,"pixelHeight":20,
           "hasAnnotations":true,"lastEditedAt":2000}]
         """
         let rows = try XCTUnwrap(
             LenientArrayDecoder.decode(ScreenshotHistory.IndexEntry.self, from: Data(json.utf8)),
             "one bad row must not wipe the user's whole capture history")
-        XCTAssertEqual(rows.map(\.id), ["aaa", "ccc"])
+        XCTAssertEqual(rows.map(\.id), ["00000000-0000-0000-0000-000000000001", "00000000-0000-0000-0000-000000000003"])
         XCTAssertEqual(rows[0].pixelWidth, 100)
         XCTAssertNil(rows[0].hasAnnotations)
         XCTAssertEqual(rows[1].hasAnnotations, true)
@@ -153,7 +153,7 @@ final class LegacyDecodingTests: XCTestCase {
     func testHistoryRowMissingEverythingButIdStillLoads() throws {
         let rows = try XCTUnwrap(
             LenientArrayDecoder.decode(ScreenshotHistory.IndexEntry.self, from: Data("""
-            [{"id":"only-id"}]
+            [{"id":"00000000-0000-0000-0000-000000000004"}]
             """.utf8)))
         XCTAssertEqual(rows.count, 1)
         XCTAssertEqual(rows[0].fileExtension, "png", "a row with no extension falls back to the original format")

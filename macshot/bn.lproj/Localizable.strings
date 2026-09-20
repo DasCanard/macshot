@@ -696,3 +696,12 @@
 "Selection is already aligned" = "নির্বাচন ইতিমধ্যে সারিবদ্ধ";
 "Space to move. Release to annotate and edit" = "সরাতে স্পেস চেপে ধরুন। টীকা যোগ ও সম্পাদনা করতে ছেড়ে দিন";
 "Space to move. Release to finish" = "সরাতে স্পেস চেপে ধরুন। শেষ করতে ছেড়ে দিন";
+
+"Saving..." = "সংরক্ষণ করা হচ্ছে…";
+
+"Show Recordings in Finder" = "Finder-এ রেকর্ডিং দেখান";
+
+"Cancelled" = "বাতিল হয়েছে";
+
+"Cancelling..." = "বাতিল করা হচ্ছে...";
+"Preparing video..." = "ভিডিও প্রস্তুত করা হচ্ছে...";

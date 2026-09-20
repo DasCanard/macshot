@@ -216,7 +216,7 @@ final class LocalizationTests: XCTestCase {
     /// re-damaged; the fix is to repair the strings, not to raise the number.
     private static let diacriticSuspectBudget: [String: Int] = [
         "ca": 3, "cs": 16, "es": 3, "fr": 6, "hr": 1, "pl": 1,
-        "pt": 4, "pt-BR": 3, "ro": 38, "sk": 3, "sv": 1, "tr": 4, "vi": 74,
+        "pt": 4, "pt-BR": 3, "ro": 38, "sk": 3, "sv": 1, "tr": 4, "vi": 39,
     ]
 
     private static func deaccented(_ word: String) -> String {
@@ -227,7 +227,7 @@ final class LocalizationTests: XCTestCase {
 
     /// Counts words in `table` that are ASCII while the same word appears
     /// accented in another value of the same table.
-    private static func diacriticSuspects(in table: [String: String]) -> [String: Int] {
+    private static func diacriticSuspects(in table: [String: String], locale: String) -> [String: Int] {
         var accented = Set<String>()
         var plain: [String: Int] = [:]
         for value in table.values {
@@ -240,13 +240,25 @@ final class LocalizationTests: XCTestCase {
                 }
             }
         }
-        return plain.filter { accented.contains($0.key) }
+        // Vietnamese "trong" (in/inside) and "trống" (empty) are both valid
+        // words. The presence of one does not make the other damaged text.
+        // Exclude this known homograph instead of rewriting correct UI copy
+        // or increasing the damage budget whenever another "in" is added.
+        // Spanish video/vídeo are both valid regional spellings (FundéuRAE:
+        // https://www.fundeu.es/recomendacion/video-video/).
+        let validPlainWords: Set<String>
+        switch locale {
+        case "vi": validPlainWords = ["trong"]
+        case "es": validPlainWords = ["video"]
+        default: validPlainWords = []
+        }
+        return plain.filter { accented.contains($0.key) && !validPlainWords.contains($0.key) }
     }
 
     func testNoLocaleHasMoreDiacriticDamageThanItsBudget() {
         var report: [String] = []
         for (locale, table) in Self.tables.sorted(by: { $0.key < $1.key }) where locale != Self.baseLocale {
-            let suspects = Self.diacriticSuspects(in: table)
+            let suspects = Self.diacriticSuspects(in: table, locale: locale)
             let count = suspects.values.reduce(0, +)
             let budget = Self.diacriticSuspectBudget[locale] ?? 0
             if count > budget {
@@ -269,11 +281,25 @@ final class LocalizationTests: XCTestCase {
             guard let table = Self.tables[locale] else {
                 return XCTFail("budget lists `\(locale)`, which isn't a shipped locale")
             }
-            let count = Self.diacriticSuspects(in: table).values.reduce(0, +)
+            let count = Self.diacriticSuspects(in: table, locale: locale).values.reduce(0, +)
             XCTAssertGreaterThanOrEqual(count, budget, """
                 `\(locale)` is down to \(count) suspect words but the budget still says \(budget) — \
                 lower it to \(count) so the slack can't hide new damage.
                 """)
         }
+    }
+
+    func testVietnameseInAndEmptyDoNotImplyDiacriticDamage() {
+        let table = ["in": "trong", "empty": "trống", "correct": "bình thường", "damaged": "binh thuong"]
+        let suspects = Self.diacriticSuspects(in: table, locale: "vi")
+        XCTAssertNil(suspects["trong"])
+        XCTAssertEqual(suspects["binh"], 1)
+        XCTAssertEqual(suspects["thuong"], 1)
+    }
+
+    func testSpanishVideoSpellingsAreValidWithoutMaskingOtherDamage() {
+        let suspects = Self.diacriticSuspects(in: ["a": "video vídeo", "b": "cámara camara"], locale: "es")
+        XCTAssertNil(suspects["video"])
+        XCTAssertEqual(suspects["camara"], 1)
     }
 }

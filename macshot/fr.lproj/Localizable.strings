@@ -694,3 +694,12 @@
 "Selection is already aligned" = "La sélection est déjà alignée";
 "Space to move. Release to annotate and edit" = "Maintenez la barre d'espace pour déplacer. Relâchez pour annoter et modifier";
 "Space to move. Release to finish" = "Maintenez la barre d'espace pour déplacer. Relâchez pour terminer";
+
+"Saving..." = "Enregistrement…";
+
+"Show Recordings in Finder" = "Afficher les enregistrements dans le Finder";
+
+"Cancelled" = "Annulé";
+
+"Cancelling..." = "Annulation...";
+"Preparing video..." = "Préparation de la vidéo...";

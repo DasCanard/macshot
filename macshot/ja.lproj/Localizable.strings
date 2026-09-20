@@ -694,3 +694,12 @@
 "Selection is already aligned" = "選択範囲はすでに揃っています";
 "Space to move. Release to annotate and edit" = "スペースバーを押している間は移動できます。離すと注釈の追加と編集に戻ります";
 "Space to move. Release to finish" = "スペースバーを押している間は移動できます。離すと完了します";
+
+"Saving..." = "保存中…";
+
+"Show Recordings in Finder" = "録画をFinderに表示";
+
+"Cancelled" = "キャンセルしました";
+
+"Cancelling..." = "キャンセル中...";
+"Preparing video..." = "ビデオを準備中...";

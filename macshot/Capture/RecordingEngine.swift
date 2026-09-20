@@ -1,4 +1,5 @@
 import Foundation
+import AppKit
 import AVFoundation
 import ScreenCaptureKit
 import CoreGraphics
@@ -12,29 +13,23 @@ final class RecordingEngine: NSObject {
 
     // MARK: - State
 
-    enum State { case idle, recording, paused, stopping }
-    private(set) var state: State = .idle
+    typealias State = RecordingLifecycle.State
+    private var lifecycle = RecordingLifecycle()
+    var state: State { lifecycle.state }
 
-    /// Setup runs in a Task and suspends several times (mic permission,
-    /// SCShareableContent, startCapture). `stopRecording` waits on this so it
-    /// never tears down a session whose stream hasn't been assigned yet.
+    /// Setup suspends for permission, enumeration, and device startup. Stop
+    /// invalidates resource-free setup immediately; once resources are owned,
+    /// it waits for setup to hand them to the single finalization path.
     private var setupTask: Task<Void, Never>?
-    /// True once the user asked to stop, or setup failed. Checked after every
-    /// suspension point: bringing a stream up after that leaves the daemon
-    /// capturing into a stream nothing can stop.
-    private var sessionEnded: Bool { state == .idle || state == .stopping }
-    /// `onCompletion` must fire exactly once per session.
-    private var didReportCompletion = false
-
-    // MARK: - Config (read from UserDefaults at start)
-
-    private var fps: Int = 30
-    private var cropRect: CGRect = .zero      // in screen coordinates (top-left origin)
-    private var screen: NSScreen = NSScreen.main ?? NSScreen.screens.first ?? NSScreen()
+    private var captureError: Error?
+    private var recordingActivity: NSObjectProtocol?
+    private var diskMonitor: DispatchSourceTimer?
+    private var sleepObserver: NSObjectProtocol?
 
     // MARK: - SCStream
 
     private var stream: SCStream?
+    private var streamStartAttempted = false
     private var streamOutput: RecordingStreamOutput?
 
     // MARK: - MP4 writer
@@ -47,12 +42,11 @@ final class RecordingEngine: NSObject {
     /// only holds a reference and forwards lifecycle calls.
     private var writerSession: MP4WriterSession?
     private var outputURL: URL?
+    private var storedSession: RecordingSessionStore?
 
     // MARK: - Mic capture
 
-    private var micCaptureSession: AVCaptureSession?
-    private var micDataOutput: AVCaptureAudioDataOutput?
-    private var micDelegate: MicCaptureDelegate?
+    private var microphoneCapture: MicrophoneCapture?
 
     // MARK: - Callbacks
 
@@ -60,8 +54,7 @@ final class RecordingEngine: NSObject {
     var onCompletion: RecordingCompletionCallback?
 
     private var progressTimer: Timer?
-    private var elapsedSeconds: Int = 0
-    private var pauseStartTime: Date?
+    private var recordingClock = RecordingClock()
     var onPauseChanged: ((Bool) -> Void)?
 
     // MARK: - Cursor highlight
@@ -87,44 +80,65 @@ final class RecordingEngine: NSObject {
 
     /// Start recording the given rect (in NSScreen/AppKit coordinates, bottom-left origin).
     /// Optional overrides take precedence over UserDefaults for this session.
-    /// Window IDs to exclude from the recording (e.g. selection border, HUD).
-    private var excludeWindowNumbers: [CGWindowID] = []
-
     func startRecording(rect: NSRect, screen: NSScreen, fpsOverride: Int? = nil, excludeWindowNumbers: [CGWindowID] = []) {
-        self.excludeWindowNumbers = excludeWindowNumbers
         guard state == .idle else { return }
-        state = .recording
+        let configuration: RecordingConfiguration
+        do {
+            guard let displayID = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID else {
+                throw RecordingError.noDisplay
+            }
+            let defaults = UserDefaults.standard
+            let savedFPS = defaults.integer(forKey: "recordingFPS")
+            let template = defaults.string(forKey: FilenameFormatter.recordingUserDefaultsKey) ?? FilenameFormatter.defaultRecordingTemplate
+            configuration = try RecordingConfiguration(displayID: displayID, rect: rect, displayBounds: screen.frame,
+                backingScale: screen.backingScaleFactor, frameRate: fpsOverride ?? ((1...120).contains(savedFPS) ? savedFPS : 30),
+                microphone: defaults.bool(forKey: "recordMicAudio"), systemAudio: defaults.bool(forKey: "recordSystemAudio"),
+                microphoneDeviceID: defaults.string(forKey: "selectedMicDeviceUID"), excludedWindows: excludeWindowNumbers,
+                filename: FilenameFormatter.format(template: template, fallback: FilenameFormatter.defaultRecordingTemplate))
+        } catch {
+            guard lifecycle.begin() != nil else { return }
+            stopRecording(error: error)
+            return
+        }
+        startRecording(configuration: configuration)
+    }
 
-        self.screen = screen
-        self.cropRect = Self.cropRect(for: rect, displayBounds: screen.frame)
-
-        let defaultFPS = UserDefaults.standard.integer(forKey: "recordingFPS") > 0
-            ? UserDefaults.standard.integer(forKey: "recordingFPS") : 30
-        self.fps = fpsOverride ?? defaultFPS
-        didReportCompletion = false
-        setupTask = Task {
+    /// Shared entry point for the UI and internal recording test driver.
+    func startRecording(configuration: RecordingConfiguration) {
+        guard let sessionID = lifecycle.begin() else { return }
+        captureError = nil
+        recordingClock = RecordingClock()
+        setupTask = Task { [weak self] in
+            guard let self = self, self.lifecycle.isPreparing(sessionID) else { return }
+            if #unavailable(macOS 13.0), configuration.systemAudio {
+                self.stopRecording(error: RecordingError.systemAudioUnavailable)
+                return
+            }
             // Resolve mic permission before starting capture so the prompt
             // doesn't block the UI while frames are already being recorded.
-            if UserDefaults.standard.bool(forKey: "recordMicAudio") {
+            if configuration.microphone {
                 let micStatus = AVCaptureDevice.authorizationStatus(for: .audio)
                 if micStatus == .notDetermined {
                     let granted = await AVCaptureDevice.requestAccess(for: .audio)
+                    guard self.lifecycle.isPreparing(sessionID) else { return }
                     if !granted {
-                        UserDefaults.standard.set(false, forKey: "recordMicAudio")
+                        self.stopRecording(error: RecordingError.microphoneUnavailable)
+                        return
                     }
                 } else if micStatus == .denied || micStatus == .restricted {
-                    UserDefaults.standard.set(false, forKey: "recordMicAudio")
+                    self.stopRecording(error: RecordingError.microphoneUnavailable)
+                    return
                 }
             }
-            guard !self.sessionEnded else { return }
-            await self.beginCapture(rect: rect)
+            guard self.lifecycle.isPreparing(sessionID) else { return }
+            await self.beginCapture(configuration: configuration, sessionID: sessionID)
         }
     }
 
     func pauseRecording() {
-        guard state == .recording else { return }
-        state = .paused
-        pauseStartTime = Date()
+        guard lifecycle.pause() else { return }
+        recordingClock.pause(at: ProcessInfo.processInfo.systemUptime)
+        updateProgress()
         writerSession?.pause()
         progressTimer?.invalidate()
         progressTimer = nil
@@ -132,68 +146,91 @@ final class RecordingEngine: NSObject {
     }
 
     func resumeRecording() {
-        guard state == .paused else { return }
-        let pausedFor = pauseStartTime.map { Date().timeIntervalSince($0) } ?? 0
-        pauseStartTime = nil
-        state = .recording
+        guard lifecycle.resume() else { return }
+        let pausedFor = recordingClock.resume(at: ProcessInfo.processInfo.systemUptime)
         writerSession?.resume(addingPausedDuration: pausedFor)
-        progressTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            guard let self = self else { return }
-            self.elapsedSeconds += 1
-            self.onProgress?(self.elapsedSeconds)
-        }
+        startProgressTimer()
         onPauseChanged?(false)
     }
 
     func stopRecording() {
-        guard state == .recording || state == .paused else { return }
-        state = .stopping
+        stopRecording(error: nil)
+    }
+
+    private func stopRecording(error: Error?) {
+        guard lifecycle.sessionID != nil else { return }
+        captureError = captureError ?? error
+        guard let sessionID = lifecycle.requestStop() else { return }
         // Stop accepting samples ASAP (more may arrive during SCStream teardown).
         writerSession?.requestStop()
         progressTimer?.invalidate()
         progressTimer = nil
-        Task {
+        let startingTask = setupTask
+        if stream == nil && writerSession == nil {
+            // Permissions and display enumeration own no capture resources.
+            // They may be uninterruptible; generation checks make their eventual
+            // callbacks harmless without keeping the user's stop action waiting.
+            startingTask?.cancel()
+            Task { [weak self] in
+                guard let self = self, self.lifecycle.isCurrent(sessionID) else { return }
+                self.complete(sessionID: sessionID, url: nil, error: self.captureError ?? RecordingError.stoppedBeforeStart)
+            }
+            return
+        }
+        Task { [weak self] in
             // Setup may still be in flight. Let it observe `.stopping` and
             // unwind first — otherwise this tears down a session whose stream
             // and writer don't exist yet, and setup then brings them up with
             // nothing left to stop them.
-            await self.setupTask?.value
+            await startingTask?.value
+            guard let self = self, self.lifecycle.isCurrent(sessionID) else { return }
             self.setupTask = nil
-            await self.finalizeCapture()
+            await self.finalizeCapture(sessionID: sessionID)
         }
     }
 
     // MARK: - Setup
 
-    private func beginCapture(rect: NSRect) async {
+    private func updateProgress() {
+        let elapsed = recordingClock.elapsed(at: ProcessInfo.processInfo.systemUptime)
+        onProgress?(SafeNumerics.int(elapsed.rounded(.down)))
+    }
+
+    private func startProgressTimer() {
+        progressTimer?.invalidate()
+        let timer = Timer(timeInterval: 1, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated { self?.updateProgress() }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        progressTimer = timer
+        updateProgress()
+    }
+
+    private func beginCapture(configuration: RecordingConfiguration, sessionID: UUID) async {
         do {
             // Find the SCDisplay matching our screen by display ID
             let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
-            guard !sessionEnded else { return }
-            let screenID = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID
-            guard let display = content.displays.first(where: { d in
-                screenID != nil && d.displayID == screenID!
-            }) ?? content.displays.first else {
-                await MainActor.run { self.fail(RecordingError.noDisplay) }
-                return
+            guard lifecycle.isPreparing(sessionID) else { return }
+            guard let display = content.displays.first(where: { $0.displayID == configuration.displayID }) else {
+                throw RecordingError.noDisplay
             }
 
             // Exclude specific macshot UI chrome windows (selection border, HUD)
             // but NOT recording overlays (webcam, mouse highlight, keystrokes)
             // which are intentionally part of the recording.
-            let excludeIDs = excludeWindowNumbers
+            let excludeIDs = configuration.excludedWindows
             let excludeWindows = excludeIDs.compactMap { wid in
                 content.windows.first(where: { CGWindowID($0.windowID) == wid })
             }
             let filter = SCContentFilter(display: display, excludingWindows: excludeWindows)
             let config = SCStreamConfiguration()
-            config.width = Int(cropRect.width * screen.backingScaleFactor)
-            config.height = Int(cropRect.height * screen.backingScaleFactor)
-            config.minimumFrameInterval = CMTime(value: 1, timescale: CMTimeScale(fps))
+            config.width = configuration.pixelWidth
+            config.height = configuration.pixelHeight
+            config.minimumFrameInterval = CMTime(value: 1, timescale: CMTimeScale(configuration.frameRate))
             config.showsCursor = true   // we'll draw our own highlight on top if needed
-            config.sourceRect = cropRect
+            config.sourceRect = configuration.sourceRect
             config.pixelFormat = kCVPixelFormatType_32BGRA
-            config.scalesToFit = false
+            config.scalesToFit = true
             // Force sRGB at capture time. Without this ScreenCaptureKit delivers
             // frames in the display's native color space (often Display P3),
             // but AVAssetWriter tags the file as bt709 below — a mismatch that
@@ -205,30 +242,45 @@ final class RecordingEngine: NSObject {
 
             // System audio capture (off by default, macOS 13+)
             if #available(macOS 13.0, *) {
-                let recordAudio = UserDefaults.standard.bool(forKey: "recordSystemAudio")
-                config.capturesAudio = recordAudio
+                config.capturesAudio = configuration.systemAudio
                 config.excludesCurrentProcessAudio = true  // don't capture macshot's own sounds
             }
 
             let pixelW = config.width
             let pixelH = config.height
 
-            // Prepare output file
-            outputURL = makeOutputURL()
-            guard let outURL = outputURL else {
-                await MainActor.run { self.fail(RecordingError.noOutput) }
+            let stored: RecordingSessionStore = try await withCheckedThrowingContinuation { continuation in
+                recordingQueue.async {
+                    continuation.resume(with: Result { try RecordingSessionStore(filename: configuration.filename) })
+                }
+            }
+            guard lifecycle.isPreparing(sessionID) else {
+                recordingQueue.async { stored.removeIfEmpty() }
                 return
             }
+            storedSession = stored
+            let outURL = stored.mediaURL
+            outputURL = outURL
+            recordingActivity = ProcessInfo.processInfo.beginActivity(options: [.userInitiated, .idleSystemSleepDisabled],
+                reason: "Screen recording")
+            startDiskMonitor(directory: stored.directoryURL, sessionID: sessionID)
+            sleepObserver = NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.willSleepNotification,
+                object: nil, queue: .main) { [weak self] _ in
+                    MainActor.assumeIsolated {
+                        guard let self = self, self.lifecycle.isCurrent(sessionID) else { return }
+                        self.stopRecording(error: RecordingError.systemSleep)
+                    }
+                }
 
-            let recordSystemAudio: Bool = {
-                if #available(macOS 13.0, *) { return UserDefaults.standard.bool(forKey: "recordSystemAudio") }
-                return false
-            }()
-            let recordMicAudio = UserDefaults.standard.bool(forKey: "recordMicAudio")
-                && AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
             let writer = try MP4WriterSession.make(
-                queue: recordingQueue, url: outURL, width: pixelW, height: pixelH, fps: fps,
-                recordSystemAudio: recordSystemAudio, recordMicAudio: recordMicAudio)
+                queue: recordingQueue, url: outURL, width: pixelW, height: pixelH, fps: configuration.frameRate,
+                recordSystemAudio: configuration.systemAudio, recordMicAudio: configuration.microphone,
+                onFailure: { [weak self] error in
+                    DispatchQueue.main.async {
+                        guard let self = self, self.lifecycle.isCurrent(sessionID) else { return }
+                        self.stopRecording(error: error)
+                    }
+                })
             self.writerSession = writer
 
             // Sample handlers run ON recordingQueue and call the queue-confined
@@ -240,8 +292,9 @@ final class RecordingEngine: NSObject {
             output.onAudioSample = { sampleBuffer in
                 writer.handleSystemAudioSample(sampleBuffer)
             }
-            output.onStopped = { [weak self] in
-                self?.stopRecording()
+            output.onStopped = { [weak self] error in
+                guard let self = self, self.lifecycle.isCurrent(sessionID) else { return }
+                self.stopRecording(error: error)
             }
             self.streamOutput = output
 
@@ -257,186 +310,136 @@ final class RecordingEngine: NSObject {
             self.stream = stream
             try stream.addStreamOutput(output, type: .screen, sampleHandlerQueue: recordingQueue)
             if #available(macOS 13.0, *) {
-                let recordAudio = UserDefaults.standard.bool(forKey: "recordSystemAudio")
-                if recordAudio {
+                if configuration.systemAudio {
                     try stream.addStreamOutput(output, type: .audio, sampleHandlerQueue: recordingQueue)
                 }
             }
+            // Bring up the microphone before screen capture so its startup
+            // latency cannot cut the beginning off the recorded audio. Pre-roll
+            // is bounded and clipped to the first complete video frame.
+            if configuration.microphone {
+                microphoneCapture = try await MicrophoneCapture.start(
+                    deviceID: configuration.microphoneDeviceID, sampleQueue: recordingQueue,
+                    onSample: { sample in writer.handleMicSample(sample) },
+                    onFailure: { [weak self] error in
+                        DispatchQueue.main.async {
+                            guard let self = self, self.lifecycle.isCurrent(sessionID) else { return }
+                            self.stopRecording(error: error)
+                        }
+                    })
+            }
+
+            guard lifecycle.isPreparing(sessionID) else { return }
+            streamStartAttempted = true
             try await stream.startCapture()
 
-            // The user may have stopped while the daemon was starting up. Tear
-            // the session down here rather than leaving a live stream behind.
-            guard !sessionEnded else {
-                try? await stream.stopCapture()
-                self.stream = nil
-                self.streamOutput = nil
-                await discardWriterSession()
-                return
-            }
+            // The stop task owns teardown, including samples already written
+            // during startup. Do not discard them or complete from setup too.
+            guard lifecycle.didStart(sessionID) else { return }
+            writer.captureDidStart()
+            recordingClock.start(at: ProcessInfo.processInfo.systemUptime)
 
-            // Start mic capture if enabled and authorized (permission resolved before capture started)
-            if UserDefaults.standard.bool(forKey: "recordMicAudio") &&
-               AVCaptureDevice.authorizationStatus(for: .audio) == .authorized {
-                await MainActor.run { self.startMicCapture() }
-            }
-
-            await MainActor.run {
-                self.elapsedSeconds = 0
-                self.progressTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-                    guard let self = self else { return }
-                    self.elapsedSeconds += 1
-                    self.onProgress?(self.elapsedSeconds)
-                }
-            }
+            startProgressTimer()
 
         } catch {
-            // Never leave a started stream running behind a failed setup.
-            if let stream = self.stream {
-                try? await stream.stopCapture()
-                self.stream = nil
-            }
-            self.streamOutput = nil
-            // The writer may already own an open file in tmp. Dropping the
-            // reference leaves it unfinalized on disk forever.
-            await discardWriterSession()
-            self.fail(error)
+            guard lifecycle.isCurrent(sessionID) else { return }
+            // One owner drains setup, stops capture, and completes the writer.
+            // This task returns before the stop task awaits its completion.
+            stopRecording(error: error)
         }
     }
 
-    /// Finish and delete a writer that never produced a usable recording.
-    private func discardWriterSession() async {
-        guard let writer = writerSession else { return }
-        writerSession = nil
-        try? await writer.finish()
-        if let url = outputURL { try? FileManager.default.removeItem(at: url) }
-        outputURL = nil
-    }
-
-    private func finalizeCapture() async {
+    private func finalizeCapture(sessionID: UUID) async {
         if let stream = stream {
-            try? await stream.stopCapture()
+            if streamStartAttempted {
+                do { try await stream.stopCapture() }
+                catch { captureError = captureError ?? error }
+            }
             self.stream = nil
         }
+        streamStartAttempted = false
         streamOutput = nil
-        stopMicCapture()
+        await microphoneCapture?.stop()
+        microphoneCapture = nil
 
         guard let writer = writerSession else {
             // Nothing was ever written — the session was stopped before the
             // stream came up. Reporting success with a nil URL made the UI
             // tear down silently, as if the recording had never happened.
-            if let url = outputURL { try? FileManager.default.removeItem(at: url) }
-            outputURL = nil
-            fail(RecordingError.stoppedBeforeStart)
+            complete(sessionID: sessionID, url: nil, error: captureError ?? RecordingError.stoppedBeforeStart)
             return
         }
         do {
             try await writer.finish()
             writerSession = nil
-            succeed()
+            complete(sessionID: sessionID, url: outputURL, error: captureError)
         } catch {
             writerSession = nil
-            // Clean up the (corrupt/empty) output file so it isn't mistaken for valid.
-            if let url = outputURL { try? FileManager.default.removeItem(at: url) }
-            fail(error)
+            // Preserve partial media for the session-recovery path. Never
+            // delete the user's only recording merely because finish failed.
+            complete(sessionID: sessionID, url: nil, error: captureError ?? error)
         }
-    }
-
-    // MARK: - Mic capture
-
-    private func startMicCapture() {
-        guard AVCaptureDevice.authorizationStatus(for: .audio) == .authorized else { return }
-        let micDevice: AVCaptureDevice
-        if let uid = UserDefaults.standard.string(forKey: "selectedMicDeviceUID"),
-           let device = AVCaptureDevice(uniqueID: uid) {
-            micDevice = device
-        } else {
-            guard let device = AVCaptureDevice.default(for: .audio) else { return }
-            micDevice = device
-        }
-
-        let session = AVCaptureSession()
-        session.beginConfiguration()
-        // Every exit below has to balance beginConfiguration, or the session is
-        // dropped half-configured while still holding the microphone.
-        var configurationCommitted = false
-        defer { if !configurationCommitted { session.commitConfiguration() } }
-
-        guard let deviceInput = try? AVCaptureDeviceInput(device: micDevice) else { return }
-        guard session.canAddInput(deviceInput) else { return }
-        session.addInput(deviceInput)
-
-        let dataOutput = AVCaptureAudioDataOutput()
-        // Keep the delegate format stable even when a Bluetooth device changes
-        // profiles after capture starts. AVAssetWriter can encode a constant
-        // native PCM format to AAC, but changing sample formats within one
-        // writer track corrupts timing and pitch. Let AVFoundation normalize at
-        // the capture boundary instead of maintaining a second per-buffer
-        // converter in the writer.
-        dataOutput.audioSettings = [
-            AVFormatIDKey: kAudioFormatLinearPCM,
-            AVSampleRateKey: 48_000,
-            AVNumberOfChannelsKey: 1,
-            AVLinearPCMBitDepthKey: 32,
-            AVLinearPCMIsFloatKey: true,
-            AVLinearPCMIsNonInterleaved: false,
-        ]
-        let delegate = MicCaptureDelegate()
-        // Deliver mic samples straight to the queue-confined writer session.
-        let writer = writerSession
-        delegate.onSample = { sampleBuffer in
-            writer?.handleMicSample(sampleBuffer)
-        }
-        dataOutput.setSampleBufferDelegate(delegate, queue: recordingQueue)
-        guard session.canAddOutput(dataOutput) else { return }
-        session.addOutput(dataOutput)
-
-        session.commitConfiguration()
-        configurationCommitted = true
-        session.startRunning()
-
-        self.micCaptureSession = session
-        self.micDataOutput = dataOutput
-        self.micDelegate = delegate
-    }
-
-    private func stopMicCapture() {
-        micCaptureSession?.stopRunning()
-        micCaptureSession = nil
-        micDataOutput = nil
-        micDelegate = nil
-    }
-
-
-    // MARK: - Output URL
-
-    private func makeOutputURL() -> URL? {
-        // Save to temp directory — always writable in sandbox.
-        // The video editor handles final export to the user's chosen location.
-        let dir = FileManager.default.temporaryDirectory
-        let template = UserDefaults.standard.string(forKey: FilenameFormatter.recordingUserDefaultsKey) ?? FilenameFormatter.defaultRecordingTemplate
-        let base = FilenameFormatter.format(template: template, fallback: FilenameFormatter.defaultRecordingTemplate)
-        return dir.appendingPathComponent("\(base).mp4")
     }
 
     // MARK: - Helpers
 
-    @MainActor private func succeed() {
-        state = .idle
-        onCompletion?(outputURL, nil)
+    private func startDiskMonitor(directory: URL, sessionID: UUID) {
+        let timer = DispatchSource.makeTimerSource(queue: DispatchQueue(label: "macshot.recording.disk"))
+        timer.schedule(deadline: .now(), repeating: .seconds(2))
+        timer.setEventHandler { [weak self] in
+            guard let values = try? directory.resourceValues(forKeys: [.volumeAvailableCapacityKey]),
+                  let available = values.volumeAvailableCapacity, available < 256 * 1024 * 1024 else { return }
+            DispatchQueue.main.async {
+                guard let self = self, self.lifecycle.isCurrent(sessionID) else { return }
+                self.stopRecording(error: CocoaError(.fileWriteOutOfSpace))
+            }
+        }
+        diskMonitor = timer
+        timer.resume()
     }
 
-    @MainActor private func fail(_ error: Error) {
-        state = .idle
-        onCompletion?(nil, error)
+    private func complete(sessionID: UUID, url: URL?, error: Error?) {
+        guard lifecycle.finish(sessionID) else { return }
+        diskMonitor?.cancel()
+        diskMonitor = nil
+        if let observer = sleepObserver { NSWorkspace.shared.notificationCenter.removeObserver(observer) }
+        sleepObserver = nil
+        if let activity = recordingActivity { ProcessInfo.processInfo.endActivity(activity) }
+        recordingActivity = nil
+        progressTimer?.invalidate()
+        progressTimer = nil
+        setupTask = nil
+        recordingClock = RecordingClock()
+        outputURL = nil
+        captureError = nil
+        let stored = storedSession
+        storedSession = nil
+        if let stored = stored {
+            recordingQueue.async {
+                try? stored.update(status: error == nil ? "complete" : "interrupted", error: error)
+                stored.removeIfEmpty()
+            }
+        }
+        if let error = error, let stored = stored {
+            onCompletion?(url, NSError(domain: "macshot.recording", code: 1, userInfo: [
+                NSLocalizedDescriptionKey: error.localizedDescription + " Original recording data is kept in Show Recordings in Finder.",
+                NSUnderlyingErrorKey: error,
+                NSURLErrorKey: stored.mediaURL,
+            ]))
+        } else {
+            onCompletion?(url, error)
+        }
     }
 
     enum RecordingError: LocalizedError {
-        case noDisplay, noOutput, stoppedBeforeStart
+        case noDisplay, stoppedBeforeStart, microphoneUnavailable, systemAudioUnavailable, systemSleep
         var errorDescription: String? {
             switch self {
             case .noDisplay: return "Could not find the screen to record."
-            case .noOutput: return "Could not create output file."
             case .stoppedBeforeStart: return "Recording stopped before it started — nothing was captured."
+            case .microphoneUnavailable: return "The selected microphone could not be started. Check its connection and Microphone permission."
+            case .systemAudioUnavailable: return "System audio recording requires macOS 13 or later."
+            case .systemSleep: return "Recording stopped because the Mac is going to sleep."
             }
         }
     }
@@ -447,305 +450,24 @@ final class RecordingEngine: NSObject {
 private class RecordingStreamOutput: NSObject, SCStreamOutput, SCStreamDelegate {
     var onFrame: ((CVPixelBuffer, CMTime) -> Void)?
     var onAudioSample: ((CMSampleBuffer) -> Void)?
-    var onStopped: (() -> Void)?
+    var onStopped: ((Error) -> Void)?
 
     func stream(_ stream: SCStream, didOutputSampleBuffer sampleBuffer: CMSampleBuffer, of type: SCStreamOutputType) {
-        switch type {
-        case .screen:
-            guard let pixelBuffer = sampleBuffer.imageBuffer else { return }
+        // Only screen and system-audio outputs are registered on this stream.
+        // Microphone samples are delivered by the separate AVCaptureSession.
+        if type == .screen {
+            guard RecordingSampleValidation.isCompleteFrame(sampleBuffer),
+                  let pixelBuffer = sampleBuffer.imageBuffer else { return }
             let pts = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
             onFrame?(pixelBuffer, pts)
-        case .audio:
+        } else if #available(macOS 13.0, *), type == .audio {
             onAudioSample?(sampleBuffer)
-        @unknown default:
-            break
         }
     }
 
     func stream(_ stream: SCStream, didStopWithError error: Error) {
         DispatchQueue.main.async { [weak self] in
-            self?.onStopped?()
+            self?.onStopped?(error)
         }
-    }
-}
-
-// MARK: - Mic AVCaptureAudioDataOutput delegate
-
-private class MicCaptureDelegate: NSObject, AVCaptureAudioDataOutputSampleBufferDelegate {
-    var onSample: ((CMSampleBuffer) -> Void)?
-
-    func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
-        onSample?(sampleBuffer)
-    }
-}
-
-// MARK: - CMSampleBuffer time adjustment
-
-private extension CMSampleBuffer {
-    /// Create a copy of this audio sample buffer with timestamps shifted back
-    /// by the given pause duration, so the output has no time gaps.
-    func adjustingTime(by pauseDuration: TimeInterval) -> CMSampleBuffer? {
-        guard pauseDuration > 0 else { return self }
-        let offset = CMTimeMakeWithSeconds(pauseDuration, preferredTimescale: 44100)
-        let pts = CMTimeSubtract(CMSampleBufferGetPresentationTimeStamp(self), offset)
-        let dur = CMSampleBufferGetDuration(self)
-
-        var timing = CMSampleTimingInfo(duration: dur, presentationTimeStamp: pts, decodeTimeStamp: .invalid)
-        var adjusted: CMSampleBuffer?
-        CMSampleBufferCreateCopyWithNewTiming(allocator: nil, sampleBuffer: self, sampleTimingEntryCount: 1, sampleTimingArray: &timing, sampleBufferOut: &adjusted)
-        return adjusted
-    }
-}
-
-// MARK: - MP4 writer session (queue-confined)
-
-/// Owns ALL AVAssetWriter state and is confined to a single serial queue. The
-/// SCStream/mic sample handlers run on that same queue and call into here, so
-/// frames/audio and the writer lifecycle (start/pause/finish) never race —
-/// previously these were `@MainActor` methods invoked from the background
-/// recording queue with no synchronization, which could append after
-/// `markAsFinished()` and crash AVAssetWriter. All members are touched only on
-/// `queue`; `@unchecked Sendable` is sound because of that confinement.
-/// Writer lifecycle mode — Int-backed so its `==` (from RawRepresentable) is
-/// nonisolated; it's compared on the recording queue, not the main actor.
-private enum MP4WriterMode: Int, Sendable { case recording, paused, finishing, finished }
-
-private final class MP4WriterSession: @unchecked Sendable {
-    let queue: DispatchQueue
-    private var mode: MP4WriterMode = .recording
-    private var pauseOffset: TimeInterval = 0
-
-    private var assetWriter: AVAssetWriter?
-    private var videoInput: AVAssetWriterInput?
-    private var audioInput: AVAssetWriterInput?      // system audio
-    private var micAudioInput: AVAssetWriterInput?   // microphone audio
-    private var adaptor: AVAssetWriterInputPixelBufferAdaptor?
-
-    private var sessionStarted = false
-    private var startTime: CMTime = .invalid
-    private(set) var frameCount: Int64 = 0
-
-    private var pendingAudioSamples: [CMSampleBuffer] = []
-    private var pendingMicSamples: [CMSampleBuffer] = []
-
-    /// Build on `queue` so the writer/inputs are created where they're used.
-    static func make(queue: DispatchQueue, url: URL, width: Int, height: Int, fps: Int,
-                     recordSystemAudio: Bool, recordMicAudio: Bool) throws -> MP4WriterSession {
-        var result: Result<MP4WriterSession, Error>!
-        queue.sync {
-            result = Result {
-                try MP4WriterSession(queue: queue, url: url, width: width, height: height,
-                                     fps: fps, recordSystemAudio: recordSystemAudio,
-                                     recordMicAudio: recordMicAudio)
-            }
-        }
-        return try result.get()
-    }
-
-    private init(queue: DispatchQueue, url: URL, width: Int, height: Int, fps: Int,
-                 recordSystemAudio: Bool, recordMicAudio: Bool) throws {
-        self.queue = queue
-        dispatchPrecondition(condition: .onQueue(queue))
-
-        let writer = try AVAssetWriter(outputURL: url, fileType: .mp4)
-        let settings = VideoEncodingSettings.outputSettings(
-            width: width, height: height, fps: fps, codec: .h264, quality: .high)
-        let input = AVAssetWriterInput(mediaType: .video, outputSettings: settings)
-        input.expectsMediaDataInRealTime = true
-        let sourceAttr: [String: Any] = [
-            kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA,
-            kCVPixelBufferWidthKey as String: width,
-            kCVPixelBufferHeightKey as String: height,
-        ]
-        let adaptor = AVAssetWriterInputPixelBufferAdaptor(
-            assetWriterInput: input, sourcePixelBufferAttributes: sourceAttr)
-        writer.add(input)
-
-        // Mic FIRST so it's the primary audio track (most players decode only the
-        // first). Mono downmix avoids one-ear playback on stereo mic devices.
-        if recordMicAudio {
-            let micLayout = AudioChannelLayout(
-                mChannelLayoutTag: kAudioChannelLayoutTag_Mono,
-                mChannelBitmap: [], mNumberChannelDescriptions: 0,
-                mChannelDescriptions: AudioChannelDescription())
-            let micSettings: [String: Any] = [
-                AVFormatIDKey: kAudioFormatMPEG4AAC,
-                AVSampleRateKey: 48000,
-                AVNumberOfChannelsKey: 1,
-                AVEncoderBitRateKey: 128000,
-                AVChannelLayoutKey: Data(bytes: [micLayout], count: MemoryLayout<AudioChannelLayout>.size),
-            ]
-            let micIn = AVAssetWriterInput(mediaType: .audio, outputSettings: micSettings)
-            micIn.expectsMediaDataInRealTime = true
-            writer.add(micIn)
-            self.micAudioInput = micIn
-        }
-
-        if recordSystemAudio {
-            let audioLayout = AudioChannelLayout(
-                mChannelLayoutTag: kAudioChannelLayoutTag_Stereo,
-                mChannelBitmap: [], mNumberChannelDescriptions: 0,
-                mChannelDescriptions: AudioChannelDescription())
-            let audioSettings: [String: Any] = [
-                AVFormatIDKey: kAudioFormatMPEG4AAC,
-                AVSampleRateKey: 48000,
-                AVNumberOfChannelsKey: 2,
-                AVEncoderBitRateKey: 256000,
-                AVChannelLayoutKey: Data(bytes: [audioLayout], count: MemoryLayout<AudioChannelLayout>.size),
-            ]
-            let audioIn = AVAssetWriterInput(mediaType: .audio, outputSettings: audioSettings)
-            audioIn.expectsMediaDataInRealTime = true
-            writer.add(audioIn)
-            self.audioInput = audioIn
-        }
-
-        guard writer.startWriting() else {
-            throw writer.error ?? CocoaError(.fileWriteUnknown)
-        }
-        self.assetWriter = writer
-        self.videoInput = input
-        self.adaptor = adaptor
-    }
-
-    // MARK: Lifecycle (called from the main actor; hop onto the queue)
-
-    func pause() {
-        queue.async {
-            guard self.mode == .recording else { return }
-            self.mode = .paused
-        }
-    }
-
-    func resume(addingPausedDuration duration: TimeInterval) {
-        queue.async {
-            guard self.mode == .paused else { return }
-            self.pauseOffset += max(0, duration)
-            self.mode = .recording
-        }
-    }
-
-    /// Stop accepting samples ASAP (samples may still arrive during SCStream
-    /// teardown). The actual finish/drain happens in `finish()`.
-    func requestStop() {
-        queue.async {
-            guard self.mode != .finished else { return }
-            self.mode = .finishing
-        }
-    }
-
-    /// Finish writing. Runs on the queue (after any in-flight append), marks
-    /// inputs finished, then awaits finishWriting. Throws if the writer failed —
-    /// so a corrupt/empty file is never reported as success.
-    func finish() async throws {
-        try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
-            queue.async {
-                guard self.mode != .finished else { cont.resume(); return }
-                self.mode = .finishing
-                self.pendingAudioSamples.removeAll()
-                self.pendingMicSamples.removeAll()
-
-                guard let writer = self.assetWriter else {
-                    self.tearDown()
-                    cont.resume(throwing: CocoaError(.fileWriteUnknown))
-                    return
-                }
-                guard writer.status == .writing else {
-                    // Writer already failed/completed before we got here — only an
-                    // already-.completed writer is a success; anything else is a
-                    // failure (don't report success just because error is nil).
-                    let ok = writer.status == .completed && self.frameCount > 0
-                    let err = writer.error
-                    self.tearDown()
-                    if ok { cont.resume() } else { cont.resume(throwing: err ?? CocoaError(.fileWriteUnknown)) }
-                    return
-                }
-                self.videoInput?.markAsFinished()
-                self.audioInput?.markAsFinished()
-                self.micAudioInput?.markAsFinished()
-                writer.finishWriting {
-                    // Read writer status/error back ON the queue (the only place
-                    // that touches the writer) rather than in this callback thread.
-                    self.queue.async {
-                        let status = writer.status
-                        let error = writer.error
-                        let frames = self.frameCount
-                        self.tearDown()
-                        if status == .completed && frames > 0 {
-                            cont.resume()
-                        } else {
-                            cont.resume(throwing: error ?? CocoaError(.fileWriteUnknown))
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private func tearDown() {
-        mode = .finished
-        assetWriter = nil
-        videoInput = nil
-        audioInput = nil
-        micAudioInput = nil
-        adaptor = nil
-    }
-
-    // MARK: Sample handling (called on the queue by SCStream / mic delegate)
-
-    func handleFrame(pixelBuffer: CVPixelBuffer, presentationTime: CMTime) {
-        dispatchPrecondition(condition: .onQueue(queue))
-        guard mode == .recording else { return }
-        writeFrame(buffer: pixelBuffer, presentationTime: adjustedTime(presentationTime))
-    }
-
-    func handleSystemAudioSample(_ sampleBuffer: CMSampleBuffer) {
-        dispatchPrecondition(condition: .onQueue(queue))
-        guard mode == .recording, let input = audioInput else { return }
-        if !sessionStarted { pendingAudioSamples.append(sampleBuffer); return }
-        guard input.isReadyForMoreMediaData else { return }
-        if let adjusted = sampleBuffer.adjustingTime(by: pauseOffset) { input.append(adjusted) }
-    }
-
-    func handleMicSample(_ sampleBuffer: CMSampleBuffer) {
-        dispatchPrecondition(condition: .onQueue(queue))
-        guard mode == .recording, let input = micAudioInput else { return }
-        if !sessionStarted { pendingMicSamples.append(sampleBuffer); return }
-        guard input.isReadyForMoreMediaData else { return }
-        if let adjusted = sampleBuffer.adjustingTime(by: pauseOffset) { input.append(adjusted) }
-    }
-
-    private func writeFrame(buffer: CVPixelBuffer, presentationTime: CMTime) {
-        guard mode == .recording,
-              let writer = assetWriter, writer.status == .writing,
-              let input = videoInput, let adaptor = adaptor,
-              input.isReadyForMoreMediaData
-        else { return }
-
-        if !sessionStarted {
-            startTime = presentationTime
-            writer.startSession(atSourceTime: presentationTime)
-            sessionStarted = true
-            // Flush audio that arrived before the first video frame.
-            for sample in pendingAudioSamples {
-                if let ai = audioInput, ai.isReadyForMoreMediaData,
-                   let adjusted = sample.adjustingTime(by: pauseOffset) { ai.append(adjusted) }
-            }
-            pendingAudioSamples.removeAll()
-            for sample in pendingMicSamples {
-                if let mi = micAudioInput, mi.isReadyForMoreMediaData,
-                   let adjusted = sample.adjustingTime(by: pauseOffset) { mi.append(adjusted) }
-            }
-            pendingMicSamples.removeAll()
-        }
-        // Only count frames that were actually written — finish() treats
-        // frameCount == 0 as a failed/empty recording.
-        if adaptor.append(buffer, withPresentationTime: presentationTime) {
-            frameCount += 1
-        }
-    }
-
-    private func adjustedTime(_ time: CMTime) -> CMTime {
-        guard pauseOffset > 0 else { return time }
-        return CMTimeSubtract(time, CMTimeMakeWithSeconds(pauseOffset, preferredTimescale: time.timescale))
     }
 }

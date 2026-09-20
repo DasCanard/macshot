@@ -41,6 +41,20 @@ final class FilenameFormatterTests: XCTestCase {
             "Safari-3")
     }
 
+    func testInsertedWindowTitlesAreLiteralNotMoreTemplateTokens() {
+        XCTAssertEqual(FilenameFormatter.format(template: "Capture {window}-{index}",
+            windowTitle: "{date} {random} {index}", index: 7, date: fixedDate), "Capture {date} {random} {index}-7")
+    }
+
+    func testUnicodeClustersAndTrailingDotsSurviveLengthCappingCleanly() {
+        let family = "👩‍👩‍👦"
+        let name = FilenameFormatter.format(template: "abc" + String(repeating: family, count: 40), date: fixedDate)
+        XCTAssertLessThanOrEqual(name.utf8.count, 200)
+        XCTAssertEqual(name, "abc" + String(repeating: family, count: 10))
+        XCTAssertEqual(FilenameFormatter.format(template: String(repeating: "a", count: 199) + ".tail", date: fixedDate),
+                       String(repeating: "a", count: 199))
+    }
+
     func testMissingWindowAndIndexRenderEmptyRatherThanPlaceholders() {
         XCTAssertEqual(
             FilenameFormatter.format(template: "shot{window}{index}", date: fixedDate),
@@ -70,6 +84,7 @@ final class FilenameFormatterTests: XCTestCase {
             FilenameFormatter.format(template: "shot-{notAToken}", date: fixedDate),
             "shot-{notAToken}",
             "a typo should be visible in the filename, not silently swallowed")
+        XCTAssertEqual(FilenameFormatter.format(template: "Capture {unfinished", date: fixedDate), "Capture {unfinished")
     }
 
     func testTokensAreCaseSensitive() {

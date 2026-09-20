@@ -32,8 +32,8 @@ enum AutoRedactor {
             // Three groups minimum, four digits each: two groups of three
             // digits matched things like "2026 2026", "1024 768" and
             // "Total 1234 5678", covering ordinary content with a black box.
-            // Cards split across OCR lines are caught by the grouping pass in
-            // buildPIIRedactions instead.
+            // Cards split across adjacent OCR observations are also checked by
+            // PIIRedactionPlanner, using the same patterns and enabled types.
             ("credit_card", #"\d{4,6}(?:\s+\d{4,6}){2,4}"#),
             ("cvv", #"(?:CVV|CVC|CSC|CCV)\s*:?\s*\d{3,4}"#),
             ("expiry", #"\b(?:\d{2}[/\-]\d{2,4}|\d{4}[/\-]\d{2})\b"#),
@@ -92,16 +92,21 @@ enum AutoRedactor {
     ) {
         let cgImage = cropToCGImage(screenshot: screenshot, selectionRect: selectionRect, captureDrawRect: captureDrawRect)
         guard let cgImage = cgImage else { completion([]); return }
+        let enabledTypes = UserDefaults.standard.array(forKey: "enabledRedactTypes") as? [String]
+        let censorMode = CensorMode(rawValue: UserDefaults.standard.integer(forKey: "censorMode")) ?? .pixelate
 
         DispatchQueue.global(qos: .userInitiated).async {
             VisionOCR.performTextRecognition(cgImage: cgImage) { request, _ in
-                guard let observations = request.results as? [VNRecognizedTextObservation] else { completion([]); return }
+                guard let observations = request.results as? [VNRecognizedTextObservation] else {
+                    DispatchQueue.main.async { completion([]) }
+                    return
+                }
                 let annotations = buildPIIRedactions(
                     observations: observations, selectionRect: selectionRect,
                     redactTool: redactTool, color: color,
-                    sourceImage: sourceImage, sourceImageBounds: sourceImageBounds
+                    sourceImage: sourceImage, sourceImageBounds: sourceImageBounds,
+                    enabledTypes: enabledTypes
                 )
-                let censorMode = CensorMode(rawValue: UserDefaults.standard.integer(forKey: "censorMode")) ?? .pixelate
                 for ann in annotations { ann.censorMode = censorMode; ann.bakePixelate() }
                 DispatchQueue.main.async { completion(annotations) }
             }
@@ -272,12 +277,12 @@ enum AutoRedactor {
         redactTool: AnnotationTool,
         color: NSColor,
         sourceImage: NSImage?,
-        sourceImageBounds: NSRect
+        sourceImageBounds: NSRect,
+        enabledTypes: [String]?
     ) -> [Annotation] {
         var annotations: [Annotation] = []
         let groupID = UUID()
         let padding: CGFloat = 2
-        var redactedObservations = Set<Int>()
 
         func addRedaction(box: CGRect) {
             let viewX = selectionRect.origin.x + box.origin.x * selectionRect.width - padding
@@ -297,56 +302,22 @@ enum AutoRedactor {
             annotations.append(ann)
         }
 
-        // Pass 1: regex matching
-        for (i, obs) in observations.enumerated() {
-            guard let candidate = obs.topCandidates(1).first else { continue }
-            let text = candidate.string
-            for match in sensitiveMatches(in: text) {
-                guard let box = try? candidate.boundingBox(for: match.range) else { continue }
-                addRedaction(box: box.boundingBox)
-                redactedObservations.insert(i)
-            }
+        let recognized = observations.compactMap { observation -> (VNRecognizedTextObservation, VNRecognizedText)? in
+            guard let candidate = observation.topCandidates(1).first else { return nil }
+            return (observation, candidate)
         }
-
-        // Pass 2: split card numbers
-        struct DigitObs { let index: Int; let midY: CGFloat; let midX: CGFloat; let box: CGRect; let digitCount: Int }
-        var digitObs: [DigitObs] = []
-        for (i, obs) in observations.enumerated() {
-            guard !redactedObservations.contains(i), let c = obs.topCandidates(1).first else { continue }
-            let digits = c.string.filter(\.isNumber)
-            if digits.count >= 3 && digits.count <= 6 {
-                digitObs.append(DigitObs(index: i, midY: obs.boundingBox.midY, midX: obs.boundingBox.midX, box: obs.boundingBox, digitCount: digits.count))
-            }
+        let lines = recognized.map { observation, candidate in
+            let box = observation.boundingBox
+            return PIIRedactionPlanner.Line(text: candidate.string,
+                bounds: CGRect(x: box.minX * selectionRect.width, y: box.minY * selectionRect.height,
+                               width: box.width * selectionRect.width, height: box.height * selectionRect.height))
         }
-        var used = Set<Int>()
-        var grouped: [[DigitObs]] = []
-        for (idx, obs) in digitObs.enumerated() {
-            guard !used.contains(idx) else { continue }
-            var row = [obs]; used.insert(idx)
-            for (jdx, other) in digitObs.enumerated() where !used.contains(jdx) && abs(other.midY - obs.midY) < 0.03 {
-                row.append(other); used.insert(jdx)
-            }
-            row.sort { $0.midX < $1.midX }
-            grouped.append(row)
-        }
-        for row in grouped where row.count >= 2 {
-            let total = row.reduce(0) { $0 + $1.digitCount }
-            guard total >= 8 || (row.count >= 2 && row.allSatisfy { $0.digitCount >= 4 }) else { continue }
-            for obs in row { addRedaction(box: obs.box); redactedObservations.insert(obs.index) }
-        }
-
-        // Pass 3: CVV/expiry near card data
-        if !redactedObservations.isEmpty {
-            let cvv = try? NSRegularExpression(pattern: #"^\d{3,4}$"#)
-            let expiry = try? NSRegularExpression(pattern: #"^\d{4}[-/]\d{2}$|^\d{2}[-/]\d{2,4}$"#)
-            for (i, obs) in observations.enumerated() {
-                guard !redactedObservations.contains(i), let c = obs.topCandidates(1).first else { continue }
-                let text = c.string.trimmingCharacters(in: .whitespaces)
-                let range = NSRange(location: 0, length: (text as NSString).length)
-                if cvv?.firstMatch(in: text, range: range) != nil || expiry?.firstMatch(in: text, range: range) != nil {
-                    addRedaction(box: obs.boundingBox); redactedObservations.insert(i)
-                }
-            }
+        for match in PIIRedactionPlanner.matches(in: lines, enabledTypes: enabledTypes) {
+            let (observation, candidate) = recognized[match.lineIndex]
+            // If Vision can't return a substring box, cover the recognized line
+            // rather than silently leaving detected sensitive text exposed.
+            let box = (try? candidate.boundingBox(for: match.range))?.boundingBox ?? observation.boundingBox
+            addRedaction(box: box)
         }
 
         return annotations
