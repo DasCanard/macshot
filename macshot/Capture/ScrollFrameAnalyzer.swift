@@ -19,6 +19,13 @@ enum ScrollFrameAnalyzer {
     /// different content rather than compression or antialiasing noise.
     static let differenceThreshold: UInt64 = 8
 
+    /// Registration needs some overlap with the previous frame. Reject invalid
+    /// or out-of-frame shifts before callers round them into pixel integers.
+    static func validatedVerticalShift(_ shift: CGFloat, frameHeight: Int) -> CGFloat? {
+        guard frameHeight > 0, shift.isFinite, abs(shift) < CGFloat(frameHeight) else { return nil }
+        return shift
+    }
+
     /// A frame ready for comparison: raw bytes plus the geometry needed to
     /// address them. `data` keeps the pixel buffer alive for the scan.
     struct Frame {
@@ -27,6 +34,9 @@ enum ScrollFrameAnalyzer {
         let width: Int
         let height: Int
         let bytesPerRow: Int
+        let redOffset: Int
+        let greenOffset: Int
+        let blueOffset: Int
 
         /// Byte offset of a pixel, or nil when it falls outside the buffer.
         func offset(x: Int, y: Int) -> Int? {
@@ -40,23 +50,39 @@ enum ScrollFrameAnalyzer {
     /// Wraps a `CGImage` for scanning. Returns nil for anything that isn't
     /// 8-bit, 32-bits-per-pixel — the byte offsets below only make sense there.
     static func frame(for image: CGImage) -> Frame? {
+        let (minimumStride, strideOverflow) = image.width.multipliedReportingOverflow(by: 4)
+        let (minimumBytes, sizeOverflow) = image.bytesPerRow.multipliedReportingOverflow(by: image.height)
         guard image.bitsPerComponent == 8, image.bitsPerPixel == 32,
+              image.colorSpace?.model == .rgb, !image.bitmapInfo.contains(.floatComponents),
               image.width > 0, image.height > 0,
-              image.bytesPerRow >= image.width * 4,
+              !strideOverflow, !sizeOverflow, image.bytesPerRow >= minimumStride,
               let data = image.dataProvider?.data,
               let bytes = CFDataGetBytePtr(data) else { return nil }
         // A buffer shorter than the geometry claims would read past the end.
-        guard CFDataGetLength(data) >= image.bytesPerRow * image.height else { return nil }
+        guard CFDataGetLength(data) >= minimumBytes else { return nil }
+        let first: Bool
+        switch image.alphaInfo {
+        case .first, .premultipliedFirst, .noneSkipFirst: first = true
+        case .last, .premultipliedLast, .noneSkipLast: first = false
+        default: return nil
+        }
+        let order = image.bitmapInfo.intersection(.byteOrderMask)
+        guard order == .byteOrderDefault || order == .byteOrder32Big || order == .byteOrder32Little else { return nil }
+        // AlphaFirst describes significance, not the first byte in memory.
+        // Match R/G/B by channel even when the two frames use different layouts.
+        let little = order == .byteOrder32Little
+        let rgb = first ? (little ? (2, 1, 0) : (1, 2, 3)) : (little ? (3, 2, 1) : (0, 1, 2))
         return Frame(data: data, bytes: bytes, width: image.width,
-                     height: image.height, bytesPerRow: image.bytesPerRow)
+                     height: image.height, bytesPerRow: image.bytesPerRow,
+                     redOffset: rgb.0, greenOffset: rgb.1, blueOffset: rgb.2)
     }
 
     /// Absolute difference of the three colour channels at one pixel.
     private static func pixelDifference(_ a: Frame, _ b: Frame, x: Int, y: Int) -> UInt64? {
         guard let aOffset = a.offset(x: x, y: y), let bOffset = b.offset(x: x, y: y) else { return nil }
-        let diff = abs(Int(a.bytes[aOffset]) - Int(b.bytes[bOffset]))
-            + abs(Int(a.bytes[aOffset + 1]) - Int(b.bytes[bOffset + 1]))
-            + abs(Int(a.bytes[aOffset + 2]) - Int(b.bytes[bOffset + 2]))
+        let diff = abs(Int(a.bytes[aOffset + a.redOffset]) - Int(b.bytes[bOffset + b.redOffset]))
+            + abs(Int(a.bytes[aOffset + a.greenOffset]) - Int(b.bytes[bOffset + b.greenOffset]))
+            + abs(Int(a.bytes[aOffset + a.blueOffset]) - Int(b.bytes[bOffset + b.blueOffset]))
         return UInt64(diff)
     }
 

@@ -705,3 +705,9 @@
 
 "Cancelling..." = "جارٍ الإلغاء...";
 "Preparing video..." = "جارٍ تجهيز الفيديو...";
+"History is busy saving. Please try again shortly." = "السجل مشغول بالحفظ. يُرجى المحاولة مرة أخرى بعد قليل.";
+
+// Video editor accessibility
+"Play" = "تشغيل";
+"Mute" = "كتم الصوت";
+"Unmute" = "إلغاء كتم الصوت";

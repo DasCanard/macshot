@@ -11,16 +11,23 @@
 - **Invert Colors with a window-snapped selection** — inverted the screen behind the capture instead of the capture itself, and image effects were dropped entirely when beautify's window snap was on. (#88)
 - **Scroll capture HUD hidden under the notch** — the Auto Scroll and Stop buttons could land behind the camera housing, leaving no way to stop the capture from the HUD. Stop also works now while the first frame is still settling. (#153)
 - **Unexpected quits** — several code paths crashed when macOS reported no available display, which happens while displays sleep or are being reconfigured. (#387)
-- **Scroll capture stitching** — header and scrollbar detection read pixels at the wrong offsets on displays whose captures use padded rows, which could stitch a sliver of the frozen header into every strip.
-- **Large uploads** — a recording is now streamed from disk instead of being held in memory three times over, which could exhaust memory on long 4K captures.
-- **Pinning copied web content no longer makes network requests** — pasted HTML was parsed by WebKit, which fetched remote images and tracking pixels. Very large pastes no longer freeze the app either.
+- **Scroll capture stitching** — header and scrollbar detection now respects row padding and pixel byte order. Invalid registration shifts are rejected before converting them to pixel offsets.
+- **Large uploads** — recordings stream from owned files, and screenshot encoding and multipart preparation run in the background. Requests have independent progress; Drive retries preserve the submitted bytes and file identity, and delayed responses cannot restore signed-out account state.
+- **Pinning copied web content** — HTML imports supported formatting without passing remote resources or arbitrary styles to the importer. Rich-input size limits apply before parsing; oversized HTML can fall back to the plain-text clipboard flavor.
 - **Undo/redo shortcuts** — Return, Escape and Tab could trigger a bound command when they shouldn't.
 - Missing or damaged accents across Slovak, Romanian, Portuguese, Spanish, Catalan, Croatian, Finnish and Dutch — roughly 1,300 labels repaired, plus duplicate entries removed from every language.
 - GIF export no longer mis-times frames when the requested frame rate is above the 30 fps cap or below 1.
+- **Long recordings** — motion resuming after an idle period no longer rejects the first resumed frame. Static tails, pause timing and separate audio tracks are retained; lower-quality export preserves a mono microphone track.
+- **Video export** — Low and Medium use source-aware bitrate targets instead of live-recording minimums. Size estimates appear when the source supports a meaningful comparison; misleading estimates for sparse recordings are omitted. GIF export streams frames with bounded memory, preserves edits and static holds, and avoids an intermittent missing-frame error at freeze boundaries. File size still depends on the content and selected format.
+- **Video editor controls** — file information and save status have a separate row so they remain visible in compact windows. Toolbar buttons expose accessible labels and format selection, and the audio-merge sliders identify their audio sources.
+- **Saving and quitting** — image encoding and large file copying run in the background, destination replacement is atomic, and pending save/export/upload jobs keep their inputs alive until completion. Video exports offer cancellation, and recording originals remain available after a failed export.
+- **Screenshot edits and history** — images, annotations and effects save together. Failed saves keep the editor open, edits made during a save remain dirty, and undo followed by a different edit still prompts before closing. Pending history snapshots are bounded; saturation reports a failed save instead of silently dropping a capture.
+- **Reopening saved captures** — invalid saved values and embedded images are checked before rendering. If an annotation or an existing sidecar cannot be restored, the editor uses the flattened capture rather than omitting that annotation or effect. Snapped-window previews also keep the selected effects when drawing their final image.
 
 ### Changed
 
-- The project now has a unit-test suite (462 tests) that runs on every push and pull request, against both the normal and offline builds.
+- Automated tests and Release builds run on every push and pull request for both the normal and Offline variants. The runner fails on empty or unreadable test results instead of reporting false success.
+- History now stores immutable revisions selected by an atomic index. Older builds cannot directly read the new layout; see [local recovery and downgrade instructions](docs/history-recovery.md) before downgrading.
 
 ## [4.2.2-beta.5] - 2026-09-17
 

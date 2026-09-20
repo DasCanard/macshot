@@ -705,3 +705,9 @@
 
 "Cancelling..." = "Отказивање...";
 "Preparing video..." = "Припрема видеа...";
+"History is busy saving. Please try again shortly." = "Историја се чува. Покушајте поново за неколико тренутака.";
+
+// Video editor accessibility
+"Play" = "Репродукуј";
+"Mute" = "Искључи звук";
+"Unmute" = "Укључи звук";

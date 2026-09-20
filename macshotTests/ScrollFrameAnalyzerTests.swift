@@ -1,10 +1,80 @@
-import CoreGraphics
+import Cocoa
 import XCTest
 
 /// Scroll capture decides where a frozen header ends and where the scrollbar
 /// starts by comparing consecutive frames. Get either wrong and the stitched
 /// image repeats a header band or drags the scrollbar into the match.
 final class ScrollFrameAnalyzerTests: XCTestCase {
+
+    private let layouts: [(CGImageAlphaInfo, CGBitmapInfo, [Int])] = [
+        (.premultipliedFirst, .byteOrder32Little, [2, 1, 0]), // BGRA
+        (.premultipliedFirst, .byteOrder32Big, [1, 2, 3]),    // ARGB
+        (.premultipliedLast, .byteOrder32Little, [3, 2, 1]),  // ABGR
+        (.premultipliedLast, .byteOrder32Big, [0, 1, 2]),     // RGBA
+        (.noneSkipFirst, .byteOrder32Big, [1, 2, 3]),
+        (.noneSkipLast, .byteOrder32Little, [3, 2, 1]),
+        (.premultipliedFirst, .byteOrderDefault, [1, 2, 3]),
+        (.premultipliedLast, .byteOrderDefault, [0, 1, 2]),
+    ]
+
+    private func layoutFrame(_ layout: (CGImageAlphaInfo, CGBitmapInfo, [Int]), unused: UInt8 = 255,
+                             pixel: (Int, Int) -> [UInt8]) throws -> CGImage {
+        let width = 80, height = 40, stride = width * 4 + 16
+        var bytes = [UInt8](repeating: unused, count: stride * height)
+        for y in 0..<height {
+            for x in 0..<width {
+                let rgb = pixel(x, y)
+                for component in 0..<3 { bytes[y * stride + x * 4 + layout.2[component]] = rgb[component] }
+            }
+        }
+        let provider = try XCTUnwrap(CGDataProvider(data: Data(bytes) as CFData))
+        return try XCTUnwrap(CGImage(width: width, height: height, bitsPerComponent: 8, bitsPerPixel: 32,
+            bytesPerRow: stride, space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGBitmapInfo(rawValue: layout.0.rawValue | layout.1.rawValue), provider: provider,
+            decode: nil, shouldInterpolate: false, intent: .defaultIntent))
+    }
+
+    func testMatchingColoursCompareAcrossAllSupportedByteLayouts() throws {
+        let reference = try layoutFrame(layouts[0]) { _, _ in [40, 80, 120] }
+        for layout in layouts {
+            let image = try layoutFrame(layout) { _, _ in [40, 80, 120] }
+            let colour = try XCTUnwrap(NSBitmapImageRep(cgImage: image).colorAt(x: 0, y: 0)?.usingColorSpace(.deviceRGB))
+            XCTAssertEqual(colour.redComponent, 40.0 / 255, accuracy: 0.01)
+            XCTAssertEqual(colour.blueComponent, 120.0 / 255, accuracy: 0.01)
+            XCTAssertEqual(ScrollFrameAnalyzer.frozenTopRows(current: image, previous: reference, rightMarginPx: 0), 40)
+            XCTAssertEqual(ScrollFrameAnalyzer.scrollbarWidth(current: image, previous: reference), 0)
+        }
+    }
+
+    func testEachColourChannelParticipatesInHeaderAndScrollbarDetection() throws {
+        for layout in layouts {
+            let before = try layoutFrame(layout) { _, _ in [40, 80, 120] }
+            for channel in 0..<3 {
+                let after = try layoutFrame(layout) { x, y in
+                    var rgb: [UInt8] = [40, 80, 120]
+                    if y >= 12 || x >= 74 { rgb[channel] = 240 }
+                    return rgb
+                }
+                XCTAssertEqual(ScrollFrameAnalyzer.frozenTopRows(current: after, previous: before, rightMarginPx: 6), 12)
+                // Use a scrollbar-only change so page content cannot obscure its inner edge.
+                let scrollbar = try layoutFrame(layout) { x, _ in
+                    var rgb: [UInt8] = [40, 80, 120]
+                    if x >= 74 { rgb[channel] = 240 }
+                    return rgb
+                }
+                XCTAssertEqual(ScrollFrameAnalyzer.scrollbarWidth(current: scrollbar, previous: before), 6)
+            }
+        }
+    }
+
+    func testUnusedPixelByteDoesNotLookLikeScrolling() throws {
+        for layout in layouts where layout.0 == .noneSkipFirst || layout.0 == .noneSkipLast {
+            let before = try layoutFrame(layout, unused: 0) { _, _ in [40, 80, 120] }
+            let after = try layoutFrame(layout, unused: 255) { _, _ in [40, 80, 120] }
+            XCTAssertEqual(ScrollFrameAnalyzer.frozenTopRows(current: after, previous: before, rightMarginPx: 0), 40)
+            XCTAssertEqual(ScrollFrameAnalyzer.scrollbarWidth(current: after, previous: before), 0)
+        }
+    }
 
     // MARK: - Fixtures
 
@@ -60,6 +130,16 @@ final class ScrollFrameAnalyzerTests: XCTestCase {
     }
 
     // MARK: - Frame validation
+
+    func testRegistrationShiftNeedsFiniteOverlappingFrames() {
+        for shift: CGFloat in [.nan, .infinity, -.infinity, 800, -800, 1e18] {
+            XCTAssertNil(ScrollFrameAnalyzer.validatedVerticalShift(shift, frameHeight: 800))
+        }
+        XCTAssertNil(ScrollFrameAnalyzer.validatedVerticalShift(10, frameHeight: 0))
+        XCTAssertEqual(ScrollFrameAnalyzer.validatedVerticalShift(120.5, frameHeight: 800), 120.5)
+        XCTAssertEqual(ScrollFrameAnalyzer.validatedVerticalShift(-120.5, frameHeight: 800), -120.5)
+        XCTAssertEqual(ScrollFrameAnalyzer.validatedVerticalShift(0, frameHeight: 800), 0)
+    }
 
     func testFrameRejectsUnsupportedPixelFormats() throws {
         let gray = try XCTUnwrap(CGContext(

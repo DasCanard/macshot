@@ -25,10 +25,10 @@ struct CaptureEditState: Codable, Equatable {
     var effectsConfig: ImageEffectsConfig {
         ImageEffectsConfig(
             preset: effectsPreset,
-            brightness: effectsBrightness,
-            contrast: effectsContrast,
-            saturation: effectsSaturation,
-            sharpness: effectsSharpness
+            brightness: SavedCaptureValidation.bounded(effectsBrightness, -0.5...0.5, fallback: 0),
+            contrast: SavedCaptureValidation.bounded(effectsContrast, 0.5...2, fallback: 1),
+            saturation: SavedCaptureValidation.bounded(effectsSaturation, 0...2, fallback: 1),
+            sharpness: SavedCaptureValidation.bounded(effectsSharpness, 0...2, fallback: 0)
         )
     }
 
@@ -40,20 +40,20 @@ struct CaptureEditState: Codable, Equatable {
     }
 
     var customBeautifyBackground: NSImage? {
-        customBeautifyBackgroundPNG.flatMap { NSImage(data: $0) }
+        customBeautifyBackgroundPNG.flatMap { SavedCaptureValidation.image($0) }
     }
 
     func beautifyConfig() -> BeautifyConfig {
         var config = BeautifyConfig(
             mode: beautifyMode,
             styleIndex: beautifyStyleIndex,
-            padding: CGFloat(beautifyPadding),
-            cornerRadius: CGFloat(beautifyCornerRadius),
-            shadowRadius: CGFloat(beautifyShadowRadius),
+            padding: CGFloat(SavedCaptureValidation.bounded(beautifyPadding, 0...1024, fallback: 48)),
+            cornerRadius: CGFloat(SavedCaptureValidation.bounded(beautifyCornerRadius, 0...1024, fallback: 10)),
+            shadowRadius: CGFloat(SavedCaptureValidation.bounded(beautifyShadowRadius, 0...100, fallback: 20)),
             bgRadius: 0,
             isWindowSnap: beautifyIsWindowSnap,
             customBackgroundImage: customBeautifyBackground,
-            backgroundBlur: CGFloat(beautifyBackgroundBlur)
+            backgroundBlur: CGFloat(SavedCaptureValidation.bounded(beautifyBackgroundBlur, 0...50, fallback: 0))
         )
         if config.customBackgroundImage != nil {
             config.prepareBackgroundCache()
@@ -86,6 +86,21 @@ extension CaptureEditState {
         beautifyBackgroundBlur = c.decode(.beautifyBackgroundBlur, or: 0)
         beautifyIsWindowSnap = c.decode(.beautifyIsWindowSnap, or: false)
         customBeautifyBackgroundPNG = c.decodeOptional(.customBeautifyBackgroundPNG)
+        normalizeValues()
+    }
+
+    mutating func normalizeValues() {
+        let effects = effectsConfig
+        effectsBrightness = effects.brightness
+        effectsContrast = effects.contrast
+        effectsSaturation = effects.saturation
+        effectsSharpness = effects.sharpness
+        // Preserve legacy padding/radius values beyond today's sliders while
+        // preventing invalid or unbounded canvas expansion.
+        beautifyPadding = SavedCaptureValidation.bounded(beautifyPadding, 0...1024, fallback: 48)
+        beautifyCornerRadius = SavedCaptureValidation.bounded(beautifyCornerRadius, 0...1024, fallback: 10)
+        beautifyShadowRadius = SavedCaptureValidation.bounded(beautifyShadowRadius, 0...100, fallback: 20)
+        beautifyBackgroundBlur = SavedCaptureValidation.bounded(beautifyBackgroundBlur, 0...50, fallback: 0)
     }
 }
 
@@ -117,6 +132,8 @@ extension OverlayView {
     }
 
     func applyCaptureEditState(_ state: CaptureEditState) {
+        var state = state
+        state.normalizeValues()
         effectsPreset = state.effectsPreset
         effectsBrightness = state.effectsBrightness
         effectsContrast = state.effectsContrast
@@ -152,7 +169,7 @@ extension OverlayView {
         let annotationPart = AnnotationSerializer.encode(movableAnnotations)?.base64EncodedString() ?? ""
         let editData = try? JSONEncoder().encode(captureEditState())
         let editPart = editData?.base64EncodedString() ?? ""
-        let imagePart = screenshotImage.map { "\(Int($0.size.width.rounded()))x\(Int($0.size.height.rounded()))" } ?? "nil"
+        let imagePart = screenshotImage.map { "\(SafeNumerics.int($0.size.width))x\(SafeNumerics.int($0.size.height))" } ?? "nil"
         return "\(imagePart)|\(editPart)|\(annotationPart)"
     }
 }

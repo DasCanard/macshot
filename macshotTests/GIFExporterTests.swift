@@ -42,7 +42,15 @@ final class GIFExporterTests: XCTestCase {
             speeds: [VideoSpeedSegment(startTime: 1, endTime: 1.4, speedFactor: 2)],
             freezes: [VideoFreezeSegment(atTime: 0.6, holdDuration: 0.4)])
         let built = try VideoCompositionBuilder.build(asset: AVAsset(url: source), pieces: pieces, includeAudio: false)
-        for custom in [false, true] {
+        XCTAssertFalse(built.videoTrack.segments.contains(where: \.isEmpty), "Freeze/speed scaling must not leave even a sub-frame hole")
+        XCTAssertEqual(built.videoTrack.segments.count, built.timeMap.count)
+        for (segment, expected) in zip(built.videoTrack.segments, built.timeMap) {
+            XCTAssertEqual(CMTimeCompare(segment.timeMapping.target.start,
+                CMTime(seconds: expected.compStart, preferredTimescale: 1_000_000_000)), 0)
+            XCTAssertEqual(CMTimeCompare(segment.timeMapping.target.end,
+                CMTime(seconds: expected.compEnd, preferredTimescale: 1_000_000_000)), 0)
+        }
+        for custom in Array(repeating: [false, true], count: 3).flatMap({ $0 }) {
             let request = try request(built, custom: custom)
             try await GIFExporter.export(request)
             let result = try GIFTestMedia.decode(request.outputURL)

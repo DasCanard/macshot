@@ -30,13 +30,10 @@ class DetachedEditorWindowController: NSObject, NSWindowDelegate {
 
     /// History entry ID — when set, "Done" button appears and commits edits back to history.
     private var historyEntryID: String?
-    /// Snapshot of undo stack depth when last saved. Every annotation/image edit
-    /// (draw, move, resize, delete, crop, flip) pushes an undo entry, so a change
-    /// here means the user edited annotations or the image.
-    private var lastSavedUndoDepth: Int = 0
+    /// Identifies the saved undo branch, including edits made after an undo.
+    private var lastSavedUndoState: UUID?
     private var contentRevision: UInt64 = 0
     private var newestHistorySaveRevision: UInt64 = 0
-    private var editedDuringSave = false
     /// Snapshot of the post-processing (beautify/effects) state when last saved.
     /// Compared by value (Equatable) rather than via re-serialized bytes — the old
     /// string signature re-encoded PNGs / float JSON, which was unstable and caused
@@ -246,8 +243,7 @@ class DetachedEditorWindowController: NSObject, NSWindowDelegate {
     /// Record the current state as the "clean" baseline against which a close
     /// prompts (or doesn't). Call after open and after every save.
     private func captureCleanBaseline(_ view: OverlayView) {
-        editedDuringSave = false
-        lastSavedUndoDepth = view.undoStack.count
+        lastSavedUndoState = view.undoStateIdentity
         lastSavedEditState = view.captureEditState()
         refreshDoneButtonVisibility()
     }
@@ -255,7 +251,7 @@ class DetachedEditorWindowController: NSObject, NSWindowDelegate {
     /// True if the user has edited anything since the clean baseline.
     private func isDirty() -> Bool {
         guard let view = overlayView else { return false }
-        return editedDuringSave || view.undoStack.count != lastSavedUndoDepth
+        return screenshotNeverOutput || view.undoStateIdentity != lastSavedUndoState
             || view.captureEditState() != lastSavedEditState
     }
 
@@ -280,7 +276,7 @@ class DetachedEditorWindowController: NSObject, NSWindowDelegate {
 
         // Only warn when the user actually changed something since the editor's
         // clean baseline (captured at open, after existing annotations + edit
-        // state were applied). Annotation/image edits bump the undo depth; beautify
+        // state were applied). Annotation/image edits change the undo identity; beautify
         // and effects changes show up in the edit state, compared by value. We do
         // NOT byte-compare re-serialized state — that was unstable (re-encoded
         // PNGs / float JSON) and nagged on a pristine close. Same rule whether or
@@ -336,7 +332,7 @@ class DetachedEditorWindowController: NSObject, NSWindowDelegate {
     private struct HistorySave {
         let image: NSImage
         let annotationData: CaptureAnnotationData?
-        let undoDepth: Int
+        let undoState: UUID
         let editState: CaptureEditState
         let revision: UInt64
     }
@@ -344,7 +340,7 @@ class DetachedEditorWindowController: NSObject, NSWindowDelegate {
     private func captureHistorySave() -> HistorySave? {
         guard let view = overlayView, let composited = view.captureSelectedRegion() else { return nil }
         return HistorySave(image: applyPostProcessing(composited), annotationData: currentAnnotationData(),
-            undoDepth: view.undoStack.count, editState: view.captureEditState(), revision: contentRevision)
+            undoState: view.undoStateIdentity, editState: view.captureEditState(), revision: contentRevision)
     }
 
     /// Save current editor state to the linked history entry (without closing).
@@ -362,19 +358,16 @@ class DetachedEditorWindowController: NSObject, NSWindowDelegate {
         let data = save.annotationData
         let finished: (Bool) -> Void = { [weak self] success in
             guard let self else { completion?(success); return }
-            let unchanged = self.contentRevision == save.revision
-            if success, unchanged {
+            let unchanged = self.overlayView?.undoStateIdentity == save.undoState
+                && self.overlayView?.captureEditState() == save.editState
+            if success {
                 self.screenshotNeverOutput = false
-                self.editedDuringSave = false
-                self.lastSavedUndoDepth = save.undoDepth
+                self.lastSavedUndoState = save.undoState
                 self.lastSavedEditState = save.editState
                 self.refreshDoneButtonVisibility()
                 if let id = self.historyEntryID {
                     (NSApp.delegate as? AppDelegate)?.refreshThumbnail(for: id, image: finalImage, annotationData: data)
                 }
-            } else if success {
-                self.editedDuringSave = true
-                self.refreshDoneButtonVisibility()
             }
             completion?(success && unchanged)
         }

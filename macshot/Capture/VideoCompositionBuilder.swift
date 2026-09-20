@@ -81,7 +81,12 @@ enum VideoCompositionBuilder {
             }
             try video.insertTimeRange(sourceRange, of: sourceVideo, at: cursor)
             if CMTimeCompare(sourceRange.duration, duration) != 0 {
-                video.scaleTimeRange(CMTimeRange(start: cursor, duration: sourceRange.duration), toDuration: duration)
+                // Insertion rounds a rational source interval to the track's
+                // clock. Scale the interval actually inserted: using the
+                // original 1/30 duration here can leave a nanosecond gap at
+                // the next segment, which a compositor may request.
+                let insertedRange = CMTimeRange(start: cursor, end: video.timeRange.end)
+                video.scaleTimeRange(insertedRange, toDuration: duration)
             }
             for (source, destination) in zip(sourceAudio, audio) {
                 if piece.kind == .freeze {

@@ -18,12 +18,59 @@ enum SaveDirectoryAccess {
     static func recordingDirectoryHint() -> URL? { resolveRecordingDirectoryIfAccessible() }
     static func stopAccessing(url: URL) {}
 }
+#if !OFFLINE
+// Normal toolbar layout, with all network operations deliberately unavailable.
+// Provider wire behavior is tested separately with injected local URLProtocol fixtures.
+final class DisabledProbeUploader {
+    static let shared = DisabledProbeUploader()
+    let isSignedIn = false
+    let isConfigured = false
+    func uploadVideo(url: URL, progress: @escaping @MainActor @Sendable (Double) -> Void,
+                     completion: @escaping (Result<String, Error>) -> Void) {
+        completion(.failure(CocoaError(.featureUnsupported)))
+    }
+}
+typealias GoogleDriveUploader = DisabledProbeUploader
+typealias S3Uploader = DisabledProbeUploader
+#endif
 @MainActor final class AppDelegate: NSObject, NSApplicationDelegate {
     private let termination = ApplicationTerminationCoordinator()
+    private var audioMerge: AudioMergeController?
+    private var completionCount = 0
     func returnFocusIfNeeded() {}
-    func showFailureToast(_ text: String) { print("ERROR: " + text) }
+    func showFailureToast(_ text: String) { log(["error": text]) }
     func applicationDidFinishLaunching(_ notification: Notification) {
-        VideoEditorWindowController.open(url: ProbeInput.url, deleteOnClose: false)
+        let menu = NSMenu()
+        let appItem = NSMenuItem()
+        menu.addItem(appItem)
+        let appMenu = NSMenu()
+        let mixer = NSMenuItem(title: "Open Audio Mixer", action: #selector(openAudioMixer), keyEquivalent: "m")
+        mixer.target = self
+        appMenu.addItem(mixer)
+        appMenu.addItem(.separator())
+        appMenu.addItem(NSMenuItem(title: "Quit Probe", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        appItem.submenu = appMenu
+        NSApp.mainMenu = menu
+        if Bundle.main.object(forInfoDictionaryKey: "AudioMergeProbe") as? Bool == true { openAudioMixer() }
+        else { VideoEditorWindowController.open(url: ProbeInput.url, deleteOnClose: false) }
+    }
+    @objc private func openAudioMixer() {
+        guard audioMerge == nil else { return }
+        let controller = AudioMergeController()
+        audioMerge = controller
+        controller.show(url: ProbeInput.url) { [weak self] result in
+            guard let self else { return }
+            self.completionCount += 1
+            self.audioMerge = nil
+            self.log(["completion": self.completionCount, "original": result == ProbeInput.url,
+                      "output": result.path, "exists": FileManager.default.fileExists(atPath: result.path)])
+            VideoEditorWindowController.open(url: result, deleteOnClose: false)
+        }
+    }
+    private func log(_ values: [String: Any]) {
+        guard var data = try? JSONSerialization.data(withJSONObject: values, options: [.sortedKeys]) else { return }
+        data.append(10)
+        FileHandle.standardOutput.write(data)
     }
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         termination.request(hasActiveWork: MediaExportCoordinator.shared.hasActiveJobs,

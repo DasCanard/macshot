@@ -76,6 +76,11 @@ enum VideoTranscoder {
         writer.add(videoInput)
         var tracks = [MediaExportPump.Track(output: videoOutput, input: videoInput, requiresSamples: true)]
         for track in request.audioTracks {
+            let formats = track.formatDescriptions as? [CMAudioFormatDescription] ?? []
+            let channelCounts = formats.compactMap { CMAudioFormatDescriptionGetStreamBasicDescription($0)?.pointee.mChannelsPerFrame }
+            // Keep a mono microphone mono. Stereo/mixed-format sources retain
+            // the existing stereo export policy instead of guessing a layout.
+            let channels = !channelCounts.isEmpty && channelCounts.allSatisfy { $0 == 1 } ? 1 : 2
             let output = AVAssetReaderTrackOutput(track: track, outputSettings: [
                 AVFormatIDKey: kAudioFormatLinearPCM, AVLinearPCMBitDepthKey: 16,
                 AVLinearPCMIsFloatKey: false, AVLinearPCMIsBigEndianKey: false,
@@ -84,7 +89,7 @@ enum VideoTranscoder {
             output.alwaysCopiesSampleData = false
             let input = AVAssetWriterInput(mediaType: .audio, outputSettings: [
                 AVFormatIDKey: kAudioFormatMPEG4AAC, AVSampleRateKey: 48_000,
-                AVNumberOfChannelsKey: 2, AVEncoderBitRateKey: audioBitrate,
+                AVNumberOfChannelsKey: channels, AVEncoderBitRateKey: audioBitrate,
             ])
             input.expectsMediaDataInRealTime = false
             // Add a matched pair or fail; independently skipping input/output

@@ -705,3 +705,9 @@
 
 "Cancelling..." = "正在取消...";
 "Preparing video..." = "正在准备视频...";
+"History is busy saving. Please try again shortly." = "正在保存历史记录。请稍后重试。";
+
+// Video editor accessibility
+"Play" = "播放";
+"Mute" = "静音";
+"Unmute" = "取消静音";

@@ -101,6 +101,7 @@ enum ClipboardPinService {
     }
 
     private static func isUsable(_ image: NSImage) -> Bool {
-        image.isValid && image.size.width > 0 && image.size.height > 0
+        image.isValid && image.size.width.isFinite && image.size.height.isFinite
+            && image.size.width > 0 && image.size.height > 0
     }
 }

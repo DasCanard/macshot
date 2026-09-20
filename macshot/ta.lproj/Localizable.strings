@@ -705,3 +705,9 @@
 
 "Cancelling..." = "ரத்துசெய்யப்படுகிறது...";
 "Preparing video..." = "வீடியோ தயாராகிறது...";
+"History is busy saving. Please try again shortly." = "வரலாறு சேமிக்கப்படுகிறது. சிறிது நேரத்திற்குப் பிறகு மீண்டும் முயற்சிக்கவும்.";
+
+// Video editor accessibility
+"Play" = "இயக்கு";
+"Mute" = "ஒலியை முடக்கு";
+"Unmute" = "ஒலியை இயக்கு";

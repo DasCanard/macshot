@@ -8,6 +8,13 @@ import UniformTypeIdentifiers
 final class S3Uploader {
 
     static let shared = S3Uploader()
+    private let session: URLSession
+    private let configurationOverride: Config?
+
+    init(session: URLSession = .shared, config: Config? = nil) {
+        self.session = session
+        self.configurationOverride = config
+    }
 
     // MARK: - Configuration
 
@@ -37,6 +44,7 @@ final class S3Uploader {
     }
 
     var config: Config {
+        if let configurationOverride { return configurationOverride }
         let ud = UserDefaults.standard
         return Config(
             endpoint: ud.string(forKey: "s3Endpoint") ?? "",
@@ -52,176 +60,76 @@ final class S3Uploader {
 
     var isConfigured: Bool { config.isValid }
 
-    /// Progress callback (0.0–1.0), called on main thread.
-    var onProgress: ((Double) -> Void)?
-
-    // MARK: - Upload Image
-
-    func uploadImage(_ image: NSImage, completion: @escaping (Result<String, Error>) -> Void) {
-        guard let tiffData = image.tiffRepresentation,
-              let bitmap = NSBitmapImageRep(data: tiffData),
-              let pngData = bitmap.representation(using: .png, properties: [:]) else {
-            completion(.failure(S3Error.encodingFailed))
-            return
-        }
-        let template = UserDefaults.standard.string(forKey: FilenameFormatter.userDefaultsKey) ?? FilenameFormatter.defaultTemplate
-        let base = FilenameFormatter.format(template: template)
-        let filename = "\(base).png"
-        upload(data: pngData, filename: filename, contentType: "image/png", completion: completion)
+    func uploadImage(_ image: NSImage, progress: (@MainActor @Sendable (Double) -> Void)? = nil,
+                     completion: @escaping (Result<String, Error>) -> Void) {
+        do {
+            let pixels = try HistoryImageSnapshot.Image(image)
+            let template = UserDefaults.standard.string(forKey: FilenameFormatter.userDefaultsKey) ?? FilenameFormatter.defaultTemplate
+            upload(payload: .image(pixels), filename: FilenameFormatter.format(template: template) + ".png",
+                   contentType: "image/png", progress: progress, completion: completion)
+        } catch { completion(.failure(error)) }
     }
 
-    // MARK: - Upload Video
-
-    func uploadVideo(url: URL, completion: @escaping (Result<String, Error>) -> Void) {
-        guard FileManager.default.isReadableFile(atPath: url.path) else {
-            completion(.failure(S3Error.fileReadFailed))
-            return
-        }
-        let ext = url.pathExtension.lowercased()
-        let contentType: String
-        switch ext {
-        case "gif": contentType = "image/gif"
-        case "mp4": contentType = "video/mp4"
-        case "mov": contentType = "video/quicktime"
-        case "webm": contentType = "video/webm"
-        default: contentType = "application/octet-stream"
-        }
-        // Streamed from disk — a recording can be larger than the memory the
-        // app can hold, and the SigV4 content hash is computed incrementally.
-        upload(payload: .file(url), filename: url.lastPathComponent, contentType: contentType, completion: completion)
+    func uploadVideo(url: URL, progress: (@MainActor @Sendable (Double) -> Void)? = nil,
+                     completion: @escaping (Result<String, Error>) -> Void) {
+        let types = ["gif": "image/gif", "mp4": "video/mp4", "mov": "video/quicktime", "webm": "video/webm"]
+        upload(payload: .file(url), filename: url.lastPathComponent,
+               contentType: types[url.pathExtension.lowercased()] ?? "application/octet-stream",
+               progress: progress, completion: completion)
     }
 
-    // MARK: - Core Upload
-
-    func upload(data: Data, filename: String, contentType: String, completion: @escaping (Result<String, Error>) -> Void) {
-        upload(payload: .data(data), filename: filename, contentType: contentType, completion: completion)
+    func upload(data: Data, filename: String, contentType: String,
+                progress: (@MainActor @Sendable (Double) -> Void)? = nil,
+                completion: @escaping (Result<String, Error>) -> Void) {
+        upload(payload: .data(data), filename: filename, contentType: contentType, progress: progress, completion: completion)
     }
 
-    func upload(payload: UploadPayload, filename: String, contentType: String, completion: @escaping (Result<String, Error>) -> Void) {
+    func upload(payload: UploadPayload, filename: String, contentType: String,
+                progress: (@MainActor @Sendable (Double) -> Void)? = nil,
+                completion: @escaping (Result<String, Error>) -> Void) {
         let cfg = config
-        guard cfg.isValid else {
-            completion(.failure(S3Error.notConfigured))
-            return
-        }
-
-        // Build object key with optional prefix
-        var prefix = cfg.pathPrefix
-        if !prefix.isEmpty && !prefix.hasSuffix("/") { prefix += "/" }
-        // Sanitize filename: replace spaces, keep extension
-        let safeFilename = filename.replacingOccurrences(of: " ", with: "_")
-        let objectKey = "\(prefix)\(safeFilename)"
-
-        // Parse endpoint to get host
-        guard let endpointURL = URL(string: cfg.endpoint),
-              let host = endpointURL.host else {
-            completion(.failure(S3Error.invalidEndpoint))
-            return
-        }
-
-        // Build the request URL: endpoint/bucket/key (path-style)
-        let scheme = endpointURL.scheme ?? "https"
-        let port = endpointURL.port.map { ":\($0)" } ?? ""
-        let encodedKey = objectKey.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? objectKey
-        // Keep any path the endpoint carries — a self-hosted MinIO or Ceph
-        // gateway behind a proxy lives at e.g. https://files.example.com/s3,
-        // and dropping the prefix uploaded to the host root instead.
-        let basePath = endpointURL.path
-            .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-        let prefixPath = basePath.isEmpty ? "" : "/\(basePath)"
-        let urlString = "\(scheme)://\(host)\(port)\(prefixPath)/\(cfg.bucket)/\(encodedKey)"
-        guard let url = URL(string: urlString) else {
-            completion(.failure(S3Error.invalidEndpoint))
-            return
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "PUT"
-        request.setValue(contentType, forHTTPHeaderField: "Content-Type")
-        request.setValue("\(host)\(port)", forHTTPHeaderField: "Host")
-        // Providers that honour object ACLs (AWS S3, DigitalOcean Spaces, MinIO, Backblaze B2)
-        // store objects privately by default, so the public link 403s. Opt-in because R2 has
-        // no ACLs and rejects the header outright.
-        if cfg.publicRead {
-            request.setValue("public-read", forHTTPHeaderField: "x-amz-acl")
-        }
-
-        // Sign the request. The payload hash is computed by streaming, so a
-        // large recording never has to be held in memory to be signed.
-        let now = Date()
-        let payloadHash: String
-        do {
-            payloadHash = try payload.sha256Hex()
-        } catch {
-            completion(.failure(S3Error.fileReadFailed))
-            return
-        }
-        signRequest(&request, payloadHash: payloadHash, date: now, region: cfg.effectiveRegion,
-                     accessKeyID: cfg.accessKeyID, secretAccessKey: cfg.secretAccessKey)
-
-        // Upload from a file so URLSession streams the body off disk.
-        let bodyFile = FileManager.default.temporaryDirectory
-            .appendingPathComponent("macshot_upload_\(UUID().uuidString).tmp")
-        do {
-            try payload.write(to: bodyFile)
-        } catch {
-            completion(.failure(S3Error.fileReadFailed))
-            return
-        }
-
-        let task = URLSession.shared.uploadTask(with: request, fromFile: bodyFile) { [weak self] responseData, response, error in
-            try? FileManager.default.removeItem(at: bodyFile)
-            DispatchQueue.main.async { self?.onProgress = nil }
-
-            if let error = error {
-                DispatchQueue.main.async { completion(.failure(error)) }
-                return
+        guard cfg.isValid else { completion(.failure(S3Error.notConfigured)); return }
+        let session = self.session
+        UploadJob.start(filename: filename, operation: {
+            var prefix = cfg.pathPrefix
+            if !prefix.isEmpty && !prefix.hasSuffix("/") { prefix += "/" }
+            let key = prefix + filename.replacingOccurrences(of: " ", with: "_")
+            guard var endpoint = URLComponents(string: cfg.endpoint),
+                  ["https", "http"].contains(endpoint.scheme?.lowercased() ?? ""),
+                  let host = endpoint.host, !host.isEmpty,
+                  endpoint.user == nil, endpoint.password == nil,
+                  endpoint.query == nil, endpoint.fragment == nil else { throw S3Error.invalidEndpoint }
+            let basePath = endpoint.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+            endpoint.percentEncodedPath = Self.uriEncode((basePath.isEmpty ? "" : "/" + basePath) + "/" + cfg.bucket + "/" + key)
+            guard let url = endpoint.url else { throw S3Error.invalidEndpoint }
+            var request = URLRequest(url: url)
+            request.httpMethod = "PUT"
+            request.setValue(contentType, forHTTPHeaderField: "Content-Type")
+            request.setValue(host + (endpoint.port.map { ":\($0)" } ?? ""), forHTTPHeaderField: "Host")
+            let body = try await MediaExportIO.perform { try PreparedUploadBody(payload: payload) }
+            request.setValue(String(body.byteCount), forHTTPHeaderField: "Content-Length")
+            if cfg.publicRead { request.setValue("public-read", forHTTPHeaderField: "x-amz-acl") }
+            Self.signRequest(&request, payloadHash: body.sha256, date: Date(), region: cfg.effectiveRegion,
+                        accessKeyID: cfg.accessKeyID, secretAccessKey: cfg.secretAccessKey)
+            let (data, response) = try await UploadTransport.upload(session: session, request: request, body: body, progress: progress)
+            guard (200...299).contains(response.statusCode) else {
+                let message = Self.extractXMLError(String(decoding: data, as: UTF8.self)) ?? "HTTP \(response.statusCode)"
+                throw S3Error.httpError(response.statusCode, message)
             }
-
-            guard let httpResponse = response as? HTTPURLResponse else {
-                DispatchQueue.main.async { completion(.failure(S3Error.noResponse)) }
-                return
-            }
-
-            guard (200...299).contains(httpResponse.statusCode) else {
-                let body = responseData.flatMap { String(data: $0, encoding: .utf8) } ?? ""
-                // Try to extract error message from XML response
-                let msg = Self.extractXMLError(body) ?? "HTTP \(httpResponse.statusCode)"
-                DispatchQueue.main.async {
-                    completion(.failure(S3Error.httpError(httpResponse.statusCode, msg)))
-                }
-                return
-            }
-
-            // Build the public URL
-            let publicLink: String
-            if !cfg.publicURLBase.isEmpty {
-                var base = cfg.publicURLBase
-                if !base.hasSuffix("/") { base += "/" }
-                publicLink = "\(base)\(encodedKey)"
-            } else {
-                publicLink = urlString
-            }
-
-            DispatchQueue.main.async { completion(.success(publicLink)) }
-        }
-
-        // Observe progress
-        if onProgress != nil {
-            let observation = task.progress.observe(\.fractionCompleted) { [weak self] progress, _ in
-                DispatchQueue.main.async { self?.onProgress?(progress.fractionCompleted) }
-            }
-            // Store observation to keep it alive — released when task completes
-            objc_setAssociatedObject(task, &Self.progressObservationKey, observation, .OBJC_ASSOCIATION_RETAIN)
-        }
-
-        task.resume()
+            if cfg.publicURLBase.isEmpty { return url.absoluteString }
+            let separator = cfg.publicURLBase.hasSuffix("/") ? "" : "/"
+            return cfg.publicURLBase + separator + Self.uriEncode(key)
+        }, completion: completion)
     }
 
-    private static var progressObservationKey: UInt8 = 0
+    private static func uriEncode(_ value: String) -> String {
+        value.addingPercentEncoding(withAllowedCharacters:
+            CharacterSet(charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~/"))!
+    }
 
     // MARK: - AWS Signature V4
 
-    private func signRequest(_ request: inout URLRequest, payloadHash: String, date: Date,
+    private static func signRequest(_ request: inout URLRequest, payloadHash: String, date: Date,
                               region: String, accessKeyID: String, secretAccessKey: String) {
         let service = "s3"
         let dateFormatter = DateFormatter()
@@ -242,11 +150,9 @@ final class S3Uploader {
         // Canonical request
         let method = request.httpMethod ?? "PUT"
         let url = request.url!
-        // URI-encode path components per S3 Sig V4 spec (but preserve slashes)
-        let rawPath = url.path.isEmpty ? "/" : url.path
-        let canonicalURI = rawPath.split(separator: "/", omittingEmptySubsequences: false)
-            .map { $0.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? String($0) }
-            .joined(separator: "/")
+        // Sign precisely the escaped path sent on the wire. S3 does not
+        // normalize repeated slashes and encodes reserved path characters.
+        let canonicalURI = URLComponents(url: url, resolvingAgainstBaseURL: false)?.percentEncodedPath ?? "/"
         let canonicalQueryString = url.query ?? ""
 
         // Signed headers (sorted). x-amz-acl is only present when the user opted into
@@ -304,7 +210,7 @@ final class S3Uploader {
     private static func extractXMLError(_ body: String) -> String? {
         // Simple extraction of <Message>...</Message> from S3 XML error responses
         guard let start = body.range(of: "<Message>"),
-              let end = body.range(of: "</Message>") else { return nil }
+              let end = body.range(of: "</Message>", range: start.upperBound..<body.endIndex) else { return nil }
         return String(body[start.upperBound..<end.lowerBound])
     }
 

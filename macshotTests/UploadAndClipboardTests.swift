@@ -142,6 +142,58 @@ final class ClipboardPinSafetyTests: XCTestCase {
         XCTAssertNoThrow(ClipboardTextPinRenderer.sanitizedHTML(Data()))
         XCTAssertNoThrow(ClipboardTextPinRenderer.sanitizedHTML(Data([0xFF, 0xFE, 0x00, 0x01])))
     }
+
+    func testGeneratedHTMLPreservesTextAndFormattingWithoutSourceAttributes() throws {
+        let original = """
+        <section class="article"><p title="a title">A &amp; B <a href="https://example.com/guide">guide</a></p>
+        <p><span style="color:rgb(20,30,40);font-weight:bold;font-size:18px;background-image:none">styled</span></p>
+        <ul><li>First</li><li>Second</li></ul><table><tr><td colspan="2">Cell</td></tr></table></section>
+        """
+        let safe = sanitized(original)
+        XCTAssertFalse(safe.contains("href="))
+        XCTAssertFalse(safe.contains("class="))
+        XCTAssertFalse(safe.contains("title="))
+        XCTAssertFalse(safe.contains("background-image"))
+        XCTAssertTrue(safe.contains("<ul>"))
+        XCTAssertTrue(safe.contains("<table>"))
+        XCTAssertTrue(safe.contains("colspan=\"2\""))
+        XCTAssertTrue(safe.contains("font-weight:bold"))
+        let attributed = try XCTUnwrap(ClipboardTextPinRenderer.attributedString(html: Data(original.utf8)))
+        XCTAssertTrue(attributed.string.contains("A & B guide"))
+        XCTAssertTrue(attributed.string.contains("First"))
+        XCTAssertTrue(attributed.string.contains("Cell"))
+        let range = (attributed.string as NSString).range(of: "styled")
+        XCTAssertNotEqual(range.location, NSNotFound)
+        let font = try XCTUnwrap(attributed.attribute(.font, at: range.location, effectiveRange: nil) as? NSFont)
+        XCTAssertTrue(NSFontManager.shared.traits(of: font).contains(.boldFontMask))
+    }
+
+    func testRichInputIsLimitedBeforeImportAndHTMLTextBeforeLayout() throws {
+        let excessive = Data(repeating: 65, count: ClipboardHTML.maximumInputBytes + 1)
+        XCTAssertNil(ClipboardTextPinRenderer.attributedString(html: excessive))
+        XCTAssertNil(ClipboardTextPinRenderer.attributedString(rtf: excessive))
+        XCTAssertNil(ClipboardTextPinRenderer.attributedString(rtfd: excessive))
+        let html = Data(("<p>" + String(repeating: "text ", count: 10_000) + "</p>").utf8)
+        let result = try XCTUnwrap(ClipboardTextPinRenderer.attributedString(html: html))
+        XCTAssertLessThanOrEqual(result.length, ClipboardTextPinRenderer.maxCharacters + 2)
+        XCTAssertTrue(result.string.contains("…"))
+    }
+
+    func testRichTextTruncationDoesNotSplitAnEmojiSequence() {
+        let prefix = String(repeating: "a", count: ClipboardTextPinRenderer.maxCharacters - 1)
+        let result = ClipboardTextPinRenderer.truncatedForPinning(NSAttributedString(string: prefix + "🧑🏽‍💻tail"))
+        XCTAssertEqual(result.string, prefix + "\n…")
+    }
+
+    func testOversizedHTMLFlavorFallsBackToPlainTextInThePasteboardItem() {
+        let item = NSPasteboardItem()
+        item.setData(Data(repeating: 65, count: ClipboardHTML.maximumInputBytes + 1), forType: .html)
+        item.setString("A normal plain-text fallback", forType: .string)
+        if case .image(let image) = ClipboardPinService.image(from: item) {
+            XCTAssertGreaterThan(image.size.width, 0)
+            XCTAssertGreaterThan(image.size.height, 0)
+        } else { XCTFail("Plain clipboard text must remain pinnable") }
+    }
 }
 
 /// Share and drag files land in a scratch folder. Two shares of the same

@@ -705,3 +705,9 @@
 
 "Cancelling..." = "Membatalkan...";
 "Preparing video..." = "Menyediakan video...";
+"History is busy saving. Please try again shortly." = "Sejarah sedang disimpan. Sila cuba lagi sebentar lagi.";
+
+// Video editor accessibility
+"Play" = "Mainkan";
+"Mute" = "Senyapkan";
+"Unmute" = "Nyahsenyap";

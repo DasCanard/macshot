@@ -723,7 +723,7 @@ final class ScrollCaptureController {
         // blank, dark or repetitive content. The caller rounds this into an
         // Int, which traps on a non-finite value.
         let shift = obs.alignmentTransform.ty
-        return shift.isFinite ? shift : nil
+        return ScrollFrameAnalyzer.validatedVerticalShift(shift, frameHeight: curImg.height)
     }
 
     // MARK: - Scrollbar detection

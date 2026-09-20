@@ -705,3 +705,9 @@
 
 "Cancelling..." = "S’està cancel·lant...";
 "Preparing video..." = "S’està preparant el vídeo...";
+"History is busy saving. Please try again shortly." = "S’està desant l’historial. Torna-ho a provar d’aquí a un moment.";
+
+// Video editor accessibility
+"Play" = "Reprodueix";
+"Mute" = "Silencia";
+"Unmute" = "Activa el so";

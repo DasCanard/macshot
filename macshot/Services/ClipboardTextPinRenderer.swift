@@ -24,58 +24,25 @@ enum ClipboardTextPinRenderer {
 
     static func truncatedForPinning(_ attributed: NSAttributedString) -> NSAttributedString {
         guard attributed.length > maxCharacters else { return attributed }
+        let boundary = (attributed.string as NSString).rangeOfComposedCharacterSequence(at: maxCharacters).location
         let clipped = NSMutableAttributedString(attributedString: attributed.attributedSubstring(
-            from: NSRange(location: 0, length: maxCharacters)))
+            from: NSRange(location: 0, length: boundary)))
         clipped.append(NSAttributedString(string: "\n…"))
         return clipped
     }
 
-    /// Imports HTML from the pasteboard.
-    ///
-    /// AppKit's HTML importer is WebKit, which resolves remote subresources —
-    /// images, stylesheets, CSS `url()` — while parsing. Pinning text copied
-    /// from a web page or an HTML email would therefore issue outbound requests
-    /// (including tracking pixels) during what the user thinks is a local
-    /// operation, and there is no reading option that disables it. So strip the
-    /// remote-loading markup first.
+    /// Only generated formatting markup reaches AppKit's HTML importer.
     static func attributedString(html data: Data) -> NSAttributedString? {
-        attributedString(
-            data: sanitizedHTML(data),
-            options: [
-                .documentType: NSAttributedString.DocumentType.html,
-                .characterEncoding: String.Encoding.utf8.rawValue,
-            ]
-        )
+        let safe = sanitizedHTML(data)
+        guard !safe.isEmpty else { return nil }
+        return attributedString(data: safe, options: [
+            .documentType: NSAttributedString.DocumentType.html,
+            .characterEncoding: String.Encoding.utf8.rawValue,
+        ])
     }
 
-    /// Removes elements and attributes that would make the HTML importer fetch
-    /// something. Deliberately blunt: a pin only needs the text and its styling.
     static func sanitizedHTML(_ data: Data) -> Data {
-        guard var html = String(data: data, encoding: .utf8)
-            ?? String(data: data, encoding: .utf16)
-            ?? String(data: data, encoding: .isoLatin1) else { return data }
-
-        // Whole elements that exist to load something.
-        for tag in ["script", "style", "iframe", "object", "embed", "video", "audio", "picture"] {
-            html = html.replacingOccurrences(
-                of: "<\(tag)\\b[^>]*>.*?</\(tag)\\s*>",
-                with: "", options: [.regularExpression, .caseInsensitive])
-        }
-        // Self-closing / void elements with a remote source.
-        for tag in ["img", "link", "source", "track", "input"] {
-            html = html.replacingOccurrences(
-                of: "<\(tag)\\b[^>]*>",
-                with: "", options: [.regularExpression, .caseInsensitive])
-        }
-        // Any leftover remote reference in an attribute or inline style.
-        html = html.replacingOccurrences(
-            of: "(src|background|poster|srcset)\\s*=\\s*(\"[^\"]*\"|\'[^\']*\'|[^\\s>]+)",
-            with: "", options: [.regularExpression, .caseInsensitive])
-        html = html.replacingOccurrences(
-            of: "url\\(\\s*[\"\']?\\s*https?:[^)]*\\)",
-            with: "none", options: [.regularExpression, .caseInsensitive])
-
-        return html.data(using: .utf8) ?? data
+        ClipboardHTML.sanitized(data, maximumCharacters: maxCharacters)
     }
 
     static func attributedString(rtf data: Data) -> NSAttributedString? {
@@ -96,6 +63,7 @@ enum ClipboardTextPinRenderer {
         data: Data,
         options: [NSAttributedString.DocumentReadingOptionKey: Any]
     ) -> NSAttributedString? {
+        guard data.count <= ClipboardHTML.maximumInputBytes else { return nil }
         var documentAttributes: NSDictionary?
         guard let attributed = try? NSAttributedString(
             data: data,
@@ -103,7 +71,7 @@ enum ClipboardTextPinRenderer {
             documentAttributes: &documentAttributes
         ) else { return nil }
 
-        let mutable = NSMutableAttributedString(attributedString: attributed)
+        let mutable = NSMutableAttributedString(attributedString: truncatedForPinning(attributed))
         normalizeImportedListMarkers(in: mutable)
         removeRedundantImportedBlankParagraphs(in: mutable)
         restoreSpacingAfterImportedTables(in: mutable)
@@ -159,7 +127,8 @@ enum ClipboardTextPinRenderer {
         normalizeParagraphs(in: normalized)
 
         let contentSize = measuredSize(for: normalized, maxWidth: maxContentWidth)
-        guard contentSize.width > 0, contentSize.height > 0 else { return nil }
+        guard contentSize.width.isFinite, contentSize.height.isFinite,
+              contentSize.width > 0, contentSize.height > 0 else { return nil }
 
         var imageWidth = ceil(contentSize.width + padding.left + padding.right)
         var imageHeight = ceil(contentSize.height + padding.top + padding.bottom)

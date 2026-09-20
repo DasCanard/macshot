@@ -703,3 +703,9 @@
 
 "Cancelling..." = "Rušenie...";
 "Preparing video..." = "Príprava videa...";
+"History is busy saving. Please try again shortly." = "História sa práve ukladá. Skúste to, prosím, o chvíľu znova.";
+
+// Video editor accessibility
+"Play" = "Prehrať";
+"Mute" = "Stlmiť";
+"Unmute" = "Zapnúť zvuk";

@@ -705,3 +705,9 @@
 
 "Cancelling..." = "מבטל...";
 "Preparing video..." = "מכין סרטון...";
+"History is busy saving. Please try again shortly." = "ההיסטוריה נשמרת כעת. נא לנסות שוב בעוד רגע.";
+
+// Video editor accessibility
+"Play" = "הפעל";
+"Mute" = "השתק";
+"Unmute" = "בטל השתקה";

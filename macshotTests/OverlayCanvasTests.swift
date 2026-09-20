@@ -123,6 +123,44 @@ final class OverlayCanvasTests: XCTestCase {
 
     // MARK: - Undo / redo
 
+    func testSavedUndoIdentitySurvivesRedoButNotADifferentEditAtTheSameDepth() {
+        let view = makeOverlay()
+        let first = annotation(.arrow)
+        view.annotations.append(first)
+        view.undoStack.append(.added(first))
+        let saved = view.undoStateIdentity
+        view.undo()
+        XCTAssertNotEqual(view.undoStateIdentity, saved)
+        view.redo()
+        XCTAssertEqual(view.undoStateIdentity, saved)
+        view.undo()
+        let replacement = annotation(.ellipse)
+        view.annotations.append(replacement)
+        view.undoStack.append(.added(replacement))
+        view.redoStack.removeAll()
+        XCTAssertEqual(view.undoStack.count, 1)
+        XCTAssertNotEqual(view.undoStateIdentity, saved)
+        let branch = view.undoStateIdentity
+        view.undo()
+        view.redo()
+        XCTAssertEqual(view.undoStateIdentity, branch)
+    }
+
+    func testGroupedUndoAndRedoRestoreSavedIdentity() {
+        let view = makeOverlay()
+        let group = UUID()
+        let annotations = [annotation(.arrow), annotation(.ellipse)]
+        for annotation in annotations { annotation.groupID = group }
+        view.annotations = annotations
+        let initial = view.undoStateIdentity
+        view.undoStack.append(contentsOf: annotations.map { .added($0) })
+        let saved = view.undoStateIdentity
+        view.undo()
+        XCTAssertEqual(view.undoStateIdentity, initial)
+        view.redo()
+        XCTAssertEqual(view.undoStateIdentity, saved)
+    }
+
     func testUndoRemovesTheLastAnnotationAndRedoPutsItBack() {
         let view = makeOverlay()
         let ann = annotation()

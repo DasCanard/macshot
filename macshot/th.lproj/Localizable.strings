@@ -703,3 +703,9 @@
 
 "Cancelling..." = "กำลังยกเลิก...";
 "Preparing video..." = "กำลังเตรียมวิดีโอ...";
+"History is busy saving. Please try again shortly." = "กำลังบันทึกประวัติ โปรดลองอีกครั้งในอีกสักครู่";
+
+// Video editor accessibility
+"Play" = "เล่น";
+"Mute" = "ปิดเสียง";
+"Unmute" = "เปิดเสียง";

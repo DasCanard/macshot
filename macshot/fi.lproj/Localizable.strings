@@ -703,3 +703,9 @@
 
 "Cancelling..." = "Peruutetaan...";
 "Preparing video..." = "Valmistellaan videota...";
+"History is busy saving. Please try again shortly." = "Historiaa tallennetaan. Yritä hetken kuluttua uudelleen.";
+
+// Video editor accessibility
+"Play" = "Toista";
+"Mute" = "Mykistä";
+"Unmute" = "Poista mykistys";

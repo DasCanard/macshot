@@ -29,6 +29,11 @@ final class VideoTranscoderTests: XCTestCase {
         let asset = AVAsset(url: request.outputURL)
         XCTAssertEqual(asset.duration.seconds, 1, accuracy: 1.0 / 30)
         XCTAssertEqual(asset.tracks(withMediaType: .audio).count, 2)
+        let channels = try asset.tracks(withMediaType: .audio).map { track in
+            let format = try XCTUnwrap((track.formatDescriptions as? [CMAudioFormatDescription])?.first)
+            return try XCTUnwrap(CMAudioFormatDescriptionGetStreamBasicDescription(format)).pointee.mChannelsPerFrame
+        }
+        XCTAssertEqual(channels, [1, 2], "Export must keep the microphone mono and system audio stereo")
         let tracks = asset.tracks
         XCTAssertEqual(tracks.count, 3)
         for track in tracks {

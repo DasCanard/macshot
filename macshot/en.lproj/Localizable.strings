@@ -704,3 +704,9 @@
 
 "Cancelling..." = "Cancelling...";
 "Preparing video..." = "Preparing video...";
+"History is busy saving. Please try again shortly." = "History is busy saving. Please try again shortly.";
+
+// Video editor accessibility
+"Play" = "Play";
+"Mute" = "Mute";
+"Unmute" = "Unmute";

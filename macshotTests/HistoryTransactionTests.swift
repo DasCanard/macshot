@@ -234,4 +234,80 @@ final class HistoryTransactionTests: XCTestCase {
         XCTAssertTrue(history.entries.isEmpty)
         XCTAssertFalse(FileManager.default.fileExists(atPath: directory.appendingPathComponent("index.json").path))
     }
+
+    func testPendingPixelBudgetRejectsAnotherCaptureAndRecoversAfterDrain() async throws {
+        let history = ScreenshotHistory(directory: directory, writeQueue: queue, maximumPendingBytes: 8_192)
+        let image = ImageProbe.solidImage(width: 32, height: 32)
+        var errors: [String] = []
+        let previous = ImageSaveService.onFailure
+        ImageSaveService.onFailure = { errors.append($0) }
+        defer { ImageSaveService.onFailure = previous }
+        queue.suspend()
+        let first = history.add(image: image)
+        let second = history.add(image: image)
+        var rejected: Bool?
+        let third = history.add(image: image, completion: { rejected = $0 })
+        let retained = history.pendingSnapshotBytes
+        queue.resume()
+        XCTAssertNotNil(first)
+        XCTAssertNotNil(second)
+        XCTAssertNil(third)
+        XCTAssertEqual(rejected, false)
+        XCTAssertEqual(retained, 8_192)
+        await history.waitUntilIdle()
+        XCTAssertEqual(errors.count, 1)
+        XCTAssertTrue(errors.first?.contains(L("History is busy saving. Please try again shortly.")) == true)
+        XCTAssertEqual(history.pendingSnapshotBytes, 0)
+        XCTAssertEqual(Set(history.entries.map(\.id)), Set([first!, second!]))
+        XCTAssertNotNil(history.add(image: image))
+        await history.waitUntilIdle()
+        XCTAssertEqual(history.entries.count, 3)
+    }
+
+    func testSaveCountLimitAndFailedPublicationReleaseTheirReservations() async throws {
+        let failure = self.failure
+        let history = ScreenshotHistory(directory: directory, writeQueue: queue,
+            maximumPendingBytes: 1_048_576, maximumPendingSaves: 1,
+            beforeIndexPublication: { try failure.check() })
+        let image = ImageProbe.solidImage(width: 32, height: 32)
+        let id = try XCTUnwrap(history.add(image: image))
+        await history.waitUntilIdle()
+        let oldIndex = try Data(contentsOf: directory.appendingPathComponent("index.json"))
+        failure.set(true)
+        queue.suspend()
+        history.updateEntry(id: id, compositedImage: image, rawImage: nil, annotations: nil)
+        var rejected: Bool?
+        history.updateEntry(id: id, compositedImage: image, rawImage: nil, annotations: nil, completion: { rejected = $0 })
+        queue.resume()
+        XCTAssertEqual(rejected, false)
+        await history.waitUntilIdle()
+        XCTAssertEqual(history.pendingSnapshotBytes, 0)
+        XCTAssertEqual(try Data(contentsOf: directory.appendingPathComponent("index.json")), oldIndex)
+        failure.set(false)
+        var saved: Bool?
+        history.updateEntry(id: id, compositedImage: image, rawImage: nil, annotations: nil, completion: { saved = $0 })
+        await history.waitUntilIdle()
+        XCTAssertEqual(saved, true)
+    }
+
+    func testOneOversizedCaptureCanSaveAloneAndAllSnapshotDataIsCounted() async throws {
+        let image = ImageProbe.solidImage(width: 32, height: 32)
+        let raw = ImageProbe.solidImage(width: 16, height: 16)
+        let annotations = [annotation()]
+        let snapshot = try HistoryImageSnapshot(image: image, rawImage: raw, annotations: annotations, editState: nil)
+        XCTAssertEqual(snapshot.retainedBytes, 32 * 32 * 4 + 16 * 16 * 4 + (snapshot.annotations?.count ?? 0))
+        let history = ScreenshotHistory(directory: directory, writeQueue: queue, maximumPendingBytes: 1_024)
+        queue.suspend()
+        let first = history.add(image: image, rawImage: raw, annotations: annotations)
+        let second = history.add(image: image)
+        let retained = history.pendingSnapshotBytes
+        queue.resume()
+        XCTAssertNotNil(first)
+        XCTAssertNil(second)
+        XCTAssertEqual(retained, snapshot.retainedBytes)
+        await history.waitUntilIdle()
+        XCTAssertEqual(history.pendingSnapshotBytes, 0)
+        XCTAssertEqual(history.entries.count, 1)
+        XCTAssertNotNil(history.loadRawImage(for: try XCTUnwrap(history.entries.first)))
+    }
 }

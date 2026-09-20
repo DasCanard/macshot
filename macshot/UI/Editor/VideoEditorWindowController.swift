@@ -91,6 +91,7 @@ final class VideoEditorWindowController: NSObject, NSWindowDelegate {
         // distinguishable in the Dock menu and Window menu.
         win.title = "\(url.deletingPathExtension().lastPathComponent) — \(L("macshot Video Editor"))"
         win.minSize = NSSize(width: 880, height: 400)
+        win.autorecalculatesKeyViewLoop = true
         win.isReleasedWhenClosed = false
         win.delegate = self
         win.collectionBehavior = [.fullScreenAuxiliary]
@@ -289,6 +290,13 @@ private final class VideoEditorView: NSView {
     private var statusMessage: String?
     private var statusIsError: Bool = false
     private var statusTimer: Timer?
+    private let exportInfoLabel = NSTextField(labelWithString: "")
+    private var exportInfoCache: (revision: UInt64, gif: Bool, muted: Bool, text: String)?
+    private enum ToolbarControl: Int {
+        case play, mute, mp4, gif, dimensions, quality, gifFPS, effect
+        case save, saveMenu, upload, finder, copy, copyMenu
+    }
+    private var toolbarControls: [ToolbarControl: NSButton] = [:]
     /// Guards against re-entrant Save/Copy while an MP4 export is running
     /// (#323 — users repeatedly clicked Save with no progress feedback).
     private var isExporting: Bool = false
@@ -358,6 +366,11 @@ private final class VideoEditorView: NSView {
             self.originalHeight = SafeNumerics.int(size.height)
         }
         super.init(frame: frame)
+        exportInfoLabel.font = NSFont.monospacedDigitSystemFont(ofSize: 10, weight: .regular)
+        exportInfoLabel.textColor = ToolbarLayout.iconColor.withAlphaComponent(0.65)
+        exportInfoLabel.alignment = .center
+        exportInfoLabel.lineBreakMode = .byTruncatingTail
+        addSubview(exportInfoLabel)
 
         let area = NSTrackingArea(rect: .zero,
                                   options: [.mouseMoved, .activeAlways, .inVisibleRect],
@@ -716,7 +729,6 @@ private final class VideoEditorView: NSView {
             drawButtons()
         }
         drawTimeLabels()
-        if let msg = statusMessage { drawStatus(msg) }
     }
 
 
@@ -922,7 +934,10 @@ private final class VideoEditorView: NSView {
         // Pre-compute right group width so left content knows where to stop
         let copyArrowW: CGFloat = 20
         let saveArrowW: CGFloat = 20
-        let rightGroupW = (labelBtnW + copyArrowW) + gap + iconBtnW + gap + labelBtnW + gap + (labelBtnW + saveArrowW)
+        var rightGroupW = (labelBtnW + copyArrowW) + gap + iconBtnW + gap + (labelBtnW + saveArrowW)
+        #if !OFFLINE
+        rightGroupW += gap + labelBtnW
+        #endif
         let maxLeftX = bounds.width - timelinePad - rightGroupW - 12  // 12pt breathing room
 
         // Left group: play, mute
@@ -1054,39 +1069,6 @@ private final class VideoEditorView: NSView {
                 }
             }
 
-        do {
-            let infoAttrs: [NSAttributedString.Key: Any] = [
-                .font: NSFont.systemFont(ofSize: 10, weight: .regular),
-                .foregroundColor: ToolbarLayout.iconColor.withAlphaComponent(0.4),
-            ]
-            let sizeStr = ByteCountFormatter.string(fromByteCount: sourceFileSize, countStyle: .file)
-            let fpsValue = 1 / sourceFrameDuration.seconds
-            let fpsStr = fpsValue.isFinite && fpsValue > 0 && fpsValue <= 1000 ? "\(Int(fpsValue.rounded()))fps" : ""
-            let infoStr = "\(sizeStr)  ·  \(fpsStr)" as NSString
-            let infoSize = infoStr.size(withAttributes: infoAttrs)
-            if x + infoSize.width < maxLeftX {
-                infoStr.draw(at: NSPoint(x: x + 4, y: btnY + (btnH - infoSize.height) / 2), withAttributes: infoAttrs)
-                x += infoSize.width + 12
-            }
-
-            // Use the actual encoder target and edited duration. GIF palettes
-            // and the High preset have no comparable bitrate target to estimate.
-            if !exportAsGIF, let planned = plannedMP4Export,
-               let estimated = planned.plan.estimatedBytes(duration: planned.duration,
-                    audioTrackCount: isMuted ? 0 : sourceAudioTrackCount,
-                    audioBitrate: VideoTranscoder.audioBitrate), x < maxLeftX {
-                let estStr = "  ·  ~\(ByteCountFormatter.string(fromByteCount: estimated, countStyle: .file))" as NSString
-                let estAttrs: [NSAttributedString.Key: Any] = [
-                    .font: NSFont.systemFont(ofSize: 10, weight: .medium),
-                    .foregroundColor: ToolbarLayout.iconColor.withAlphaComponent(0.35),
-                ]
-                let estSize = estStr.size(withAttributes: estAttrs)
-                if x + estSize.width + 8 < maxLeftX {
-                    estStr.draw(at: NSPoint(x: x + 4, y: btnY + (btnH - estSize.height) / 2), withAttributes: estAttrs)
-                }
-            }
-        }
-
         // Right group: save, upload, finder, copy
         x = bounds.width - timelinePad
         let fullCopyW = labelBtnW + copyArrowW
@@ -1208,6 +1190,86 @@ private final class VideoEditorView: NSView {
             tinted.draw(in: NSRect(x: saveArrowRect.midX - chevron.size.width / 2, y: saveArrowRect.midY - chevron.size.height / 2,
                                     width: chevron.size.width, height: chevron.size.height))
         }
+        updateToolbarControls()
+    }
+
+    /// Keep the existing visual design while giving each control native hit
+    /// testing, keyboard focus and accessibility. Transparent NSButtons receive
+    /// input normally; the existing drawing supplies their appearance.
+    private func updateToolbarControls() {
+        func update(_ control: ToolbarControl, _ title: String, _ rect: NSRect,
+                    enabled: Bool = true, selected: Bool? = nil) {
+            let button: NSButton
+            if let existing = toolbarControls[control] { button = existing }
+            else {
+                button = NSButton(title: title, target: self, action: #selector(toolbarControlPressed(_:)))
+                button.tag = control.rawValue
+                button.isTransparent = true
+                button.isBordered = false
+                button.setButtonType(selected == nil ? .momentaryPushIn : .radio)
+                button.focusRingType = .exterior
+                toolbarControls[control] = button
+                addSubview(button)
+            }
+            button.title = title
+            button.toolTip = title
+            button.frame = rect
+            button.isHidden = rect.isEmpty
+            button.isEnabled = enabled
+            if let selected { button.state = selected ? .on : .off }
+        }
+        let playing = isGIF ? gifIsPlaying : (player?.rate ?? 0 > 0)
+        update(.play, playing ? L("Pause") : L("Play"), playBtnRect)
+        update(.mute, isMuted ? L("Unmute") : L("Mute"), muteBtnRect)
+        update(.mp4, "MP4", formatMP4Rect, selected: !exportAsGIF)
+        update(.gif, "GIF", formatGIFRect, selected: exportAsGIF)
+        update(.dimensions, L("Resolution") + ": \(Int(CGFloat(originalWidth) * exportScale))×\(Int(CGFloat(originalHeight) * exportScale))", dimensionsBtnRect)
+        update(.quality, L("Quality:") + " " + exportQuality.displayName, qualityBtnRect)
+        update(.gifFPS, L("Frame rate:") + " \(gifExportFPS)", gifFPSBtnRect)
+        update(.effect, "+ " + L("Effect"), addEffectBtnRect)
+        update(.save, L("Save"), saveBtnRect, enabled: !isExporting)
+        update(.saveMenu, L("Save") + "…", saveArrowRect, enabled: !isExporting)
+        #if !OFFLINE
+        update(.upload, L("Upload"), uploadBtnRect, enabled: !isExporting)
+        #endif
+        update(.finder, L("Show in Finder"), finderBtnRect, enabled: savedURL != nil)
+        update(.copy, L("Copy"), copyBtnRect, enabled: !isExporting)
+        update(.copyMenu, L("Copy") + "…", copyArrowRect, enabled: !isExporting)
+    }
+
+    @objc private func toolbarControlPressed(_ sender: NSButton) {
+        guard let control = ToolbarControl(rawValue: sender.tag) else { return }
+        effectsBand?.clearSelection()
+        performToolbarControl(control)
+    }
+
+    private func performToolbarControl(_ control: ToolbarControl) {
+        switch control {
+        case .play: togglePlayPause()
+        case .mute: toggleMute()
+        case .mp4:
+            if exportAsGIF { exportAsGIF = false; savedURL = nil; needsDisplay = true }
+        case .gif:
+            if !exportAsGIF { exportAsGIF = true; savedURL = nil; needsDisplay = true }
+        case .dimensions: showDimensionsMenu()
+        case .quality: showQualityMenu()
+        case .gifFPS: showGIFFPSMenu()
+        case .effect:
+            effectsBand?.addEffectMenu(clickTime: currentPlaybackTime).popUp(positioning: nil,
+                at: NSPoint(x: addEffectBtnRect.minX, y: addEffectBtnRect.maxY), in: self)
+        case .save: saveVideo()
+        case .saveMenu: showSaveMenu()
+        case .upload:
+            #if !OFFLINE
+            uploadVideo()
+            #else
+            break
+            #endif
+        case .finder:
+            if let url = savedURL { NSWorkspace.shared.activateFileViewerSelecting([url]) }
+        case .copy: copyToClipboard()
+        case .copyMenu: showCopyMenu()
+        }
     }
 
     private func drawIconButton(rect: NSRect, symbol: String, accent: Bool, active: Bool = false, dimmed: Bool = false) {
@@ -1283,6 +1345,26 @@ private final class VideoEditorView: NSView {
         return labelsRowBottom + (labelsRowH - sampleHeight) / 2
     }
 
+    /// Metadata is cached with the edit state so the 30 Hz playhead redraw does
+    /// not repeatedly format byte counts or prepare export settings.
+    private var exportInformation: String {
+        if let cache = exportInfoCache, cache.revision == editRevision,
+           cache.gif == exportAsGIF, cache.muted == isMuted { return cache.text }
+        let size = ByteCountFormatter.string(fromByteCount: sourceFileSize, countStyle: .file)
+        let fps = 1 / sourceFrameDuration.seconds
+        var text = size
+        if fps.isFinite && fps > 0 && fps <= 1000 { text += "  ·  \(Int(fps.rounded()))fps" }
+        // High and GIF have no comparable bitrate target to estimate.
+        if !exportAsGIF, let planned = plannedMP4Export,
+           let estimated = planned.plan.estimatedBytes(duration: planned.duration,
+                audioTrackCount: isMuted ? 0 : sourceAudioTrackCount,
+                audioBitrate: VideoTranscoder.audioBitrate) {
+            text += "  →  ~" + ByteCountFormatter.string(fromByteCount: estimated, countStyle: .file)
+        }
+        exportInfoCache = (editRevision, exportAsGIF, isMuted, text)
+        return text
+    }
+
     private func drawTimeLabels() {
         let currentTime = currentPlaybackTime
         // Show the actual output duration so users see the effect of cuts
@@ -1310,17 +1392,22 @@ private final class VideoEditorView: NSView {
 
         let rightSize = rightStr.size(withAttributes: attrs)
         rightStr.draw(at: NSPoint(x: bounds.width - timelinePad - rightSize.width, y: timeLabelY), withAttributes: attrs)
-    }
 
-    private func drawStatus(_ message: String) {
-        let color: NSColor = statusIsError ? NSColor(calibratedRed: 1.0, green: 0.5, blue: 0.5, alpha: 1.0) : .systemGreen
-        let attrs: [NSAttributedString.Key: Any] = [
-            .font: NSFont.systemFont(ofSize: 12, weight: .medium),
-            .foregroundColor: color,
-        ]
-        let str = message as NSString
-        let size = str.size(withAttributes: attrs)
-        str.draw(at: NSPoint(x: bounds.midX - size.width / 2, y: timeLabelY), withAttributes: attrs)
+        // Keep source/estimated size visible at the minimum window width. A
+        // native label also exposes the full value to accessibility clients.
+        let info = statusMessage ?? exportInformation
+        if exportInfoLabel.stringValue != info {
+            exportInfoLabel.stringValue = info
+            exportInfoLabel.toolTip = info
+        }
+        let leftWidth = leftStr.size(withAttributes: attrs).width
+        let reserved = max(leftWidth, rightSize.width) + timelinePad + 12
+        exportInfoLabel.frame = NSRect(x: reserved, y: timeLabelY - 1,
+            width: max(0, bounds.width - reserved * 2), height: labelsRowH)
+        exportInfoLabel.textColor = statusMessage == nil ? ToolbarLayout.iconColor.withAlphaComponent(0.65)
+            : (statusIsError ? NSColor(calibratedRed: 1.0, green: 0.5, blue: 0.5, alpha: 1.0) : .systemGreen)
+        exportInfoLabel.font = statusMessage == nil ? .monospacedDigitSystemFont(ofSize: 10, weight: .regular)
+            : .systemFont(ofSize: 12, weight: .medium)
     }
 
     private func formatTime(_ seconds: Double) -> String {
@@ -1478,50 +1565,16 @@ private final class VideoEditorView: NSView {
         // Clicking outside the timeline also deselects
         effectsBand?.clearSelection()
 
-        // Format toggle
-        if formatMP4Rect.contains(point) && exportAsGIF {
-            exportAsGIF = false; savedURL = nil; needsDisplay = true; return
-        }
-        if formatGIFRect.contains(point) && !exportAsGIF {
-            exportAsGIF = true; savedURL = nil; needsDisplay = true; return
-        }
-
-        // Dimensions dropdown
-        if dimensionsBtnRect.contains(point) && originalWidth > 0 {
-            showDimensionsMenu(); return
-        }
-
-        // Quality dropdown
-        if qualityBtnRect.contains(point) {
-            showQualityMenu(); return
-        }
-
-        // GIF frame rate dropdown
-        if gifFPSBtnRect.contains(point) && exportAsGIF {
-            showGIFFPSMenu(); return
-        }
-
-        // "+ Effect" button — reuse the band's add-effect menu at the playhead
-        if addEffectBtnRect.contains(point), let band = effectsBand {
-            let menu = band.addEffectMenu(clickTime: currentPlaybackTime)
-            menu.popUp(positioning: nil, at: NSPoint(x: addEffectBtnRect.minX, y: addEffectBtnRect.maxY), in: self)
-            return
-        }
-
-        // Buttons
-        if playBtnRect.contains(point) { togglePlayPause(); return }
-        if muteBtnRect.contains(point) { toggleMute(); return }
-        if saveArrowRect.contains(point) { showSaveMenu(); return }
-        if saveBtnRect.contains(point) { saveVideo(); return }
-        #if !OFFLINE
-        if uploadBtnRect.contains(point) { uploadVideo(); return }
-        #endif
-        if finderBtnRect.contains(point) {
-            if let url = savedURL { NSWorkspace.shared.activateFileViewerSelecting([url]) }
-            return
-        }
-        if copyArrowRect.contains(point) { showCopyMenu(); return }
-        if copyBtnRect.contains(point) { copyToClipboard(); return }
+        // Native buttons handle normal input. Keep this fallback for events
+        // delivered directly to the canvas, using the same action dispatcher.
+        let controls: [(NSRect, ToolbarControl)] = [
+            (formatMP4Rect, .mp4), (formatGIFRect, .gif), (dimensionsBtnRect, .dimensions),
+            (qualityBtnRect, .quality), (gifFPSBtnRect, .gifFPS), (addEffectBtnRect, .effect),
+            (playBtnRect, .play), (muteBtnRect, .mute), (saveArrowRect, .saveMenu),
+            (saveBtnRect, .save), (uploadBtnRect, .upload), (finderBtnRect, .finder),
+            (copyArrowRect, .copyMenu), (copyBtnRect, .copy),
+        ]
+        if let control = controls.first(where: { $0.0.contains(point) }) { performToolbarControl(control.1) }
     }
 
     override func mouseDragged(with event: NSEvent) {
@@ -2320,7 +2373,7 @@ private final class VideoEditorView: NSView {
         let providerLabel = provider == "s3" ? "S3" : "Drive"
         showStatus(String(format: L("Uploading to %@... %d%%"), providerLabel, 0))
 
-        let progressHandler: (Double) -> Void = { [weak self] fraction in
+        let progressHandler: @MainActor @Sendable (Double) -> Void = { [weak self] fraction in
             self?.showStatus(String(format: L("Uploading to %@... %d%%"), providerLabel, Int(fraction * 100)))
         }
 
@@ -2343,11 +2396,9 @@ private final class VideoEditorView: NSView {
                 completionHandler(result)
             }
             if provider == "s3" {
-                S3Uploader.shared.onProgress = progressHandler
-                S3Uploader.shared.uploadVideo(url: fileURL, completion: wrappedCompletion)
+                S3Uploader.shared.uploadVideo(url: fileURL, progress: progressHandler, completion: wrappedCompletion)
             } else {
-                GoogleDriveUploader.shared.onProgress = progressHandler
-                GoogleDriveUploader.shared.uploadVideo(url: fileURL, completion: wrappedCompletion)
+                GoogleDriveUploader.shared.uploadVideo(url: fileURL, progress: progressHandler, completion: wrappedCompletion)
             }
         }
 

@@ -61,6 +61,7 @@ final class AudioMergeController: NSObject {
         micSlider = NSSlider(value: 1.0, minValue: 0.0, maxValue: 1.0, target: nil, action: nil)
         micSlider.frame = NSRect(x: 115, y: panelH - 64, width: panelW - 155, height: 22)
         micSlider.isContinuous = true
+        micSlider.setAccessibilityLabel(L("Microphone:"))
         content.addSubview(micSlider)
 
         // System volume row
@@ -72,6 +73,7 @@ final class AudioMergeController: NSObject {
         systemSlider = NSSlider(value: 1.0, minValue: 0.0, maxValue: 1.0, target: nil, action: nil)
         systemSlider.frame = NSRect(x: 115, y: panelH - 94, width: panelW - 155, height: 22)
         systemSlider.isContinuous = true
+        systemSlider.setAccessibilityLabel(L("System audio:"))
         content.addSubview(systemSlider)
 
         // Buttons

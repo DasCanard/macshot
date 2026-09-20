@@ -1,4 +1,5 @@
 import Cocoa
+import ImageIO
 import XCTest
 
 /// Guards the three places an `Annotation` property has to be wired up:
@@ -380,15 +381,68 @@ final class AnnotationPersistenceTests: XCTestCase {
         XCTAssertEqual(decoded[1].dimOpacity, 0.55, accuracy: 0.0001, "a negative dim falls back to the default")
     }
 
-    func testNonFiniteGeometryDoesNotProduceAnUndrawableAnnotation() throws {
-        // JSON can't hold NaN, but a corrupted capture can still carry absurd
-        // magnitudes; decoding must stay in one piece.
+    func testUnrepresentableCanvasGeometryIsRejectedBeforeRendering() throws {
         let json = """
         [{"tool":0,"startX":-1e18,"startY":1e18,"endX":1e18,"endY":-1e18,"colorRGBA":[1,0,0,1],"strokeWidth":1e9}]
         """
-        let decoded = try XCTUnwrap(AnnotationSerializer.decode(Data(json.utf8))?.first)
-        XCTAssertTrue(decoded.boundingRect.width.isFinite)
-        XCTAssertTrue(decoded.boundingRect.height.isFinite)
+        XCTAssertNil(AnnotationSerializer.decode(Data(json.utf8)))
+    }
+
+    func testSavedValuesAreFiniteAndPressuresStayAligned() throws {
+        var saved = CodableAnnotation(tool: AnnotationTool.pencil.rawValue,
+            startX: 0, startY: 0, endX: 100, endY: 100, colorRGBA: [2, -1, 0.5, 3], strokeWidth: .nan)
+        saved.fontSize = .infinity
+        saved.rotation = .nan
+        saved.loupeMagnification = .nan
+        saved.points = [[1, 2], [3], [5, 6]]
+        saved.pressures = [0.2, 0.7, 0.9]
+        saved.textDrawRect = [0, 0, -1, 40]
+        let annotation = try XCTUnwrap(Annotation.fromCodable(saved))
+        XCTAssertEqual(annotation.strokeWidth, 3)
+        XCTAssertEqual(annotation.fontSize, 20)
+        XCTAssertEqual(annotation.rotation, 0)
+        XCTAssertEqual(annotation.loupeMagnification, 2)
+        XCTAssertEqual(annotation.pressures, [0.2, 0.9])
+        XCTAssertEqual(annotation.textDrawRect, .zero)
+        let color = try XCTUnwrap(annotation.color.usingColorSpace(.sRGB))
+        XCTAssertEqual(color.redComponent, 1)
+        XCTAssertEqual(color.greenComponent, 0)
+        XCTAssertEqual(color.alphaComponent, 1)
+    }
+
+    func testEditableDecodeRequiresEveryAnnotationButSalvageRemainsAvailable() throws {
+        let first = CodableAnnotation(tool: AnnotationTool.rectangle.rawValue,
+            startX: 0, startY: 0, endX: 100, endY: 100, colorRGBA: [1, 0, 0, 1], strokeWidth: 3)
+        var second = first
+        second.stampImagePNG = Data("unreadable image".utf8)
+        let data = try JSONEncoder().encode([first, second])
+        XCTAssertEqual(AnnotationSerializer.decode(data)?.count, 1)
+        XCTAssertNil(AnnotationSerializer.decode(data, requireAll: true))
+        XCTAssertEqual(AnnotationSerializer.decode(Data("[]".utf8), requireAll: true)?.count, 0)
+    }
+
+    func testEmbeddedImagePreservesRetinaSizeAndChecksPixelBudget() throws {
+        let image = ImageProbe.quadrantImage(width: 32, height: 24)
+        let data = NSMutableData()
+        let destination = try XCTUnwrap(CGImageDestinationCreateWithData(data, "public.png" as CFString, 1, nil))
+        let pixels = try XCTUnwrap(image.cgImage(forProposedRect: nil, context: nil, hints: nil))
+        CGImageDestinationAddImage(destination, pixels,
+            [kCGImagePropertyDPIWidth: 144, kCGImagePropertyDPIHeight: 144] as CFDictionary)
+        XCTAssertTrue(CGImageDestinationFinalize(destination))
+        let restored = try XCTUnwrap(SavedCaptureValidation.image(data as Data))
+        XCTAssertEqual(restored.size.width, 16, accuracy: 0.01)
+        XCTAssertEqual(restored.size.height, 12, accuracy: 0.01)
+        XCTAssertEqual(restored.cgImage(forProposedRect: nil, context: nil, hints: nil)?.width, 32)
+        XCTAssertNil(SavedCaptureValidation.image(data as Data, maximumPixels: 100))
+        XCTAssertNil(SavedCaptureValidation.image(Data("unreadable".utf8)))
+    }
+
+    func testTextRenderRefusesAnInvalidSizeBeforeChangingCachedImage() {
+        let annotation = Self.fullyPopulated(tool: .text)
+        let previous = annotation.textImage
+        annotation.textDrawRect.size.width = .nan
+        XCTAssertFalse(annotation.reRenderTextImage())
+        XCTAssertTrue(annotation.textImage === previous)
     }
 
     func testEmptyArrayDecodesToNil() {

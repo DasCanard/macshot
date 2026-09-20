@@ -703,3 +703,9 @@
 
 "Cancelling..." = "Se anulează...";
 "Preparing video..." = "Se pregătește videoclipul...";
+"History is busy saving. Please try again shortly." = "Istoricul se salvează. Încearcă din nou peste câteva momente.";
+
+// Video editor accessibility
+"Play" = "Redă";
+"Mute" = "Dezactivează sunetul";
+"Unmute" = "Activează sunetul";

@@ -705,3 +705,9 @@
 
 "Cancelling..." = "रद्द किया जा रहा है...";
 "Preparing video..." = "वीडियो तैयार किया जा रहा है...";
+"History is busy saving. Please try again shortly." = "इतिहास सहेजा जा रहा है। कृपया थोड़ी देर बाद फिर कोशिश करें।";
+
+// Video editor accessibility
+"Play" = "चलाएँ";
+"Mute" = "म्यूट करें";
+"Unmute" = "अनम्यूट करें";

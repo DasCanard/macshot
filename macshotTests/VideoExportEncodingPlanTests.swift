@@ -45,6 +45,20 @@ final class VideoExportEncodingPlanTests: XCTestCase {
         let actual = try plan(recording)
         XCTAssertEqual(actual.fps, 30)
         XCTAssertEqual(actual.videoBitrate, try plan(source(rate: .nan)).videoBitrate)
+        XCTAssertNil(actual.estimatedBytes(duration: 3600, audioTrackCount: 2, audioBitrate: 128_000))
+    }
+
+    func testSizeEstimatesRequireAComparableSourceRatherThanOnlyAnEncoderBudget() throws {
+        for input in [source(rate: 1_200, fps: 1), source(rate: .nan),
+                      source(codec: kCMVideoCodecType_HEVC), source(codec: nil)] {
+            let target = try plan(input)
+            XCTAssertGreaterThan(target.videoBitrate, 0, "encoding still has a valid target")
+            XCTAssertNil(target.estimatedBytes(duration: 3600, audioTrackCount: 2, audioBitrate: 128_000))
+        }
+        XCTAssertNil(try plan(source(), quality: .high)
+            .estimatedBytes(duration: 60, audioTrackCount: 1, audioBitrate: 128_000))
+        XCTAssertNotNil(try plan(source(), quality: .low)
+            .estimatedBytes(duration: 60, audioTrackCount: 1, audioBitrate: 128_000))
     }
 
     func testDownscalingReducesBudgetAndFasterMotionGetsAllowance() throws {

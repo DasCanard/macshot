@@ -166,6 +166,55 @@ final class ScreenshotHistoryTests: XCTestCase {
 
     // MARK: - Pruning
 
+    func testEditableReopenRequiresReadablePresentSidecars() async throws {
+        let image = ImageProbe.quadrantImage(width: 80, height: 60)
+        var state = CaptureEditState()
+        state.effectsBrightness = 0.2
+        let history = makeHistory()
+        withDefaults(["historySize": 10, "historyUnlimited": false]) {
+            history.add(image: image, rawImage: image, annotations: annotations(), editState: state)
+        }
+        await history.waitUntilIdle()
+        let entry = try XCTUnwrap(history.entries.first)
+        let editable = try XCTUnwrap(history.loadEditableCapture(for: entry))
+        XCTAssertEqual(editable.annotations.count, 2)
+        XCTAssertEqual(editable.editState, state)
+        let original = try Data(contentsOf: history.fileURL(for: entry))
+        let editURL = history.sidecarURL(for: entry, suffix: "_edit.json")
+        try Data("incomplete".utf8).write(to: editURL)
+        XCTAssertNil(history.loadEditableCapture(for: entry), "the UI must use its flattened-image fallback")
+        XCTAssertNotNil(history.loadImage(for: entry))
+        XCTAssertEqual(try Data(contentsOf: history.fileURL(for: entry)), original)
+        try JSONEncoder().encode(state).write(to: editURL)
+        try Data("incomplete".utf8).write(to: history.sidecarURL(for: entry, suffix: "_annotations.json"))
+        XCTAssertNil(history.loadEditableCapture(for: entry))
+        XCTAssertNotNil(history.loadImage(for: entry))
+    }
+
+    func testEditableReopenSupportsEffectsOnlyAndLegacyAnnotationsOnly() async throws {
+        let image = ImageProbe.quadrantImage(width: 80, height: 60)
+        var state = CaptureEditState()
+        state.effectsBrightness = 0.2
+        let history = makeHistory()
+        withDefaults(["historySize": 10, "historyUnlimited": false]) {
+            history.add(image: image, rawImage: image, annotations: nil, editState: state)
+            history.add(image: image, rawImage: image, annotations: annotations())
+        }
+        await history.waitUntilIdle()
+        XCTAssertEqual(history.entries.count, 2)
+        for entry in history.entries {
+            let editable = try XCTUnwrap(history.loadEditableCapture(for: entry))
+            if editable.editState != nil { XCTAssertTrue(editable.annotations.isEmpty) }
+            else { XCTAssertEqual(editable.annotations.count, 2) }
+            for suffix in ["_edit.json", "_annotations.json"] {
+                let url = history.sidecarURL(for: entry, suffix: suffix)
+                if FileManager.default.fileExists(atPath: url.path) { try FileManager.default.removeItem(at: url) }
+            }
+            XCTAssertNil(history.loadEditableCapture(for: entry), "raw pixels alone must not lose baked edits")
+            XCTAssertNotNil(history.loadImage(for: entry))
+        }
+    }
+
     func testTheOldestCaptureIsDroppedWhenTheLimitIsReached() {
         let history = makeHistory()
         withDefaults(["historySize": 3, "historyUnlimited": false]) {

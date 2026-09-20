@@ -705,3 +705,9 @@
 
 "Cancelling..." = "Kinakansela...";
 "Preparing video..." = "Inihahanda ang video...";
+"History is busy saving. Please try again shortly." = "Sine-save ang kasaysayan. Pakisubukang muli sa ilang sandali.";
+
+// Video editor accessibility
+"Play" = "I-play";
+"Mute" = "I-mute";
+"Unmute" = "I-unmute";

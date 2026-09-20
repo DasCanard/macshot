@@ -705,3 +705,9 @@
 
 "Cancelling..." = "در حال لغو...";
 "Preparing video..." = "در حال آماده‌سازی ویدیو...";
+"History is busy saving. Please try again shortly." = "تاریخچه در حال ذخیره شدن است. لطفاً کمی بعد دوباره تلاش کنید.";
+
+// Video editor accessibility
+"Play" = "پخش";
+"Mute" = "بی‌صدا کردن";
+"Unmute" = "فعال کردن صدا";

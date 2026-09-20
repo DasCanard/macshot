@@ -703,3 +703,9 @@
 
 "Cancelling..." = "Avbryter...";
 "Preparing video..." = "Forbereder video...";
+"History is busy saving. Please try again shortly." = "Historikken lagres. Prøv igjen om et øyeblikk.";
+
+// Video editor accessibility
+"Play" = "Spill av";
+"Mute" = "Demp";
+"Unmute" = "Slå på lyd";

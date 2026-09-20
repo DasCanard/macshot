@@ -705,3 +705,9 @@
 
 "Cancelling..." = "Annuleren...";
 "Preparing video..." = "Video voorbereiden...";
+"History is busy saving. Please try again shortly." = "De geschiedenis wordt opgeslagen. Probeer het zo opnieuw.";
+
+// Video editor accessibility
+"Play" = "Afspelen";
+"Mute" = "Dempen";
+"Unmute" = "Dempen opheffen";

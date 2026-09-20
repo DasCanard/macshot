@@ -130,6 +130,31 @@ final class LegacyDecodingTests: XCTestCase {
         XCTAssertEqual(decoded, state)
     }
 
+    func testEditStateBoundsValuesBeforePassingThemToRendering() throws {
+        let data = Data("""
+        {"effectsBrightness":3,"effectsContrast":-2,"effectsSaturation":5,"effectsSharpness":-1,
+         "beautifyPadding":-10,"beautifyCornerRadius":-5,"beautifyShadowRadius":120,"beautifyBackgroundBlur":75}
+        """.utf8)
+        let state = try JSONDecoder().decode(CaptureEditState.self, from: data)
+        XCTAssertEqual(state.effectsBrightness, 0.5)
+        XCTAssertEqual(state.effectsContrast, 0.5)
+        XCTAssertEqual(state.effectsSaturation, 2)
+        XCTAssertEqual(state.effectsSharpness, 0)
+        XCTAssertEqual(state.beautifyPadding, 0)
+        XCTAssertEqual(state.beautifyCornerRadius, 0)
+        XCTAssertEqual(state.beautifyShadowRadius, 100)
+        XCTAssertEqual(state.beautifyBackgroundBlur, 50)
+        var inMemory = CaptureEditState()
+        inMemory.effectsBrightness = .nan
+        inMemory.beautifyPadding = .infinity
+        XCTAssertEqual(inMemory.effectsConfig.brightness, 0)
+        XCTAssertEqual(inMemory.beautifyConfig().padding, 48)
+        let overlay = OverlayView()
+        overlay.applyCaptureEditState(inMemory)
+        XCTAssertEqual(overlay.effectsBrightness, 0)
+        XCTAssertEqual(overlay.beautifyPadding, 48)
+    }
+
     // MARK: - History index
 
     func testHistoryIndexRowsSurviveMissingAndCorruptFields() throws {

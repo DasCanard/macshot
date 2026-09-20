@@ -204,11 +204,24 @@ class OverlayView: NSView {
             if showToolbars { rebuildToolbarLayout() }
         }
     }
+    // An undo depth is not a document identity: undo + a different edit can
+    // return to the same depth. Keep identities for the current undo/redo
+    // branch so returning to a saved state is clean, but replacing it is not.
+    private var undoStateIdentities = [UUID()]
+    private var isReplayingRedo = false
+    var undoStateIdentity: UUID { undoStateIdentities[undoStack.count] }
     var undoStack: [UndoEntry] = [] {
         didSet {
-            // Every annotation/image edit mutates the undo stack — notify so the
-            // editor can show/hide its "Done" button based on dirty state.
-            if undoStack.count != oldValue.count { onContentChanged?() }
+            if undoStack.count > oldValue.count {
+                if !isReplayingRedo {
+                    undoStateIdentities.removeSubrange((oldValue.count + 1)...)
+                }
+                while undoStateIdentities.count <= undoStack.count { undoStateIdentities.append(UUID()) }
+            } else if undoStack.count == oldValue.count {
+                // Whole-stack replacement (for example, restored annotations).
+                undoStateIdentities = (0...undoStack.count).map { _ in UUID() }
+            }
+            onContentChanged?()
         }
     }
     var redoStack: [UndoEntry] = []
@@ -3210,6 +3223,10 @@ class OverlayView: NSView {
         if config.isWindowSnap {
             // Snapped window: use independently captured window image (has real transparent corners).
             // Draw it directly on top of the gradient — transparent corners reveal the gradient.
+            let drawWindowImage: NSImage?
+            if let windowImage = snappedWindowImage {
+                drawWindowImage = effectsActive ? ImageEffects.apply(to: windowImage, config: effectsConfig) : windowImage
+            } else { drawWindowImage = nil }
             context.cgContext.saveGState()
 
             // Drop shadow from the window shape
@@ -3222,12 +3239,8 @@ class OverlayView: NSView {
                     blur: BeautifyRenderer.contactShadowBlur(for: shadowRadius),
                     color: NSColor.black.withAlphaComponent(
                         BeautifyRenderer.contactShadowAlpha(for: shadowRadius)).cgColor)
-                if let windowImg = snappedWindowImage {
-                    // Effects apply to the snapped window capture too, or the
-                    // preview shows unprocessed colours while the toolbar says
-                    // an effect is on (#88).
-                    let drawImage = effectsActive ? ImageEffects.apply(to: windowImg, config: effectsConfig) : windowImg
-                    drawImage.draw(in: imageRect, from: .zero, operation: .sourceOver, fraction: 1.0)
+                if let windowImg = drawWindowImage {
+                    windowImg.draw(in: imageRect, from: .zero, operation: .sourceOver, fraction: 1.0)
                 } else if let image = screenshotImage {
                     let drawImage = effectsActive ? effectsProcessedScreenshot(image) : image
                     drawImage.draw(
@@ -3241,12 +3254,8 @@ class OverlayView: NSView {
                     blur: shadowRadius,
                     color: NSColor.black.withAlphaComponent(
                         BeautifyRenderer.shadowAlpha(for: shadowRadius)).cgColor)
-                if let windowImg = snappedWindowImage {
-                    // Effects apply to the snapped window capture too, or the
-                    // preview shows unprocessed colours while the toolbar says
-                    // an effect is on (#88).
-                    let drawImage = effectsActive ? ImageEffects.apply(to: windowImg, config: effectsConfig) : windowImg
-                    drawImage.draw(in: imageRect, from: .zero, operation: .sourceOver, fraction: 1.0)
+                if let windowImg = drawWindowImage {
+                    windowImg.draw(in: imageRect, from: .zero, operation: .sourceOver, fraction: 1.0)
                 } else if let image = screenshotImage {
                     let drawImage = effectsActive ? effectsProcessedScreenshot(image) : image
                     drawImage.draw(
@@ -3255,7 +3264,7 @@ class OverlayView: NSView {
                 context.cgContext.restoreGState()
             }
 
-            if let windowImg = snappedWindowImage {
+            if let windowImg = drawWindowImage {
                 windowImg.draw(in: imageRect, from: .zero, operation: .sourceOver, fraction: 1.0)
             } else if let image = screenshotImage {
                 // Fallback: crop from screenshot (before window capture completes)
@@ -9596,6 +9605,8 @@ class OverlayView: NSView {
 
     func redo() {
         guard let entry = redoStack.last else { return }
+        isReplayingRedo = true
+        defer { isReplayingRedo = false }
         redoStack.removeLast()
         switch entry {
         case .added(let ann):

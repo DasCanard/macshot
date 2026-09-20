@@ -188,17 +188,15 @@ final class HistoryOverlayController: NSObject, QLPreviewPanelDataSource, QLPrev
 
         // Try loading editable annotations + raw image first
         if entry.hasAnnotations,
-           let rawImage = ScreenshotHistory.shared.loadRawImage(for: entry),
-           let annotations = ScreenshotHistory.shared.loadAnnotations(for: entry) {
-            let editState = ScreenshotHistory.shared.loadEditState(for: entry)
+           let editable = ScreenshotHistory.shared.loadEditableCapture(for: entry) {
             dismiss()
             let entryID = entry.id
             DispatchQueue.main.async {
                 DetachedEditorWindowController.open(
-                    image: rawImage,
-                    annotations: annotations,
+                    image: editable.rawImage,
+                    annotations: editable.annotations,
                     historyEntryID: entryID,
-                    editState: editState
+                    editState: editable.editState
                 )
             }
             return

@@ -703,3 +703,9 @@
 
 "Cancelling..." = "Отменяне...";
 "Preparing video..." = "Подготовка на видеото...";
+"History is busy saving. Please try again shortly." = "Историята се запазва. Моля, опитайте отново след малко.";
+
+// Video editor accessibility
+"Play" = "Възпроизвеждане";
+"Mute" = "Заглушаване";
+"Unmute" = "Включване на звука";

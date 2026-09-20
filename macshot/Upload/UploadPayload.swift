@@ -10,28 +10,34 @@ import Foundation
 /// `Data(contentsOf:)` and then building a request body from it costs two full
 /// copies of the file before a byte is sent, which is enough to get the app
 /// jetsammed on a long capture.
-enum UploadPayload {
+enum UploadPayload: Sendable {
     case data(Data)
     case file(URL)
+    case image(HistoryImageSnapshot.Image)
 
     /// Bytes read/streamed at a time. Big enough to keep syscalls cheap, small
     /// enough that peak memory stays flat regardless of file size.
-    static let chunkSize = 1 << 20  // 1 MiB
+    nonisolated static let chunkSize = 1 << 20  // 1 MiB
 
-    var byteCount: Int? {
+    nonisolated var byteCount: Int? {
         switch self {
         case .data(let data):
             return data.count
         case .file(let url):
             let values = try? url.resourceValues(forKeys: [.fileSizeKey])
             return values?.fileSize
+        case .image: return nil
         }
     }
 
     /// Feeds the payload to `consume` in chunks, never holding more than one
     /// chunk beyond what the caller keeps.
-    func forEachChunk(_ consume: (Data) throws -> Void) throws {
+    nonisolated func forEachChunk(_ consume: (Data) throws -> Void) throws {
         switch self {
+        case .image(let image):
+            guard let data = ImageEncoder.encodeWithCGImageDestination(cgImage: image.pixels,
+                type: "public.png", lossyQuality: nil) else { throw CocoaError(.fileWriteUnknown) }
+            try UploadPayload.data(data).forEachChunk(consume)
         case .data(let data):
             var offset = 0
             while offset < data.count {
@@ -52,7 +58,7 @@ enum UploadPayload {
 
     /// SHA256 of the payload, computed incrementally — AWS SigV4 needs the
     /// content hash, which would otherwise force the whole file into memory.
-    func sha256Hex() throws -> String {
+    nonisolated func sha256Hex() throws -> String {
         var hasher = SHA256()
         try forEachChunk { hasher.update(data: $0) }
         return hasher.finalize().map { String(format: "%02x", $0) }.joined()
@@ -60,7 +66,7 @@ enum UploadPayload {
 
     /// Writes the payload to `destination`, replacing anything already there.
     @discardableResult
-    func write(to destination: URL) throws -> URL {
+    nonisolated func write(to destination: URL) throws -> URL {
         try MultipartBodyWriter.write(to: destination) { append in
             try forEachChunk(append)
         }
@@ -74,10 +80,10 @@ enum MultipartBodyWriter {
     /// Runs `build`, handing it an `append` function that streams straight to
     /// `destination`. The file is removed if anything throws, so a failed
     /// upload can't leave a half-written body behind.
-    static func write(to destination: URL, build: ((Data) throws -> Void) throws -> Void) throws {
+    nonisolated static func write(to destination: URL, build: ((Data) throws -> Void) throws -> Void) throws {
         let fm = FileManager.default
         try? fm.removeItem(at: destination)
-        guard fm.createFile(atPath: destination.path, contents: nil) else {
+        guard fm.createFile(atPath: destination.path, contents: nil, attributes: [.posixPermissions: 0o600]) else {
             throw CocoaError(.fileWriteUnknown)
         }
         let handle = try FileHandle(forWritingTo: destination)
@@ -95,7 +101,7 @@ enum MultipartBodyWriter {
     /// Writes a `multipart/related` body (JSON metadata part + payload part) to
     /// `destination` without materializing the payload in memory. This is the
     /// shape Google Drive's multipart upload endpoint expects.
-    static func writeRelatedBody(
+    nonisolated static func writeRelatedBody(
         metadata: Data,
         mimeType: String,
         boundary: String,

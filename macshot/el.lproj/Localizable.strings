@@ -705,3 +705,9 @@
 
 "Cancelling..." = "Ακύρωση...";
 "Preparing video..." = "Προετοιμασία βίντεο...";
+"History is busy saving. Please try again shortly." = "Γίνεται αποθήκευση του ιστορικού. Δοκιμάστε ξανά σε λίγο.";
+
+// Video editor accessibility
+"Play" = "Αναπαραγωγή";
+"Mute" = "Σίγαση";
+"Unmute" = "Κατάργηση σίγασης";

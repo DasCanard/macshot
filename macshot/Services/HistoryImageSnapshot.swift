@@ -35,7 +35,7 @@ struct HistoryImageSnapshot: Sendable {
             pointSize = size
         }
 
-        nonisolated private static func render(_ source: CGImage, width: Int, height: Int) throws -> CGImage {
+        nonisolated static func render(_ source: CGImage, width: Int, height: Int) throws -> CGImage {
             let (stride, overflow) = width.multipliedReportingOverflow(by: 4)
             let colorSpace = source.colorSpace?.model == .rgb ? source.colorSpace : CGColorSpace(name: CGColorSpace.sRGB)
             guard width > 0, height > 0, !overflow, let colorSpace,
@@ -76,6 +76,23 @@ struct HistoryImageSnapshot: Sendable {
     let annotations: Data?
     let editState: Data?
     nonisolated var isEditable: Bool { raw != nil && (annotations != nil || editState != nil) }
+    /// Account for retained pixels and serialized sidecars, not compressed file
+    /// sizes. Saturation keeps malformed dimensions from wrapping the budget.
+    nonisolated var retainedBytes: Int {
+        var total = 0
+        for image in [composited, raw].compactMap({ $0 }) {
+            let (bytes, overflow) = image.pixels.bytesPerRow.multipliedReportingOverflow(by: image.pixels.height)
+            let (sum, sumOverflow) = total.addingReportingOverflow(bytes)
+            if overflow || sumOverflow { return Int.max }
+            total = sum
+        }
+        for data in [annotations, editState].compactMap({ $0 }) {
+            let (sum, overflow) = total.addingReportingOverflow(data.count)
+            if overflow { return Int.max }
+            total = sum
+        }
+        return total
+    }
 
     @MainActor init(image: NSImage, rawImage: NSImage?, annotations: [Annotation]?, editState: CaptureEditState?) throws {
         composited = try Image(image)

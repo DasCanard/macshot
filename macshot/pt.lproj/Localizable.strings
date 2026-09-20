@@ -705,3 +705,9 @@
 
 "Cancelling..." = "A cancelar...";
 "Preparing video..." = "A preparar vídeo...";
+"History is busy saving. Please try again shortly." = "O histórico está a ser guardado. Tenta novamente dentro de instantes.";
+
+// Video editor accessibility
+"Play" = "Reproduzir";
+"Mute" = "Silenciar";
+"Unmute" = "Ativar som";

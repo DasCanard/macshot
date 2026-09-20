@@ -79,6 +79,43 @@ final class ImageSaveServiceTests: XCTestCase {
 
     // MARK: - Failure reporting
 
+    func testConcurrentSavesAreCoordinatedAndKeepEveryDistinctImage() throws {
+        let finished = expectation(description: "all concurrent saves complete")
+        finished.expectedFulfillmentCount = 12
+        withDefaults(["imageFormat": "png", "downscaleRetina": false]) {
+            for width in 10..<22 {
+                ImageSaveService.writeImageForTesting(ImageProbe.solidImage(width: width, height: 8),
+                    toDirectory: directory, filename: "concurrent.png") { success in
+                        XCTAssertTrue(success)
+                        finished.fulfill()
+                    }
+            }
+        }
+        XCTAssertTrue(MediaExportCoordinator.shared.hasActiveJobs, "Quit must see pending screenshot saves")
+        wait(for: [finished], timeout: 10)
+        XCTAssertFalse(MediaExportCoordinator.shared.hasActiveJobs)
+        let widths = try savedFiles.map { name in
+            let image = try XCTUnwrap(NSImage(contentsOf: directory.appendingPathComponent(name)))
+            return try XCTUnwrap(ImageProbe.bitmap(from: image)).pixelsWide
+        }
+        XCTAssertEqual(widths.sorted(), Array(10..<22))
+    }
+
+    func testFailedSaveAsPreservesExistingFile() throws {
+        let destination = directory.appendingPathComponent("existing.png")
+        let original = Data("original destination remains intact".utf8)
+        try original.write(to: destination)
+        try FileManager.default.setAttributes([.posixPermissions: 0o500], ofItemAtPath: directory.path)
+        let prepared = try ImageEncoder.PreparedImage(ImageProbe.solidImage())
+        let finished = expectation(description: "failed replacement")
+        ImageSaveService.writePreparedImage(prepared, to: destination, chooseAvailableName: false) { success in
+            XCTAssertFalse(success)
+            finished.fulfill()
+        }
+        wait(for: [finished], timeout: 5)
+        XCTAssertEqual(try Data(contentsOf: destination), original)
+    }
+
     func testAFailedWriteIsReportedToTheUser() {
         // Make the directory read-only so the write fails the way a full disk
         // or an unmounted volume would.

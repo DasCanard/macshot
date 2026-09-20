@@ -703,3 +703,9 @@
 
 "Cancelling..." = "Megszakítás...";
 "Preparing video..." = "Videó előkészítése...";
+"History is busy saving. Please try again shortly." = "Az előzmények mentése folyamatban van. Próbáld újra egy kis idő múlva.";
+
+// Video editor accessibility
+"Play" = "Lejátszás";
+"Mute" = "Némítás";
+"Unmute" = "Némítás feloldása";

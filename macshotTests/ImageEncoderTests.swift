@@ -114,6 +114,42 @@ final class ImageEncoderTests: XCTestCase {
         withDefaults(["imageQuality": 5.0]) { XCTAssertEqual(ImageEncoder.quality, 1.0) }
         withDefaults(["imageQuality": -2.0]) { XCTAssertEqual(ImageEncoder.quality, 0.1) }
         withDefaults(["imageQuality": nil]) { XCTAssertEqual(ImageEncoder.quality, 0.85) }
+        withDefaults(["imageQuality": Double.nan]) { XCTAssertEqual(ImageEncoder.quality, 0.85) }
+    }
+
+    func testPreparedImageOwnsPixelsFormatAndResolutionBeforeBackgroundEncoding() async throws {
+        let image = retinaImage(logicalWidth: 20, logicalHeight: 15, scale: 2)
+        var prepared: ImageEncoder.PreparedImage?
+        try withDefaults(["imageFormat": "png", "imageQuality": 0.2, "downscaleRetina": true]) {
+            prepared = try ImageEncoder.PreparedImage(image)
+        }
+        // Simulate the editor changing while a save panel/worker is pending.
+        for representation in image.representations { image.removeRepresentation(representation) }
+        image.size = NSSize(width: 5, height: 5)
+        let replacement = ImageProbe.solidImage(width: 5, height: 5)
+        for representation in replacement.representations { image.addRepresentation(representation) }
+        let request = try XCTUnwrap(prepared)
+        let data = try await MediaExportIO.perform { try XCTUnwrap(request.encode()) }
+        XCTAssertEqual(Array(data.prefix(8)), [137, 80, 78, 71, 13, 10, 26, 10])
+        let decoded = try XCTUnwrap(NSImage(data: data))
+        let bitmap = try XCTUnwrap(ImageProbe.bitmap(from: decoded))
+        XCTAssertEqual(bitmap.pixelsWide, 20)
+        XCTAssertEqual(bitmap.pixelsHigh, 15)
+        let red = try XCTUnwrap(ImageProbe.pixelColor(decoded, x: 2, y: 12))
+        XCTAssertEqual(red.redComponent, 1, accuracy: 0.01)
+        XCTAssertEqual(red.greenComponent, 0, accuracy: 0.01)
+    }
+
+    func testEveryAvailableFormatCanEncodePreparedPixelsOnAWorker() async throws {
+        let source = ImageProbe.quadrantImage(width: 32, height: 24)
+        for format in ImageEncoder.availableFormats {
+            var prepared: ImageEncoder.PreparedImage?
+            try withDefaults(["imageFormat": format.rawValue]) { prepared = try ImageEncoder.PreparedImage(source) }
+            let request = try XCTUnwrap(prepared)
+            let data = try await MediaExportIO.perform { try XCTUnwrap(request.encode()) }
+            let decoded = try XCTUnwrap(NSImage(data: data), "Worker encoding failed for \(format)")
+            XCTAssertEqual(try XCTUnwrap(ImageProbe.bitmap(from: decoded)).pixelsWide, 32)
+        }
     }
 
     // MARK: - Retina downscaling

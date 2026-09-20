@@ -235,19 +235,23 @@ extension Annotation {
     }
 
     static func fromCodable(_ c: CodableAnnotation) -> Annotation? {
-        guard let tool = AnnotationTool(rawValue: c.tool) else { return nil }
+        guard let tool = AnnotationTool(rawValue: c.tool),
+              let start = SavedCaptureValidation.point([c.startX, c.startY]),
+              let end = SavedCaptureValidation.point([c.endX, c.endY]) else { return nil }
         let ann = Annotation(
             tool: tool,
-            startPoint: NSPoint(x: c.startX, y: c.startY),
-            endPoint: NSPoint(x: c.endX, y: c.endY),
+            startPoint: start,
+            endPoint: end,
             color: decodeColor(c.colorRGBA),
-            strokeWidth: c.strokeWidth
+            strokeWidth: SavedCaptureValidation.bounded(c.strokeWidth, 0...1024, fallback: 3)
         )
 
         // Text
+        guard (c.text?.utf8.count ?? 0) <= SavedCaptureValidation.maximumRTFBytes else { return nil }
         ann.text = c.text
-        if let rtfData = c.attributedTextRTF,
-           let decoded = NSAttributedString(rtf: rtfData, documentAttributes: nil) {
+        if let rtfData = c.attributedTextRTF {
+            guard rtfData.count <= SavedCaptureValidation.maximumRTFBytes,
+                  let decoded = NSAttributedString(rtf: rtfData, documentAttributes: nil) else { return nil }
             // Convert any legacy centered .strokeWidth glyph stroke (from files
             // saved before #257) into the outside-outline attribute so it renders
             // through OutlineTextLayoutManager instead of the old thin stroke.
@@ -255,20 +259,21 @@ extension Annotation {
             OutlineTextRenderer.normalizeLegacyStroke(mutable)
             ann.attributedText = mutable
         }
-        ann.fontSize = c.fontSize
+        ann.fontSize = SavedCaptureValidation.bounded(c.fontSize, 1...4096, fallback: 20)
         ann.isBold = c.isBold
         ann.isItalic = c.isItalic
         ann.isUnderline = c.isUnderline
         ann.isStrikethrough = c.isStrikethrough
-        if let r = c.textDrawRect, r.count == 4 {
-            ann.textDrawRect = NSRect(x: r[0], y: r[1], width: r[2], height: r[3])
-        }
+        if let r = c.textDrawRect { ann.textDrawRect = SavedCaptureValidation.rect(r) ?? .zero }
         if let rgba = c.textBgColorRGBA { ann.textBgColor = decodeColor(rgba) }
         if let rgba = c.textOutlineColorRGBA { ann.textOutlineColor = decodeColor(rgba) }
         if let rgba = c.textGlyphStrokeColorRGBA { ann.textGlyphStrokeColor = decodeColor(rgba) }
         ann.textAlignment = NSTextAlignment(rawValue: c.textAlignment) ?? .left
         ann.fontFamilyName = c.fontFamilyName
-        if let data = c.textImagePNG { ann.textImage = NSImage(data: data) }
+        if let data = c.textImagePNG {
+            guard let image = SavedCaptureValidation.image(data) else { return nil }
+            ann.textImage = image
+        }
 
         // Number
         ann.number = c.number
@@ -276,27 +281,26 @@ extension Annotation {
 
         // Points
         if let pts = c.points {
-            ann.points = pts.compactMap { p in
-                guard p.count == 2 else { return nil }
-                return NSPoint(x: p[0], y: p[1])
+            ann.points = pts.compactMap { SavedCaptureValidation.point($0) }
+        }
+        // Preserve pressure-to-point correspondence when dropping a malformed
+        // point; never shift later pressures onto the wrong segment.
+        if let pressures = c.pressures, let points = c.points {
+            ann.pressures = points.enumerated().compactMap { index, point in
+                guard SavedCaptureValidation.point(point) != nil else { return nil }
+                return SavedCaptureValidation.bounded(index < pressures.count ? pressures[index] : 1, 0...1, fallback: 1)
             }
         }
-        ann.pressures = c.pressures
 
         // Control/anchor points
-        if let cp = c.controlPointXY, cp.count == 2 {
-            ann.controlPoint = NSPoint(x: cp[0], y: cp[1])
-        }
+        if let cp = c.controlPointXY { ann.controlPoint = SavedCaptureValidation.point(cp) }
         if let anchors = c.anchorPoints {
-            ann.anchorPoints = anchors.compactMap { p in
-                guard p.count == 2 else { return nil }
-                return NSPoint(x: p[0], y: p[1])
-            }
+            ann.anchorPoints = anchors.compactMap { SavedCaptureValidation.point($0) }
         }
 
         // Shape style
-        ann.rotation = c.rotation
-        ann.rectCornerRadius = c.rectCornerRadius
+        ann.rotation = SavedCaptureValidation.bounded(c.rotation, -1_000_000...1_000_000, fallback: 0)
+        ann.rectCornerRadius = SavedCaptureValidation.bounded(c.rectCornerRadius, 0...1024, fallback: 0)
         ann.lineStyle = LineStyle(rawValue: c.lineStyle) ?? .solid
         ann.arrowStyle = ArrowStyle(rawValue: c.arrowStyle) ?? .single
         ann.arrowReversed = c.arrowReversed
@@ -304,17 +308,21 @@ extension Annotation {
         if let rgba = c.outlineColorRGBA { ann.outlineColor = decodeColor(rgba) }
 
         // Stamp
-        if let data = c.stampImagePNG { ann.stampImage = NSImage(data: data) }
+        if let data = c.stampImagePNG {
+            guard let image = SavedCaptureValidation.image(data) else { return nil }
+            ann.stampImage = image
+        }
         ann.isCaptureStamp = c.isCaptureStamp ?? false
 
         // Baked censor result
-        if let data = c.bakedBlurPNG { ann.bakedBlurNSImage = NSImage(data: data) }
+        if let data = c.bakedBlurPNG {
+            guard let image = SavedCaptureValidation.image(data) else { return nil }
+            ann.bakedBlurNSImage = image
+        }
 
         // Loupe
-        ann.loupeMagnification = c.loupeMagnification ?? 2.0
-        if let r = c.loupeSourceRect, r.count == 4 {
-            ann.loupeSourceRect = NSRect(x: r[0], y: r[1], width: r[2], height: r[3])
-        }
+        ann.loupeMagnification = SavedCaptureValidation.bounded(c.loupeMagnification ?? 2, 0.1...100, fallback: 2)
+        if let r = c.loupeSourceRect { ann.loupeSourceRect = SavedCaptureValidation.rect(r) }
         ann.loupeOutlineEnabled = c.loupeOutlineEnabled
 
         // Misc
@@ -322,7 +330,7 @@ extension Annotation {
         ann.censorMode = CensorMode(rawValue: c.censorMode) ?? .pixelate
         // Highlight dim strength; older captures lack the field (decodes to the
         // struct default 0.55). Guard against a zero/invalid value.
-        ann.dimOpacity = c.dimOpacity > 0 ? min(1, c.dimOpacity) : 0.55
+        ann.dimOpacity = c.dimOpacity.isFinite && c.dimOpacity > 0 ? min(1, c.dimOpacity) : 0.55
         if let gidStr = c.groupID { ann.groupID = UUID(uuidString: gidStr) }
         // Legacy captures have seed=0; assign a fresh one so sketchy variation
         // remains deterministic per-load even for old data.
@@ -333,7 +341,7 @@ extension Annotation {
         // so reloaded annotations look correct (no-op for text without a stroke).
         if ann.tool == .text, ann.textGlyphStrokeColor != nil,
            ann.attributedText != nil, ann.textDrawRect != .zero {
-            ann.reRenderTextImage()
+            guard ann.reRenderTextImage() else { return nil }
         }
 
         return ann
@@ -348,8 +356,9 @@ extension Annotation {
     }
 
     private static func decodeColor(_ rgba: [CGFloat]) -> NSColor {
-        guard rgba.count >= 4 else { return .red }
-        return NSColor(srgbRed: rgba[0], green: rgba[1], blue: rgba[2], alpha: rgba[3])
+        guard rgba.count >= 4, rgba.prefix(4).allSatisfy(\.isFinite) else { return .red }
+        let clamped = rgba.prefix(4).map { min(1, max(0, $0)) }
+        return NSColor(srgbRed: clamped[0], green: clamped[1], blue: clamped[2], alpha: clamped[3])
     }
 
     private static func encodeImage(_ image: NSImage) -> Data? {
@@ -368,7 +377,14 @@ enum AnnotationSerializer {
         return try? JSONEncoder().encode(codables)
     }
 
-    static func decode(_ data: Data) -> [Annotation]? {
+    static func decode(_ data: Data, requireAll: Bool = false) -> [Annotation]? {
+        if requireAll {
+            // Editing raw pixels must not silently omit an unreadable annotation
+            // (particularly a censor). The caller can use the flattened capture.
+            guard let codables = try? JSONDecoder().decode([CodableAnnotation].self, from: data) else { return nil }
+            let annotations = codables.compactMap { Annotation.fromCodable($0) }
+            return annotations.count == codables.count ? annotations : nil
+        }
         // Element-wise so one unreadable annotation costs that annotation
         // rather than every annotation in the capture.
         guard let codables = LenientArrayDecoder.decode(CodableAnnotation.self, from: data) else { return nil }

@@ -1875,14 +1875,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUUpdaterDelegate {
             }
             if let id,
                let entry = ScreenshotHistory.shared.entries.first(where: { $0.id == id }),
-               let rawImage = ScreenshotHistory.shared.loadRawImage(for: entry),
-               let annotations = ScreenshotHistory.shared.loadAnnotations(for: entry) {
-                let editState = ScreenshotHistory.shared.loadEditState(for: entry)
+               let editable = ScreenshotHistory.shared.loadEditableCapture(for: entry) {
                 DetachedEditorWindowController.open(
-                    image: rawImage,
-                    annotations: annotations,
+                    image: editable.rawImage,
+                    annotations: editable.annotations,
                     historyEntryID: id,
-                    editState: editState
+                    editState: editable.editState
                 )
                 return
             }
@@ -2143,10 +2141,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUUpdaterDelegate {
                 }
             }
         } else if provider == "s3" {
-            S3Uploader.shared.onProgress = { fraction in
+            S3Uploader.shared.uploadImage(image, progress: { fraction in
                 toast.updateProgress(fraction)
-            }
-            S3Uploader.shared.uploadImage(image) { result in
+            }) { result in
                 switch result {
                 case .success(let link):
                     let pasteboard = NSPasteboard.general
@@ -2264,14 +2261,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUUpdaterDelegate {
         guard let entry = ScreenshotHistory.shared.entries.first(where: { $0.id == id }) else { return }
 
         if entry.hasAnnotations,
-           let rawImage = ScreenshotHistory.shared.loadRawImage(for: entry),
-           let annotations = ScreenshotHistory.shared.loadAnnotations(for: entry) {
-            let editState = ScreenshotHistory.shared.loadEditState(for: entry)
+           let editable = ScreenshotHistory.shared.loadEditableCapture(for: entry) {
             DetachedEditorWindowController.open(
-                image: rawImage,
-                annotations: annotations,
+                image: editable.rawImage,
+                annotations: editable.annotations,
                 historyEntryID: id,
-                editState: editState
+                editState: editable.editState
             )
             return
         }

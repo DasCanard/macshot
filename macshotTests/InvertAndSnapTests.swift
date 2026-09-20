@@ -59,6 +59,38 @@ final class InvertAndSnapTests: XCTestCase {
 
     // MARK: - Invert with a snapped window
 
+    func testSnappedWindowPreviewKeepsEffectsWithAndWithoutShadows() throws {
+        for shadow: CGFloat in [0, 20] {
+            let overlay = makeOverlay()
+            let windowImage = ImageProbe.solidImage(width: 100, height: 80,
+                color: CGColor(srgbRed: 0.1, green: 0.8, blue: 0.3, alpha: 1))
+            overlay.snappedWindowImage = windowImage
+            overlay.selectionIsWindowSnap = true
+            overlay.beautifyEnabled = true
+            overlay.beautifyMode = .window
+            overlay.beautifyPadding = 16
+            overlay.beautifyShadowRadius = shadow
+            overlay.beautifyStyleIndex = 0
+            overlay.effectsPreset = .mono
+            overlay.effectsBrightness = 0
+            overlay.effectsContrast = 1
+            overlay.effectsSaturation = 1
+            overlay.effectsSharpness = 0
+            let preview = ImageProbe.makeImage(width: 200, height: 160) { cg in
+                NSGraphicsContext.saveGraphicsState()
+                NSGraphicsContext.current = NSGraphicsContext(cgContext: cg, flipped: false)
+                overlay.draw(overlay.bounds)
+                NSGraphicsContext.restoreGraphicsState()
+            }
+            let actual = try XCTUnwrap(ImageProbe.pixelColor(preview, x: 70, y: 100))
+            let expected = try XCTUnwrap(ImageProbe.pixelColor(
+                ImageEffects.apply(to: windowImage, config: overlay.effectsConfig), x: 50, y: 40))
+            XCTAssertEqual(actual.redComponent, expected.redComponent, accuracy: 0.03, "shadow \(shadow)")
+            XCTAssertEqual(actual.greenComponent, expected.greenComponent, accuracy: 0.03, "shadow \(shadow)")
+            XCTAssertEqual(actual.blueComponent, expected.blueComponent, accuracy: 0.03, "shadow \(shadow)")
+        }
+    }
+
     func testInvertFlipsTheSnappedWindowCaptureToo() throws {
         let overlay = makeOverlay()
         overlay.snappedWindowImage = ImageProbe.solidImage(

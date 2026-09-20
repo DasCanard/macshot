@@ -705,3 +705,9 @@
 
 "Cancelling..." = "İptal ediliyor...";
 "Preparing video..." = "Video hazırlanıyor...";
+"History is busy saving. Please try again shortly." = "Geçmiş kaydediliyor. Lütfen biraz sonra tekrar deneyin.";
+
+// Video editor accessibility
+"Play" = "Oynat";
+"Mute" = "Sesi kapat";
+"Unmute" = "Sesi aç";

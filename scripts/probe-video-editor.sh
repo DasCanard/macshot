@@ -1,18 +1,29 @@
 #!/bin/bash
 # Compile the production editor/media code into an isolated native UI probe.
-# Usage: scripts/probe-video-editor.sh /path/to/synthetic-fixture.mp4
+# Usage: scripts/probe-video-editor.sh /path/to/synthetic-fixture.mp4 [--audio-merge] [--normal]
 # Saves replace only the private copy printed below; the input is untouched.
 # Uploads and capture are disabled. Other app services are minimal stubs.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-if [[ $# != 1 || ! -f "$1" ]]; then
-  echo "Usage: $0 /absolute/path/to/synthetic-fixture.mp4" >&2
+if [[ $# -lt 1 || ! -f "$1" ]]; then
+  echo "Usage: $0 /absolute/path/to/synthetic-fixture.mp4 [--audio-merge] [--normal]" >&2
   exit 2
 fi
+probe_source="$1"
+shift
+probe_conditions=(-D OFFLINE)
+probe_audio_merge=false
+for option in "$@"; do
+  case "$option" in
+    --audio-merge) probe_audio_merge=true ;;
+    --normal) probe_conditions=(-D MACSHOT_UI_PROBE) ;;
+    *) echo "Unknown probe option: $option" >&2; exit 2 ;;
+  esac
+done
 probe_directory=$(mktemp -d "${TMPDIR:-/tmp}/macshot-source-editor-probe.XXXXXX")
 probe_bundle="$probe_directory/SourceEditorProbe.app"
 mkdir -p "$probe_bundle/Contents/MacOS"
-cp "$1" "$probe_directory/input.mp4"
+cp "$probe_source" "$probe_directory/input.mp4"
 cat > "$probe_bundle/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -23,7 +34,11 @@ cat > "$probe_bundle/Contents/Info.plist" <<'PLIST'
 <key>CFBundlePackageType</key><string>APPL</string>
 </dict></plist>
 PLIST
+if [[ $probe_audio_merge == true ]]; then
+  /usr/libexec/PlistBuddy -c 'Add :AudioMergeProbe bool true' "$probe_bundle/Contents/Info.plist"
+fi
 sources=(
+  macshot/Capture/AudioTrackMixer.swift
   macshot/Capture/CancellableRenderQueue.swift
   macshot/Capture/EffectsVideoCompositor.swift
   macshot/Capture/GIFEncoder.swift
@@ -63,8 +78,9 @@ sources=(
   macshot/UI/Editor/VideoTextOptionsPanel.swift
   macshot/UI/Tools/ScopedUndoTextView.swift
   macshot/UI/Windows/MediaExportProgressController.swift
+  macshot/UI/Windows/AudioMergeController.swift
 )
-swiftc -O -swift-version 5 -default-isolation MainActor -D OFFLINE -parse-as-library   "${sources[@]}" scripts/probe-video-editor.swift   -o "$probe_bundle/Contents/MacOS/SourceEditorProbe" > "$probe_directory/build.log" 2>&1 || {
+swiftc -O -swift-version 5 -default-isolation MainActor "${probe_conditions[@]}" -parse-as-library   "${sources[@]}" scripts/probe-video-editor.swift   -o "$probe_bundle/Contents/MacOS/SourceEditorProbe" > "$probe_directory/build.log" 2>&1 || {
     cat "$probe_directory/build.log" >&2
     exit 1
   }

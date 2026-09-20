@@ -1,5 +1,12 @@
 import Cocoa
 
+@MainActor
+func historyProbeDirectory() -> URL {
+    FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        .appendingPathComponent("history-probes", isDirectory: true)
+        .appendingPathComponent(Bundle.main.infoDictionary!["HistoryProbeRun"] as! String, isDirectory: true)
+}
+
 /// Installed as main.swift only in the launcher's private source copy.
 /// No capture permissions, hotkeys, uploads, or the real AppDelegate startup.
 @MainActor
@@ -7,7 +14,7 @@ final class HistoryEditorProbeDelegate: NSObject, NSApplicationDelegate {
     private var controls: NSWindow?
     private var failureLabel: NSTextField?
     private let termination = ApplicationTerminationCoordinator()
-    private var directory: URL { URL(fileURLWithPath: Bundle.main.infoDictionary!["HistoryProbeDirectory"] as! String) }
+    private var directory: URL { historyProbeDirectory() }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NotificationCenter.default.addObserver(self, selector: #selector(editorClosed(_:)),
@@ -101,8 +108,11 @@ final class HistoryEditorProbeDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-        termination.request(hasActiveWork: ScreenshotHistory.shared.hasPendingWrites,
-            drain: { await ScreenshotHistory.shared.waitUntilIdle() }, terminate: { sender.terminate(nil) })
+        termination.request(hasActiveWork: ScreenshotHistory.shared.hasPendingWrites || MediaExportCoordinator.shared.hasActiveJobs,
+            drain: {
+                await MediaExportCoordinator.shared.waitUntilIdle()
+                await ScreenshotHistory.shared.waitUntilIdle()
+            }, terminate: { sender.terminate(nil) })
     }
 }
 

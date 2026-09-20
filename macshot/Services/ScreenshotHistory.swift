@@ -42,6 +42,10 @@ final class ScreenshotHistory {
     private var pendingRecords: [String: HistoryRecord] = [:]
     private var hiddenIDs: [String: UUID] = [:]
     private var activeWrites = 0
+    private let maximumPendingBytes: Int
+    private let maximumPendingSaves: Int
+    private(set) var pendingSnapshotBytes = 0
+    private var pendingSaves = 0
     private var idleWaiters: [CheckedContinuation<Void, Never>] = []
     var hasPendingWrites: Bool { activeWrites > 0 }
     func containsEntry(id: String) -> Bool {
@@ -58,7 +62,10 @@ final class ScreenshotHistory {
 
     init(directory: URL? = nil, cleanupQueue: DispatchQueue = .global(qos: .utility),
          writeQueue: DispatchQueue = DispatchQueue(label: "macshot.history.writer", qos: .utility),
+         maximumPendingBytes: Int = 512 * 1024 * 1024, maximumPendingSaves: Int = 32,
          beforeIndexPublication: @escaping @Sendable () throws -> Void = {}) {
+        self.maximumPendingBytes = max(1, maximumPendingBytes)
+        self.maximumPendingSaves = max(1, maximumPendingSaves)
         let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Library/Application Support")
         historyDir = directory ?? support.appendingPathComponent("com.sw33tlie.macshot/history")
@@ -90,12 +97,13 @@ final class ScreenshotHistory {
         let limit = maxEntries
         guard limit > 0 else { completion?(false); return nil }
         do {
+            try checkSaveCapacity()
             let snapshot = try HistoryImageSnapshot(image: image, rawImage: rawImage,
                                                     annotations: annotations, editState: editState)
             let record = HistoryRecord(id: UUID().uuidString, fileExtension: "png", timestamp: Date(),
                 pixelWidth: snapshot.composited.pixels.width, pixelHeight: snapshot.composited.pixels.height,
                 hasAnnotations: snapshot.isEditable ? true : nil, lastEditedAt: nil, revision: UUID().uuidString)
-            save(record, snapshot: snapshot, maximum: limit, completion: completion)
+            try save(record, snapshot: snapshot, maximum: limit, completion: completion)
             return record.id
         } catch {
             report(error)
@@ -111,23 +119,44 @@ final class ScreenshotHistory {
             completion?(false); return
         }
         do {
+            try checkSaveCapacity()
             let snapshot = try HistoryImageSnapshot(image: compositedImage, rawImage: rawImage,
                                                     annotations: annotations, editState: editState)
             let record = HistoryRecord(id: id, fileExtension: "png", timestamp: previous.timestamp,
                 pixelWidth: snapshot.composited.pixels.width, pixelHeight: snapshot.composited.pixels.height,
                 hasAnnotations: snapshot.isEditable ? true : nil, lastEditedAt: Date(), revision: UUID().uuidString)
-            save(record, snapshot: snapshot, maximum: maxEntries, completion: completion)
+            try save(record, snapshot: snapshot, maximum: maxEntries, completion: completion)
         } catch { report(error); completion?(false) }
     }
 
     private func save(_ record: HistoryRecord, snapshot: HistoryImageSnapshot, maximum: Int,
-                      completion: ((Bool) -> Void)?) {
+                      completion: ((Bool) -> Void)?) throws {
+        let bytes = snapshot.retainedBytes
+        // One oversized scroll capture may save by itself. Never retain an
+        // unbounded burst of additional snapshots while that save is pending.
+        guard pendingSaves == 0 || bytes <= maximumPendingBytes - pendingSnapshotBytes else {
+            throw saveQueueBusyError()
+        }
+        pendingSnapshotBytes += bytes
+        pendingSaves += 1
         pendingRecords[record.id] = record
         enqueue(.save(record, snapshot, maximum: maximum, orderByEdit: Self.orderByLastEdit)) { [weak self] success in
             guard let self else { completion?(success); return }
+            self.pendingSnapshotBytes -= bytes
+            self.pendingSaves -= 1
             if self.pendingRecords[record.id]?.revision == record.revision { self.pendingRecords.removeValue(forKey: record.id) }
             completion?(success)
         }
+    }
+
+    private func saveQueueBusyError() -> NSError {
+        NSError(domain: "macshot.history", code: 1,
+                userInfo: [NSLocalizedDescriptionKey: L("History is busy saving. Please try again shortly.")])
+    }
+
+    private func checkSaveCapacity() throws {
+        guard pendingSaves < maximumPendingSaves,
+              pendingSaves == 0 || pendingSnapshotBytes < maximumPendingBytes else { throw saveQueueBusyError() }
     }
 
     private func enqueue(_ operation: HistoryStorage.Operation, completion: ((Bool) -> Void)? = nil) {
@@ -228,6 +257,36 @@ final class ScreenshotHistory {
         guard record(for: entry).hasAnnotations == true,
               let data = try? Data(contentsOf: sidecarURL(for: entry, suffix: "_edit.json")) else { return nil }
         return try? JSONDecoder().decode(CaptureEditState.self, from: data)
+    }
+    struct EditableCapture {
+        let rawImage: NSImage
+        let annotations: [Annotation]
+        let editState: CaptureEditState?
+    }
+
+    /// Reopen the editable parts together. Missing optional legacy sidecars are
+    /// supported, but a present unreadable sidecar must fall back to the saved
+    /// composited image instead of silently removing its effects/annotations.
+    func loadEditableCapture(for entry: HistoryEntry) -> EditableCapture? {
+        guard let rawImage = loadRawImage(for: entry) else { return nil }
+        let annotationsURL = sidecarURL(for: entry, suffix: "_annotations.json")
+        let editURL = sidecarURL(for: entry, suffix: "_edit.json")
+        let hasAnnotations = FileManager.default.fileExists(atPath: annotationsURL.path)
+        let hasEditState = FileManager.default.fileExists(atPath: editURL.path)
+        guard hasAnnotations || hasEditState else { return nil }
+        let annotations: [Annotation]
+        if hasAnnotations {
+            guard let data = try? Data(contentsOf: annotationsURL),
+                  let restored = AnnotationSerializer.decode(data, requireAll: true) else { return nil }
+            annotations = restored
+        } else { annotations = [] }
+        let editState: CaptureEditState?
+        if hasEditState {
+            guard let restored = loadEditState(for: entry) else { return nil }
+            if restored.customBeautifyBackgroundPNG != nil && restored.customBeautifyBackground == nil { return nil }
+            editState = restored
+        } else { editState = nil }
+        return EditableCapture(rawImage: rawImage, annotations: annotations, editState: editState)
     }
     func loadThumbnail(for entry: HistoryEntry) -> NSImage? {
         image(at: sidecarURL(for: entry, suffix: "_thumb.png"))

@@ -703,3 +703,9 @@
 
 "Cancelling..." = "キャンセル中...";
 "Preparing video..." = "ビデオを準備中...";
+"History is busy saving. Please try again shortly." = "履歴を保存中です。しばらくしてからもう一度お試しください。";
+
+// Video editor accessibility
+"Play" = "再生";
+"Mute" = "ミュート";
+"Unmute" = "ミュート解除";

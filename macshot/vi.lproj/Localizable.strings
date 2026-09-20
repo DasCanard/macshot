@@ -703,3 +703,9 @@
 
 "Cancelling..." = "Đang hủy...";
 "Preparing video..." = "Đang chuẩn bị video...";
+"History is busy saving. Please try again shortly." = "Đang lưu lịch sử. Vui lòng thử lại sau giây lát.";
+
+// Video editor accessibility
+"Play" = "Phát";
+"Mute" = "Tắt tiếng";
+"Unmute" = "Bật tiếng";

@@ -17,6 +17,7 @@ struct VideoExportEncodingPlan: Sendable {
     let fps: Int
     let videoBitrate: Int
     let quality: VideoQuality
+    let supportsSizeEstimate: Bool
 
     static func make(source: Source, scale: Double, quality: VideoQuality,
                      sourceDuration: Double, outputDuration: Double) -> VideoExportEncodingPlan? {
@@ -46,16 +47,18 @@ struct VideoExportEncodingPlan: Sendable {
         // Only cap against comparable H.264 sources with a near-uniform cadence.
         // HEVC/other codecs use the pixel budget rather than an assumed codec ratio.
         let cadenceCoverage = source.nominalFPS * source.minimumFrameDuration
-        if source.codec == kCMVideoCodecType_H264,
-           source.averageBitrate.isFinite, source.averageBitrate > 0,
-           cadenceCoverage.isFinite, (0.9...1.1).contains(cadenceCoverage) {
+        let comparableSource = source.codec == kCMVideoCodecType_H264
+            && source.averageBitrate.isFinite && source.averageBitrate > 0
+            && cadenceCoverage.isFinite && (0.9...1.1).contains(cadenceCoverage)
+        if comparableSource {
             let areaRatio = Double(width) * Double(height) / (source.size.width * source.size.height)
             let speedAllowance = min(10, max(1, sourceDuration / outputDuration))
             target = min(target, source.averageBitrate * sourceRatio * pow(areaRatio, 0.75) * speedAllowance)
         }
         let bitrate = Int(min(Double(quality.maxBitrate), max(floor, target)).rounded())
         return VideoExportEncodingPlan(width: width, height: height, fps: fps,
-                                       videoBitrate: bitrate, quality: quality)
+                                       videoBitrate: bitrate, quality: quality,
+                                       supportsSizeEstimate: comparableSource && quality != .high)
     }
 
     var outputSettings: [String: Any] {
@@ -67,10 +70,13 @@ struct VideoExportEncodingPlan: Sendable {
         return settings
     }
 
-    /// A target-based approximation including every encoded audio track and a
-    /// small container allowance. Variable bitrate and content can differ widely.
+    /// A source-informed approximation including every encoded audio track.
+    /// Sparse/unknown/different-codec sources use a pixel-based encoder budget,
+    /// which can exceed actual output by orders of magnitude. Do not present
+    /// that fallback budget as a file-size prediction.
     func estimatedBytes(duration: Double, audioTrackCount: Int, audioBitrate: Int) -> Int64? {
-        guard duration.isFinite, duration > 0, audioTrackCount >= 0, audioBitrate >= 0 else { return nil }
+        guard supportsSizeEstimate, duration.isFinite, duration > 0,
+              audioTrackCount >= 0, audioBitrate >= 0 else { return nil }
         let rate = Double(videoBitrate) + Double(audioTrackCount) * Double(audioBitrate)
         let bytes = rate * duration / 8 * 1.03 + 16_384
         guard bytes.isFinite, bytes > 0, bytes < Double(Int64.max) else { return nil }
