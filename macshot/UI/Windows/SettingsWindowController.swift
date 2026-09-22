@@ -56,6 +56,7 @@ class SettingsWindowController: NSWindowController, NSToolbarDelegate, NSWindowD
     private var recordingToolAction: ToolShortcutManager.Action?
     private var savePathField: NSTextField!
     private var saveActionPopup: NSPopUpButton!
+    private var copyPathAfterSaveCheckbox: NSButton!
     private var ocrActionPopup: NSPopUpButton!
     private var copySoundCheckbox: NSButton!
     // rememberSelectionCheckbox removed — selection is always saved for "Capture Last Area"
@@ -747,7 +748,10 @@ class SettingsWindowController: NSWindowController, NSToolbarDelegate, NSWindowD
 
         // Enter key action
         quickModePopup = NSPopUpButton()
-        quickModePopup.addItems(withTitles: [L("Save to file"), L("Copy to clipboard"), L("Save + copy to clipboard"), L("Do nothing")])
+        for mode in QuickCaptureMode.settingsOrder {
+            quickModePopup.addItem(withTitle: mode.title)
+            quickModePopup.lastItem?.representedObject = mode.rawValue
+        }
         quickModePopup.target = self
         quickModePopup.action = #selector(quickModeChanged(_:))
 
@@ -914,6 +918,14 @@ class SettingsWindowController: NSWindowController, NSToolbarDelegate, NSWindowD
         browseBtn.bezelStyle = .rounded
 
         stack.addArrangedSubview(labeledRow(L("Save folder:"), controls: [savePathField, browseBtn]))
+        stack.setCustomSpacing(8, after: stack.arrangedSubviews.last!)
+
+        copyPathAfterSaveCheckbox = NSButton(
+            checkboxWithTitle: L("Copy Path"),
+            target: self,
+            action: #selector(copyPathAfterSaveChanged(_:))
+        )
+        stack.addArrangedSubview(indented(copyPathAfterSaveCheckbox))
         stack.setCustomSpacing(8, after: stack.arrangedSubviews.last!)
 
         // Filename template
@@ -2575,6 +2587,7 @@ class SettingsWindowController: NSWindowController, NSToolbarDelegate, NSWindowD
 
         savePathField.stringValue = SaveDirectoryAccess.displayPath
         selectSaveAction(SaveActionPreference.current)
+        copyPathAfterSaveCheckbox.state = ImageSaveService.copyPathAfterSave ? .on : .off
 
         // Migrate legacy bool to new int setting
         if UserDefaults.standard.object(forKey: "ocrAction") == nil {
@@ -2661,12 +2674,13 @@ class SettingsWindowController: NSWindowController, NSToolbarDelegate, NSWindowD
             // If old autoCopy was on + save mode, migrate to "both"
             let hadAutoCopy = UserDefaults.standard.object(forKey: "autoCopyToClipboard") as? Bool ?? true
             let migratedMode = (!oldBool && hadAutoCopy) ? 2 : mode
-            UserDefaults.standard.set(migratedMode, forKey: "quickCaptureMode")
+            UserDefaults.standard.set(migratedMode, forKey: QuickCaptureMode.userDefaultsKey)
             UserDefaults.standard.removeObject(forKey: "quickModeCopyToClipboard")
             UserDefaults.standard.removeObject(forKey: "autoCopyToClipboard")
         }
-        let quickMode = UserDefaults.standard.object(forKey: "quickCaptureMode") as? Int ?? 1
-        quickModePopup.selectItem(at: quickMode)
+        let quickMode = QuickCaptureMode.current
+        quickModePopup.select(
+            quickModePopup.itemArray.first { $0.representedObject as? Int == quickMode.rawValue })
         quickCaptureOpenEditorCheckbox.state = UserDefaults.standard.bool(forKey: "quickCaptureOpenEditor") ? .on : .off
         closeEditorAfterCopyCheckbox.state = UserDefaults.standard.bool(forKey: "closeEditorAfterCopy") ? .on : .off
 
@@ -2777,6 +2791,9 @@ class SettingsWindowController: NSWindowController, NSToolbarDelegate, NSWindowD
               let action = SaveActionPreference(rawValue: raw) else { return }
         SaveActionPreference.current = action
     }
+    @objc private func copyPathAfterSaveChanged(_ sender: NSButton) {
+        ImageSaveService.copyPathAfterSave = sender.state == .on
+    }
     @objc private func copySoundChanged(_ sender: NSButton) {
         UserDefaults.standard.set(sender.state == .on, forKey: "playCopySound")
     }
@@ -2814,7 +2831,9 @@ class SettingsWindowController: NSWindowController, NSToolbarDelegate, NSWindowD
         UserDefaults.standard.set(values[sender.indexOfSelectedItem], forKey: "thumbnailCorner")
     }
     @objc private func quickModeChanged(_ sender: NSPopUpButton) {
-        UserDefaults.standard.set(sender.indexOfSelectedItem, forKey: "quickCaptureMode")
+        guard let rawValue = sender.selectedItem?.representedObject as? Int,
+              QuickCaptureMode(rawValue: rawValue) != nil else { return }
+        UserDefaults.standard.set(rawValue, forKey: QuickCaptureMode.userDefaultsKey)
     }
     @objc private func quickCaptureOpenEditorChanged(_ sender: NSButton) {
         UserDefaults.standard.set(sender.state == .on, forKey: "quickCaptureOpenEditor")

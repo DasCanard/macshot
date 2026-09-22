@@ -21,6 +21,7 @@ final class ImageSaveServiceTests: XCTestCase {
 
     override func tearDownWithError() throws {
         ImageSaveService.onFailure = nil
+        UserDefaults.standard.removeObject(forKey: ImageSaveService.copyPathAfterSaveKey)
         try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: directory.path)
         try? FileManager.default.removeItem(at: directory)
     }
@@ -75,6 +76,70 @@ final class ImageSaveServiceTests: XCTestCase {
         }
         XCTAssertEqual(savedFiles.count, 5, "five captures in the same second must produce five files")
         XCTAssertEqual(Set(savedFiles).count, 5, "and five distinct names")
+    }
+
+    func testCopyPathAfterSaveWritesTheActualAvailablePathToTheClipboard() {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString("sentinel", forType: .string)
+
+        withDefaults([
+            "imageFormat": "png",
+            "downscaleRetina": false,
+            ImageSaveService.copyPathAfterSaveKey: true,
+        ]) {
+            XCTAssertTrue(save(ImageProbe.solidImage(), as: "shot.png"))
+            XCTAssertTrue(save(ImageProbe.solidImage(), as: "shot.png"))
+        }
+
+        XCTAssertEqual(
+            pasteboard.string(forType: .string),
+            directory.appendingPathComponent("shot (2).png").standardizedFileURL.path
+        )
+    }
+
+    func testCopyPathAfterSaveIsOffByDefault() {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString("sentinel", forType: .string)
+
+        withDefaults([
+            "imageFormat": "png",
+            "downscaleRetina": false,
+            ImageSaveService.copyPathAfterSaveKey: nil,
+        ]) {
+            XCTAssertFalse(ImageSaveService.copyPathAfterSave)
+            XCTAssertTrue(save(ImageProbe.solidImage(), as: "shot.png"))
+        }
+
+        XCTAssertEqual(pasteboard.string(forType: .string), "sentinel")
+    }
+
+    func testQuickCaptureModesKeepTheirPersistedValuesAndOutputSemantics() {
+        let expected: [(QuickCaptureMode, Int, Bool, Bool, Bool?)] = [
+            (.saveToFile, 0, false, true, nil),
+            (.copyImage, 1, true, false, nil),
+            (.saveAndCopyImage, 2, true, true, nil),
+            (.doNothing, 3, false, false, nil),
+            (.saveAndCopyPath, 4, false, true, true),
+        ]
+
+        for (mode, rawValue, copiesImage, saves, pathOverride) in expected {
+            XCTAssertEqual(mode.rawValue, rawValue)
+            XCTAssertEqual(mode.shouldCopyImage, copiesImage)
+            XCTAssertEqual(mode.shouldSave, saves)
+            XCTAssertEqual(mode.copyPathOverride, pathOverride)
+            XCTAssertFalse(mode.title.isEmpty)
+        }
+    }
+
+    func testQuickCaptureModeDefaultsSafelyForMissingOrUnknownValues() {
+        withDefaults([QuickCaptureMode.userDefaultsKey: nil]) {
+            XCTAssertEqual(QuickCaptureMode.current, .copyImage)
+        }
+        withDefaults([QuickCaptureMode.userDefaultsKey: 99]) {
+            XCTAssertEqual(QuickCaptureMode.current, .copyImage)
+        }
     }
 
     // MARK: - Failure reporting

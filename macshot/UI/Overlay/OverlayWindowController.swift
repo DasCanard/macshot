@@ -899,10 +899,15 @@ extension OverlayWindowController: OverlayViewDelegate {
                 let finalNSImage = NSImage(cgImage: finalCGImage, size: image.size)
 
                 DispatchQueue.main.async {
-                    // quickCaptureMode: 0=save, 1=copy, 2=both, 3=do nothing
-                    let mode = UserDefaults.standard.object(forKey: "quickCaptureMode") as? Int ?? 1
-                    if mode == 1 || mode == 2 {
+                    let mode = QuickCaptureMode.current
+                    if mode.shouldCopyImage {
                         self.copyImageToClipboard(finalNSImage)
+                    }
+                    if mode.shouldSave {
+                        ImageSaveService.saveToConfiguredFolder(
+                            finalNSImage,
+                            windowTitle: self.capturedWindowTitle,
+                            copyPathToClipboard: mode.copyPathOverride)
                     }
                     self.playCopySound()
                     self.dismiss()
@@ -968,20 +973,22 @@ extension OverlayWindowController: OverlayViewDelegate {
             image = BeautifyRenderer.render(image: beautifyInput, config: beautifyCfg)
         }
 
-        // quickCaptureMode: 0=save, 1=copy, 2=both, 3=do nothing (thumbnail only)
-        let mode = UserDefaults.standard.object(forKey: "quickCaptureMode") as? Int ?? 1
+        let mode = QuickCaptureMode.current
 
-        if mode == 1 || mode == 2 {
+        if mode.shouldCopyImage {
             ImageEncoder.copyToClipboard(image)
         }
         playCopySound()
 
         overlayDelegate?.overlayDidConfirm(self, capturedImage: image, annotationData: annotationData)
 
-        if mode == 0 || mode == 2 {
-            ImageSaveService.saveToConfiguredFolder(image, windowTitle: capturedWindowTitle)
+        if mode.shouldSave {
+            ImageSaveService.saveToConfiguredFolder(
+                image,
+                windowTitle: capturedWindowTitle,
+                copyPathToClipboard: mode.copyPathOverride)
         }
-        // mode 3: do nothing — image is passed to delegate which shows the thumbnail
+        // In do-nothing mode, the image is still passed to the delegate for the thumbnail.
     }
 
     func overlayViewDidRequestFileSave() {

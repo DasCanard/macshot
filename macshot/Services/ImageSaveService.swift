@@ -28,8 +28,58 @@ enum SaveActionPreference: Int, CaseIterable {
     }
 }
 
+enum QuickCaptureMode: Int, CaseIterable {
+    case saveToFile = 0
+    case copyImage = 1
+    case saveAndCopyImage = 2
+    case doNothing = 3
+    case saveAndCopyPath = 4
+
+    static let userDefaultsKey = "quickCaptureMode"
+
+    static var current: QuickCaptureMode {
+        guard let rawValue = UserDefaults.standard.object(forKey: userDefaultsKey) as? Int else {
+            return .copyImage
+        }
+        return QuickCaptureMode(rawValue: rawValue) ?? .copyImage
+    }
+
+    static let settingsOrder: [QuickCaptureMode] = [
+        .saveToFile, .copyImage, .saveAndCopyImage, .saveAndCopyPath, .doNothing,
+    ]
+
+    var title: String {
+        switch self {
+        case .saveToFile: return L("Save to file")
+        case .copyImage: return L("Copy to clipboard")
+        case .saveAndCopyImage: return L("Save + copy to clipboard")
+        case .doNothing: return L("Do nothing")
+        case .saveAndCopyPath: return [L("Save"), L("Copy Path")].joined(separator: " + ")
+        }
+    }
+
+    var shouldCopyImage: Bool {
+        self == .copyImage || self == .saveAndCopyImage
+    }
+
+    var shouldSave: Bool {
+        self == .saveToFile || self == .saveAndCopyImage || self == .saveAndCopyPath
+    }
+
+    var copyPathOverride: Bool? {
+        self == .saveAndCopyPath ? true : nil
+    }
+}
+
 enum ImageSaveService {
     typealias Completion = (Bool) -> Void
+
+    static let copyPathAfterSaveKey = "copyPathAfterSave"
+
+    static var copyPathAfterSave: Bool {
+        get { UserDefaults.standard.bool(forKey: copyPathAfterSaveKey) }
+        set { UserDefaults.standard.set(newValue, forKey: copyPathAfterSaveKey) }
+    }
 
     /// Called with a user-facing message when a save fails. AppDelegate wires
     /// this to a toast at launch. Before it existed, a failed write was logged
@@ -45,10 +95,12 @@ enum ImageSaveService {
     /// Writes a screenshot into `directory` without overwriting an existing
     /// file. Exposed for tests; the app goes through `save`.
     static func writeImageForTesting(_ image: NSImage, toDirectory directory: URL,
-                                     filename: String, completion: Completion?) {
+                                     filename: String, copyPathToClipboard: Bool? = nil,
+                                     completion: Completion?) {
         guard let prepared = prepare(image, completion: completion) else { return }
         writePreparedImage(prepared, to: directory.appendingPathComponent(filename),
-                           chooseAvailableName: true, completion: completion)
+                           chooseAvailableName: true, copyPathToClipboard: copyPathToClipboard,
+                           completion: completion)
     }
 
     static func save(
@@ -58,6 +110,7 @@ enum ImageSaveService {
         panelLevel: NSWindow.Level? = nil,
         sheetWindow: NSWindow? = nil,
         activateApp: Bool = true,
+        copyPathToClipboard: Bool? = nil,
         completion: Completion? = nil
     ) {
         switch action {
@@ -68,6 +121,7 @@ enum ImageSaveService {
                 panelLevel: panelLevel,
                 sheetWindow: sheetWindow,
                 activateApp: activateApp,
+                copyPathToClipboard: copyPathToClipboard,
                 completion: completion)
         case .askWhereToSave:
             showSavePanel(
@@ -76,6 +130,7 @@ enum ImageSaveService {
                 panelLevel: panelLevel,
                 sheetWindow: sheetWindow,
                 activateApp: activateApp,
+                copyPathToClipboard: copyPathToClipboard,
                 completion: completion)
         }
     }
@@ -86,13 +141,15 @@ enum ImageSaveService {
         panelLevel: NSWindow.Level? = nil,
         sheetWindow: NSWindow? = nil,
         activateApp: Bool = true,
+        copyPathToClipboard: Bool? = nil,
         completion: Completion? = nil
     ) {
         guard let prepared = prepare(image, completion: completion) else { return }
         let filename = defaultFilename(windowTitle: windowTitle, format: prepared.format)
         if let dirURL = SaveDirectoryAccess.resolveIfAccessible() {
             writePreparedImage(prepared, to: dirURL.appendingPathComponent(filename), chooseAvailableName: true,
-                               lease: SaveDirectoryLease(alreadyAccessing: dirURL), completion: completion)
+                               lease: SaveDirectoryLease(alreadyAccessing: dirURL),
+                               copyPathToClipboard: copyPathToClipboard, completion: completion)
             return
         }
 
@@ -103,7 +160,8 @@ enum ImageSaveService {
         ) { dirURL, securityScoped in
             guard let dirURL else { completionOnMain(completion, false); return }
             writePreparedImage(prepared, to: dirURL.appendingPathComponent(filename), chooseAvailableName: true,
-                               lease: SaveDirectoryLease(alreadyAccessing: securityScoped ? dirURL : nil), completion: completion)
+                               lease: SaveDirectoryLease(alreadyAccessing: securityScoped ? dirURL : nil),
+                               copyPathToClipboard: copyPathToClipboard, completion: completion)
         }
     }
 
@@ -114,6 +172,7 @@ enum ImageSaveService {
         panelLevel: NSWindow.Level? = nil,
         sheetWindow: NSWindow? = nil,
         activateApp: Bool = true,
+        copyPathToClipboard: Bool? = nil,
         completion: Completion? = nil
     ) {
         guard let prepared = prepare(image, completion: completion) else { return }
@@ -135,7 +194,8 @@ enum ImageSaveService {
             }
             let accessing = url.startAccessingSecurityScopedResource()
             writePreparedImage(prepared, to: url, chooseAvailableName: false,
-                               lease: SaveDirectoryLease(alreadyAccessing: accessing ? url : nil), completion: completion)
+                               lease: SaveDirectoryLease(alreadyAccessing: accessing ? url : nil),
+                               copyPathToClipboard: copyPathToClipboard, completion: completion)
         }
 
         presentPanel(panel, sheetWindow: sheetWindow, activateApp: activateApp, completionHandler: handler)
@@ -161,22 +221,31 @@ enum ImageSaveService {
     /// after the fully encoded file has been flushed successfully.
     static func writePreparedImage(_ prepared: ImageEncoder.PreparedImage, to url: URL,
                                    chooseAvailableName: Bool, lease: SaveDirectoryLease? = nil,
+                                   copyPathToClipboard: Bool? = nil,
                                    completion: Completion?) {
+        let shouldCopyPath = copyPathToClipboard ?? copyPathAfterSave
         MediaExportCoordinator.shared.start(title: url.lastPathComponent, status: L("Saving..."), operation: { cancellation, _ in
-            try await MediaExportIO.perform {
+            let savedURL = try await MediaExportIO.perform {
                 defer { withExtendedLifetime(lease) {} }
-                try autoreleasepool {
+                return try autoreleasepool {
                     try cancellation.check()
                     guard let data = prepared.encode() else { throw CocoaError(.fileWriteUnknown) }
                     if chooseAvailableName {
-                        try writeWithoutOverwriting(data, in: url.deletingLastPathComponent(), filename: url.lastPathComponent,
-                                                    beforePublish: cancellation.beginPublication)
+                        return try writeWithoutOverwriting(
+                            data,
+                            in: url.deletingLastPathComponent(),
+                            filename: url.lastPathComponent,
+                            beforePublish: cancellation.beginPublication)
                     } else {
                         let transaction = try AtomicMediaSave(destinationURL: url)
                         try data.write(to: transaction.stagingURL)
                         try transaction.commit(beforePublish: cancellation.beginPublication)
+                        return url
                     }
                 }
+            }
+            if shouldCopyPath {
+                copyFilePathToClipboard(savedURL)
             }
         }, completion: { result in
             switch result {
@@ -248,7 +317,7 @@ enum ImageSaveService {
     nonisolated private static func writeWithoutOverwriting(_ data: Data,
                                                 in dirURL: URL,
                                                 filename: String,
-                                                beforePublish: () throws -> Void) throws {
+                                                beforePublish: () throws -> Void) throws -> URL {
         try beforePublish()
         let base = (filename as NSString).deletingPathExtension
         let ext = (filename as NSString).pathExtension
@@ -261,7 +330,7 @@ enum ImageSaveService {
                 try data.write(to: transaction.stagingURL)
                 // Exclusive rename arbitrates concurrent saves of the same name.
                 try transaction.commit(overwritingExisting: false)
-                return
+                return candidate
             } catch {
                 let nsError = error as NSError
                 guard (nsError.domain == NSPOSIXErrorDomain && nsError.code == Int(EEXIST)) ||
@@ -285,6 +354,13 @@ enum ImageSaveService {
                 }
             }
         }
+    }
+
+    @MainActor
+    private static func copyFilePathToClipboard(_ url: URL) {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(url.standardizedFileURL.path, forType: .string)
     }
 
     private static func completionOnMain(_ completion: Completion?, _ success: Bool) {

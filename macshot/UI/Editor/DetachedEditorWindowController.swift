@@ -516,14 +516,16 @@ extension DetachedEditorWindowController: OverlayViewDelegate {
     func overlayViewDidRequestQuickSave() {
         guard let save = captureHistorySave() else { return }
 
-        // quickCaptureMode: 0=save, 1=copy, 2=both, 3=do nothing (thumbnail only)
-        let mode = UserDefaults.standard.object(forKey: "quickCaptureMode") as? Int ?? 1
+        let mode = QuickCaptureMode.current
 
-        if mode == 1 || mode == 2 {
+        if mode.shouldCopyImage {
             ImageEncoder.copyToClipboard(save.image)
         }
-        if mode == 0 || mode == 2 {
-            ImageSaveService.saveToConfiguredFolder(save.image, sheetWindow: window)
+        if mode.shouldSave {
+            ImageSaveService.saveToConfiguredFolder(
+                save.image,
+                sheetWindow: window,
+                copyPathToClipboard: mode.copyPathOverride)
         }
         playCopySound()
         autoSaveToHistoryIfNeeded(save)

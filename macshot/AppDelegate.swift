@@ -2069,8 +2069,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUUpdaterDelegate {
         }
     }
 
-    private func saveImageToConfiguredFolder(_ image: NSImage) {
-        ImageSaveService.saveToConfiguredFolder(image, panelLevel: .floating, activateApp: true)
+    private func saveImageToConfiguredFolder(_ image: NSImage, copyPathToClipboard: Bool? = nil) {
+        ImageSaveService.saveToConfiguredFolder(
+            image,
+            panelLevel: .floating,
+            activateApp: true,
+            copyPathToClipboard: copyPathToClipboard)
     }
 
     #if !OFFLINE
@@ -3300,13 +3304,12 @@ extension AppDelegate: OverlayWindowControllerDelegate {
         guard let image = finalImage else { return }
 
         let entryID = ScreenshotHistory.shared.add(image: image)
-        // quickCaptureMode: 0=save, 1=copy, 2=both, 3=do nothing (thumbnail only)
-        let mode = UserDefaults.standard.object(forKey: "quickCaptureMode") as? Int ?? 1
-        if mode == 1 || mode == 2 {
+        let mode = QuickCaptureMode.current
+        if mode.shouldCopyImage {
             ImageEncoder.copyToClipboard(image)
         }
-        if mode == 0 || mode == 2 {
-            saveImageToConfiguredFolder(image)
+        if mode.shouldSave {
+            saveImageToConfiguredFolder(image, copyPathToClipboard: mode.copyPathOverride)
         }
         playCopySound()
         showFloatingThumbnail(image: image)

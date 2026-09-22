@@ -232,7 +232,7 @@ TextEditingCanvas                — Coordinate transforms + annotation storage 
 ### Persistence (UserDefaults)
 - Drawing: `currentStrokeWidth`, `numberStrokeWidth`, `markerStrokeWidth`
 - Hotkey: `hotkeyKeyCode`, `hotkeyModifiers`
-- Output: `saveDirectory`, `autoCopyToClipboard`, `playCopySound`
+- Output: `saveDirectory`, `quickCaptureMode`, `copyPathAfterSave`, `playCopySound`
 - Selection: `lastSelectionRect`, `lastSelectionScreenFrame`, `rememberLastSelection`
 - Thumbnails: `showFloatingThumbnail`, `thumbnailStacking`, `thumbnailAutoDismissSeconds`
 - Image: `imageFormat` (png/jpeg/heic/webp), `imageQuality` (0.0–1.0), `downscaleRetina` (bool)
