@@ -15,7 +15,7 @@ on:
 jobs:
   release:
     runs-on: macos-26        # Xcode 26 + macOS 26 SDK (needed for NSGlassEffectView / Liquid Glass)
-    timeout-minutes: 60
+    timeout-minutes: 90
 
     steps:
       # ── 1. Checkout ────────────────────────────────────────────────────────
@@ -295,7 +295,14 @@ jobs:
               --wait \
               --timeout 20m
 
-            xcrun stapler staple "$dmg"
+            # Apple's ticket service sometimes throttles right after acceptance
+            # (stapler error 68 with a retry-after); the ticket still exists.
+            for attempt in 1 2 3 4 5 6 7 8; do
+              if xcrun stapler staple "$dmg"; then break; fi
+              if [ "$attempt" = 8 ]; then echo "Stapling $dmg failed"; exit 1; fi
+              echo "Staple attempt $attempt failed, retrying in 3 minutes"
+              sleep 180
+            done
           done
 
           echo "✅ Notarization complete"
