@@ -48,6 +48,19 @@ final class RecordingEngine: NSObject {
 
     private var microphoneCapture: MicrophoneCapture?
 
+    // MARK: - Pointer data
+
+    /// Pointer, click and keystroke data recorded beside the take for the
+    /// editor. Optional: a failure here never affects the video.
+    private(set) var cursorTelemetry: CursorTelemetryRecorder?
+    /// Invoked (main actor) once pointer recording is running, so callers
+    /// can route keystrokes into it.
+    var onTelemetryStarted: ((CursorTelemetryRecorder) -> Void)?
+    /// Separate camera recording, already receiving frames (set by the caller
+    /// before starting). Finished before the take completes.
+    var cameraRecorder: VideoCameraRecorder?
+    var onCameraFinished: (() -> Void)?
+
     // MARK: - Callbacks
 
     var onProgress: RecordingProgressCallback?
@@ -80,9 +93,10 @@ final class RecordingEngine: NSObject {
 
     /// Start recording the given rect (in NSScreen/AppKit coordinates, bottom-left origin).
     /// Optional overrides take precedence over UserDefaults for this session.
-    func startRecording(rect: NSRect, screen: NSScreen, fpsOverride: Int? = nil, excludeWindowNumbers: [CGWindowID] = []) {
+    func startRecording(rect: NSRect, screen: NSScreen, fpsOverride: Int? = nil, excludeWindowNumbers: [CGWindowID] = [],
+                        editablePointer: Bool = false, cameraWindowID: CGWindowID? = nil) {
         guard state == .idle else { return }
-        let configuration: RecordingConfiguration
+        var configuration: RecordingConfiguration
         do {
             guard let displayID = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID else {
                 throw RecordingError.noDisplay
@@ -95,6 +109,10 @@ final class RecordingEngine: NSObject {
                 microphone: defaults.bool(forKey: "recordMicAudio"), systemAudio: defaults.bool(forKey: "recordSystemAudio"),
                 microphoneDeviceID: defaults.string(forKey: "selectedMicDeviceUID"), excludedWindows: excludeWindowNumbers,
                 filename: FilenameFormatter.format(template: template, fallback: FilenameFormatter.defaultRecordingTemplate))
+            configuration.pointerRegion = CursorTelemetryRecorder.globalRegion(forAppKitRect: rect)
+            configuration.hidesCursor = editablePointer
+            configuration.overlaysInTelemetry = editablePointer
+            configuration.cameraWindowID = cameraWindowID
         } catch {
             guard lifecycle.begin() != nil else { return }
             stopRecording(error: error)
@@ -140,6 +158,8 @@ final class RecordingEngine: NSObject {
         recordingClock.pause(at: ProcessInfo.processInfo.systemUptime)
         updateProgress()
         writerSession?.pause()
+        cursorTelemetry?.pause()
+        cameraRecorder?.pause()
         progressTimer?.invalidate()
         progressTimer = nil
         onPauseChanged?(true)
@@ -149,6 +169,8 @@ final class RecordingEngine: NSObject {
         guard lifecycle.resume() else { return }
         let pausedFor = recordingClock.resume(at: ProcessInfo.processInfo.systemUptime)
         writerSession?.resume(addingPausedDuration: pausedFor)
+        cursorTelemetry?.resume(pausedDuration: pausedFor)
+        cameraRecorder?.resume(pausedDuration: pausedFor)
         startProgressTimer()
         onPauseChanged?(false)
     }
@@ -227,7 +249,9 @@ final class RecordingEngine: NSObject {
             config.width = configuration.pixelWidth
             config.height = configuration.pixelHeight
             config.minimumFrameInterval = CMTime(value: 1, timescale: CMTimeScale(configuration.frameRate))
-            config.showsCursor = true   // we'll draw our own highlight on top if needed
+            // Editable takes keep the pointer out of the pixels: the editor
+            // redraws it sharply from recorded pointer data.
+            config.showsCursor = !configuration.hidesCursor
             config.sourceRect = configuration.sourceRect
             config.pixelFormat = kCVPixelFormatType_32BGRA
             config.scalesToFit = true
@@ -272,6 +296,28 @@ final class RecordingEngine: NSObject {
                     }
                 }
 
+            if let region = configuration.pointerRegion {
+                let header = CursorTelemetry.Header(sourcePointSize: region.size,
+                    pixelSize: CGSize(width: pixelW, height: pixelH), frameRate: configuration.frameRate,
+                    cursorHiddenInVideo: configuration.hidesCursor, overlaysInTelemetry: configuration.overlaysInTelemetry)
+                cursorTelemetry = try? CursorTelemetryRecorder(
+                    url: stored.directoryURL.appendingPathComponent(CursorTelemetry.filename), region: region, header: header)
+            }
+            let telemetry = cursorTelemetry
+            let camera = cameraRecorder
+            camera?.open(directory: stored.directoryURL)
+            if let camera, let cameraWindow = configuration.cameraWindowID {
+                // If the separate camera file fails, capture the webcam in the
+                // screen video again so the take never loses it.
+                let fallbackWindows = excludeWindows.filter { CGWindowID($0.windowID) != cameraWindow }
+                camera.onFailure = { [weak self] in
+                    DispatchQueue.main.async {
+                        guard let self, self.lifecycle.isCurrent(sessionID), let stream = self.stream else { return }
+                        let filter = SCContentFilter(display: display, excludingWindows: fallbackWindows)
+                        stream.updateContentFilter(filter) { _ in }
+                    }
+                }
+            }
             let writer = try MP4WriterSession.make(
                 queue: recordingQueue, url: outURL, width: pixelW, height: pixelH, fps: configuration.frameRate,
                 recordSystemAudio: configuration.systemAudio, recordMicAudio: configuration.microphone,
@@ -280,6 +326,10 @@ final class RecordingEngine: NSObject {
                         guard let self = self, self.lifecycle.isCurrent(sessionID) else { return }
                         self.stopRecording(error: error)
                     }
+                },
+                onSessionStart: { time in
+                    telemetry?.markStart(hostTime: time.seconds)
+                    camera?.markStart(hostTime: time.seconds)
                 })
             self.writerSession = writer
 
@@ -338,6 +388,10 @@ final class RecordingEngine: NSObject {
             guard lifecycle.didStart(sessionID) else { return }
             writer.captureDidStart()
             recordingClock.start(at: ProcessInfo.processInfo.systemUptime)
+            if let telemetry = cursorTelemetry {
+                telemetry.start()
+                onTelemetryStarted?(telemetry)
+            }
 
             startProgressTimer()
 
@@ -359,6 +413,13 @@ final class RecordingEngine: NSObject {
         }
         streamStartAttempted = false
         streamOutput = nil
+        cursorTelemetry?.stop()
+        cursorTelemetry = nil
+        if let camera = cameraRecorder {
+            onCameraFinished?()
+            await camera.finish()
+            cameraRecorder = nil
+        }
         await microphoneCapture?.stop()
         microphoneCapture = nil
 
@@ -400,6 +461,14 @@ final class RecordingEngine: NSObject {
 
     private func complete(sessionID: UUID, url: URL?, error: Error?) {
         guard lifecycle.finish(sessionID) else { return }
+        cursorTelemetry?.stop()
+        cursorTelemetry = nil
+        if let camera = cameraRecorder {
+            // Setup failed before finalization: release the camera file.
+            onCameraFinished?()
+            cameraRecorder = nil
+            Task { await camera.finish() }
+        }
         diskMonitor?.cancel()
         diskMonitor = nil
         if let observer = sleepObserver { NSWorkspace.shared.notificationCenter.removeObserver(observer) }
@@ -436,7 +505,7 @@ final class RecordingEngine: NSObject {
         var errorDescription: String? {
             switch self {
             case .noDisplay: return "Could not find the screen to record."
-            case .stoppedBeforeStart: return "Recording stopped before it started — nothing was captured."
+            case .stoppedBeforeStart: return "Recording stopped before it started. Nothing was captured."
             case .microphoneUnavailable: return "The selected microphone could not be started. Check its connection and Microphone permission."
             case .systemAudioUnavailable: return "System audio recording requires macOS 13 or later."
             case .systemSleep: return "Recording stopped because the Mac is going to sleep."

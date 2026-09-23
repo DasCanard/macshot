@@ -36,6 +36,16 @@ final class VideoFreezeSegment: Codable {
         self.holdDuration = VideoFreezeSegment.clampDuration(holdDuration)
     }
 
+    private enum CodingKeys: String, CodingKey { case id, atTime, holdDuration }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = c.decode(.id, or: UUID())
+        atTime = c.decode(.atTime, or: 0)
+        let hold = c.decode(.holdDuration, or: Self.defaultDuration)
+        holdDuration = VideoFreezeSegment.clampDuration(hold.isFinite ? hold : Self.defaultDuration)
+    }
+
     static func clampDuration(_ d: Double) -> Double {
         return max(minHoldDuration, min(maxHoldDuration, d))
     }

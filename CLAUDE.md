@@ -49,7 +49,16 @@ macshot/
 │   ├── ScrollCaptureController.swift   # Scroll capture with SAD-based stitching
 │   ├── ScrollFrameAnalyzer.swift       # Pure pixel comparison: frozen header + scrollbar detection
 │   ├── GIFExporter.swift              # Edited timeline → timestamped GIF frames
-│   └── GIFEncoder.swift               # Bounded-memory streaming GIF writer
+│   ├── GIFEncoder.swift               # Bounded-memory streaming GIF writer
+│   ├── CursorTelemetry.swift          # Pointer/click/key data file format + media-clock view (CursorRecording)
+│   ├── CursorTelemetryRecorder.swift  # Samples the pointer during a take (no permissions needed)
+│   ├── CursorMotion.swift             # Spring smoothing, idle/typing hiding, click timing
+│   ├── VideoSceneGeometry.swift       # Canvas/frame layout, camera path (zooms), auto-zoom planner
+│   ├── VideoSceneRenderer.swift       # Per-frame Core Image scene: frame, camera, cursor, overlays, webcam
+│   ├── VideoSceneBuilder.swift        # Main-actor snapshot builder: background art, sprites
+│   ├── KeystrokeTimeline.swift        # Keystroke labels + caption segmentation/SRT
+│   ├── VideoCameraRecorder.swift      # Separate webcam file aligned to the screen clock
+│   └── VideoCaptionTranscriber.swift  # On-device speech → caption words
 │
 ├── Services/
 │   ├── ImageEncoder.swift              # PNG/JPEG/HEIC/WebP encoding, clipboard copy, resolution scaling
@@ -89,7 +98,8 @@ macshot/
 │   │   ├── DetachedEditorWindowController.swift  # Standalone editor window (resizable, titled)
 │   │   ├── EditorTopBarView.swift      # NSView with crop, flip, zoom buttons
 │   │   ├── CenteringClipView.swift     # NSClipView subclass that centers document when smaller than clip
-│   │   └── VideoEditorWindowController.swift  # Standalone video editor (trim, export, upload)
+│   │   ├── VideoEditorWindowController(+Export).swift  # Studio video editor window, actions, exports
+│   │   └── Video/                      # Editor document, playback, planner, exporter, inspector, stage, timeline
 │   │
 │   ├── Toolbar/
 │   │   ├── ToolbarDefinitions.swift    # ToolbarButtonAction enum, ToolbarButton struct, ToolbarLayout constants
@@ -216,6 +226,16 @@ AnnotationToolHandler            — Tool creation/update/finish lifecycle
 AnnotationCanvas                 — OverlayView state interface for tool handlers
 TextEditingCanvas                — Coordinate transforms + annotation storage for TextEditingController
 ```
+
+### Video editor (Studio)
+
+The video editor is built around `VideoEditorDocument` (one `VideoProject`: timeline edits plus the look — frame/background, pointer, zoom, keystrokes, camera, captions). Views observe it; they never keep copies. Undo is a stack of encoded project snapshots; group continuous interactions with `beginGesture()`/`endGesture()`. Projects autosave beside a recording (`<take>.project.json`) or in `VideoProjects/` for other files, and decode leniently.
+
+- **One render path.** `VideoRenderPlanner` builds every composition (preview and all exports) and the compositor renders `VideoSceneSnapshot` through `VideoSceneRenderer`: censors in content space → crop and framed placement → camera over the whole canvas (with motion blur) → text, pointer, clicks, camera bubble, keystrokes and captions in output space. Preview only lowers the render scale. Don't add effects to one path only.
+- **Recorded pointer data.** Every take writes `cursor.mstl` (`CursorTelemetry`) beside the MP4. Takes that open in the editor with "Editable pointer" hide the system cursor from ScreenCaptureKit and exclude the click/keystroke/webcam overlay windows; the editor redraws them. Any other destination keeps them in the pixels. Telemetry is host-clock based and anchored to the writer's first frame (`MP4WriterSession` `onSessionStart`); pauses are removed exactly like the writer removes them. Telemetry and camera failures never affect the screen recording.
+- **Time-dependent motion is precomputed and pure.** Cursor smoothing (`CursorMotion`) and the camera path (`CameraPathBuilder`) are sampled deterministically so scrubbing, playback and export produce identical frames. Motion-blur averaging must weight alpha only (Core Image color matrices are unpremultiplied).
+- **Webcam.** When the camera records separately, `VideoCompositionBuilder` adds its track in lockstep with every cut/speed/freeze piece.
+- **Visual checks.** `scripts/probe-video-editor.sh` builds the real editor into an isolated app; with `-D VIDEO_EDITOR_PROBE` it accepts scripted commands (`PROBE_COMMANDS` file) and renders in-process snapshots, including the preview frame. `scripts/make-studio-fixture.swift` generates a synthetic recording with pointer data.
 
 ### Undo/Redo
 

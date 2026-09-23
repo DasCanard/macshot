@@ -284,7 +284,7 @@ class SettingsWindowController: NSWindowController, NSToolbarDelegate, NSWindowD
             view.bottomAnchor.constraint(equalTo: container.bottomAnchor),
         ])
         currentTabID = id
-        window?.title = "\(BuildVariant.displayName) \(L("Settings")) — \(L(Self.tabDefs.first(where: { $0.id == id })?.label ?? ""))"
+        window?.title = "\(BuildVariant.displayName) \(L("Settings")) · \(L(Self.tabDefs.first(where: { $0.id == id })?.label ?? ""))"
         #if !OFFLINE
         if id == "uploads" {
             reloadUploadsTab()
@@ -1778,6 +1778,17 @@ class SettingsWindowController: NSWindowController, NSToolbarDelegate, NSWindowD
         stack.addArrangedSubview(labeledRow(L("When done:"), controls: [recordingOnStopPopup]))
         stack.setCustomSpacing(8, after: stack.arrangedSubviews.last!)
 
+        let editableCheckbox = NSButton(checkboxWithTitle: L("Editable pointer, clicks and keystrokes"),
+                                        target: self, action: #selector(editablePointerChanged(_:)))
+        editableCheckbox.state = AppDelegate.recordsEditablePointer ? .on : .off
+        stack.addArrangedSubview(indented(editableCheckbox))
+        let editableNote = NSTextField(wrappingLabelWithString: L("When recordings open in the editor, the pointer is recorded separately so you can smooth, resize, restyle or hide it, and add zooms that follow it."))
+        editableNote.font = NSFont.systemFont(ofSize: 10)
+        editableNote.textColor = .secondaryLabelColor
+        editableNote.preferredMaxLayoutWidth = 420
+        stack.addArrangedSubview(indented(editableNote))
+        stack.setCustomSpacing(10, after: stack.arrangedSubviews.last!)
+
         let hideHUDCheckbox = NSButton(checkboxWithTitle: L("Hide recording controls"), target: self, action: #selector(hideRecordingHUDChanged(_:)))
         hideHUDCheckbox.state = UserDefaults.standard.bool(forKey: "hideRecordingHUD") ? .on : .off
         stack.addArrangedSubview(indented(hideHUDCheckbox))
@@ -1946,7 +1957,7 @@ class SettingsWindowController: NSWindowController, NSToolbarDelegate, NSWindowD
         stack.addArrangedSubview(labeledRow(L("Folder:"), controls: [gdriveFolderField]))
         stack.setCustomSpacing(4, after: stack.arrangedSubviews.last!)
 
-        let gdriveNote = NSTextField(wrappingLabelWithString: L("Files are uploaded to this folder in your Google Drive. Leave empty to use \"macshot\". macshot can only use folders it created itself, so a folder you made in Drive with the same name won't be reused — a new one is created instead. Everything stays private — nothing is shared publicly."))
+        let gdriveNote = NSTextField(wrappingLabelWithString: L("Files are uploaded to this folder in your Google Drive. Leave empty to use \"macshot\". macshot can only use folders it created itself, so a folder you made in Drive with the same name won't be reused. A new one is created instead. Everything stays private and nothing is shared publicly."))
         gdriveNote.font = NSFont.systemFont(ofSize: 10)
         gdriveNote.textColor = .secondaryLabelColor
         stack.addArrangedSubview(indented(gdriveNote))
@@ -2066,7 +2077,7 @@ class SettingsWindowController: NSWindowController, NSToolbarDelegate, NSWindowD
         stack.addArrangedSubview(labeledRow(L("API key:"), controls: [imgbbKeyField]))
         stack.setCustomSpacing(4, after: stack.arrangedSubviews.last!)
 
-        let imgbbNote = NSTextField(wrappingLabelWithString: L("A shared key is included — get your own free key at imgbb.com/api if you hit rate limits. Images only (no video support)."))
+        let imgbbNote = NSTextField(wrappingLabelWithString: L("A shared key is included. Get your own free key at imgbb.com/api if you hit rate limits. Images only (no video support)."))
         imgbbNote.font = NSFont.systemFont(ofSize: 10)
         imgbbNote.textColor = .secondaryLabelColor
         stack.addArrangedSubview(indented(imgbbNote))
@@ -2144,7 +2155,7 @@ class SettingsWindowController: NSWindowController, NSToolbarDelegate, NSWindowD
         stack.setCustomSpacing(20, after: versionLabel)
 
         // Description
-        let desc = NSTextField(wrappingLabelWithString: L("A free, open-source screenshot & screen recording tool for macOS.\nFully native — built with Swift and AppKit."))
+        let desc = NSTextField(wrappingLabelWithString: L("A free, open-source screenshot & screen recording tool for macOS.\nFully native, built with Swift and AppKit."))
         desc.font = NSFont.systemFont(ofSize: 13)
         desc.textColor = .labelColor
         desc.alignment = .center
@@ -2904,6 +2915,10 @@ class SettingsWindowController: NSWindowController, NSToolbarDelegate, NSWindowD
         let fps = fpsOptions[min(sender.indexOfSelectedItem, fpsOptions.count - 1)]
         UserDefaults.standard.set(fps, forKey: "recordingFPS")
     }
+    @objc private func editablePointerChanged(_ sender: NSButton) {
+        UserDefaults.standard.set(sender.state == .on, forKey: AppDelegate.editablePointerDefaultsKey)
+    }
+
     @objc private func recordingOnStopChanged(_ sender: NSPopUpButton) {
         let values = ["editor", "finder", "clipboard"]
         UserDefaults.standard.set(values[sender.indexOfSelectedItem], forKey: "recordingOnStop")
@@ -3411,7 +3426,7 @@ extension SettingsWindowController {
             ("{time}",      "14-22-05"),
             ("{timestamp}", "2026-04-17_14-22-05"),
             ("{unix}",      "1745592125"),
-            ("{window}",    L("Screenshots only — captured window title (blank otherwise)")),
+            ("{window}",    L("Captured window title (screenshots only, blank otherwise)")),
             ("{index}",     L("Counter for multi-screen captures")),
             ("{random}",    L("8-character random string (e.g. k3j7x9q2)")),
         ]

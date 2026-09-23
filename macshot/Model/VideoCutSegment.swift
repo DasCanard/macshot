@@ -21,6 +21,15 @@ final class VideoCutSegment: Codable {
         self.endTime = endTime
     }
 
+    private enum CodingKeys: String, CodingKey { case id, startTime, endTime }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = c.decode(.id, or: UUID())
+        startTime = c.decode(.startTime, or: 0)
+        endTime = c.decode(.endTime, or: 0)
+    }
+
     var duration: Double { max(0, endTime - startTime) }
 
     /// Two cuts overlap if their ranges intersect. Touching endpoints don't

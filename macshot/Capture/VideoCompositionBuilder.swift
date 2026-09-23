@@ -7,6 +7,8 @@ enum VideoCompositionBuilder {
         let audioTracks: [AVMutableCompositionTrack]
         let timeMap: [EffectsCompositionInstruction.TimeMapEntry]
         let frameDuration: CMTime
+        /// Separately recorded camera, aligned to the source clock.
+        var cameraTrack: AVMutableCompositionTrack? = nil
         var duration: Double { composition.duration.seconds }
     }
 
@@ -24,7 +26,7 @@ enum VideoCompositionBuilder {
     /// Constructs a privately owned composition. Every insert either succeeds
     /// or throws; a partial timeline must never be presented as a valid export.
     static func build(asset: AVAsset, pieces: [VideoSpeeds.Piece], includeAudio: Bool,
-                      sourceFrameDuration: CMTime? = nil) throws -> Result {
+                      sourceFrameDuration: CMTime? = nil, camera: AVAsset? = nil) throws -> Result {
         guard let sourceVideo = asset.tracks(withMediaType: .video).first else { throw BuildError.missingVideo }
         guard !pieces.isEmpty else { throw BuildError.invalidTimeline }
         let composition = AVMutableComposition()
@@ -49,6 +51,13 @@ enum VideoCompositionBuilder {
                                             method: .roundTowardPositiveInfinity)
         let sourceEnd = CMTimeConvertScale(sourceVideo.timeRange.end, timescale: timeScale,
                                           method: .roundTowardNegativeInfinity)
+        // The camera file starts at the screen recording's first frame, so
+        // both share the source clock. Missing camera time stays empty.
+        let cameraSource = camera?.tracks(withMediaType: .video).first
+        let cameraTrack = cameraSource == nil ? nil
+            : composition.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid)
+        cameraTrack?.naturalTimeScale = timeScale
+        if let cameraSource { cameraTrack?.preferredTransform = cameraSource.preferredTransform }
         var cursor = CMTime.zero
         var map: [EffectsCompositionInstruction.TimeMapEntry] = []
         for piece in pieces {
@@ -95,6 +104,15 @@ enum VideoCompositionBuilder {
                 let insertedRange = CMTimeRange(start: cursor, end: video.timeRange.end)
                 video.scaleTimeRange(insertedRange, toDuration: duration)
             }
+            if let cameraSource, let cameraTrack {
+                // A freeze holds the camera's own frame at that instant; the
+                // screen frame's interval can span many camera frames.
+                let cameraRange = piece.kind == .freeze
+                    ? (try? frameRange(at: start, in: cameraSource, fallbackDuration: CMTime(value: 1, timescale: 30)))
+                    : nil
+                appendCamera(source: cameraSource, destination: cameraTrack, range: cameraRange ?? sourceRange,
+                             at: cursor, scaledDuration: duration)
+            }
             for (source, destination) in zip(sourceAudio, audio) {
                 if piece.kind == .freeze {
                     destination.insertEmptyTimeRange(CMTimeRange(start: cursor, duration: duration))
@@ -111,7 +129,42 @@ enum VideoCompositionBuilder {
             cursor = end
         }
         return Result(composition: composition, videoTrack: video, audioTracks: audio,
-                      timeMap: map, frameDuration: frameDuration)
+                      timeMap: map, frameDuration: frameDuration, cameraTrack: cameraTrack)
+    }
+
+    /// Camera time mirrors the screen: the same source range, scaled the same
+    /// way. Parts the camera did not record are left empty (no bubble).
+    private static func appendCamera(source: AVAssetTrack, destination: AVMutableCompositionTrack,
+                                     range: CMTimeRange, at cursor: CMTime, scaledDuration: CMTime) {
+        let start = destination.timeRange.duration.isNumeric ? CMTimeAdd(destination.timeRange.start, destination.timeRange.duration) : .zero
+        if CMTimeCompare(start, cursor) < 0 {
+            destination.insertEmptyTimeRange(CMTimeRange(start: start, end: cursor))
+        }
+        let overlap = CMTimeRangeGetIntersection(range, otherRange: source.timeRange)
+        guard overlap.isValid, overlap.duration.isNumeric, overlap.duration.value > 0,
+              range.duration.seconds > 0 else {
+            destination.insertEmptyTimeRange(CMTimeRange(start: cursor, duration: scaledDuration))
+            return
+        }
+        let ratio = scaledDuration.seconds / range.duration.seconds
+        let lead = CMTimeSubtract(overlap.start, range.start)
+        let leadOut = CMTime(seconds: lead.seconds * ratio, preferredTimescale: scaledDuration.timescale)
+        if leadOut.value > 0 { destination.insertEmptyTimeRange(CMTimeRange(start: cursor, duration: leadOut)) }
+        let at = CMTimeAdd(cursor, leadOut)
+        do {
+            try destination.insertTimeRange(overlap, of: source, at: at)
+        } catch {
+            destination.insertEmptyTimeRange(CMTimeRange(start: at, duration: overlap.duration))
+        }
+        let outDuration = CMTime(seconds: overlap.duration.seconds * ratio, preferredTimescale: scaledDuration.timescale)
+        if CMTimeCompare(overlap.duration, outDuration) != 0, outDuration.value > 0 {
+            destination.scaleTimeRange(CMTimeRange(start: at, duration: overlap.duration), toDuration: outDuration)
+        }
+        let end = CMTimeAdd(cursor, scaledDuration)
+        let written = CMTimeAdd(destination.timeRange.start, destination.timeRange.duration)
+        if CMTimeCompare(written, end) < 0 {
+            destination.insertEmptyTimeRange(CMTimeRange(start: written, end: end))
+        }
     }
 
     private static func editingTimeScale(tracks: [AVAssetTrack], frameDuration: CMTime) -> CMTimeScale {

@@ -2128,7 +2128,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUUpdaterDelegate {
         }
 
         if provider == "s3" && !S3Uploader.shared.isConfigured {
-            toast.showError(message: "S3 not configured — check Settings")
+            toast.showError(message: "S3 not configured. Check Settings.")
             return
         }
 
@@ -2722,6 +2722,13 @@ extension AppDelegate: OverlayWindowControllerDelegate {
         removeDelayEscMonitors()
     }
 
+    /// Recordings that open in the video editor keep the pointer, clicks and
+    /// keystrokes as data (default on).
+    static let editablePointerDefaultsKey = "recordEditablePointer"
+    static var recordsEditablePointer: Bool {
+        UserDefaults.standard.object(forKey: editablePointerDefaultsKey) as? Bool ?? true
+    }
+
     private func beginRecording(rect: NSRect, screen: NSScreen,
                                  fpsOverride: Int?,
                                  onStopOverride: String?,
@@ -2861,13 +2868,39 @@ extension AppDelegate: OverlayWindowControllerDelegate {
 
         // Collect window IDs of UI chrome to exclude from the recording
         // (selection border + HUD). Webcam, mouse highlight, and keystroke
-        // overlays are intentionally captured.
+        // overlays are captured, unless the take opens in the video editor
+        // with an editable pointer: then the editor renders the pointer,
+        // clicks and keystrokes from recorded data, restyleable afterwards.
         var excludeIDs: [CGWindowID] = []
         if let w = selectionBorderOverlay { excludeIDs.append(CGWindowID(w.windowNumber)) }
         if let w = recordingHUDPanel { excludeIDs.append(CGWindowID(w.windowNumber)) }
+        let onStop = onStopOverride ?? UserDefaults.standard.string(forKey: "recordingOnStop") ?? "editor"
+        let editable = onStop == "editor" && Self.recordsEditablePointer
+        if editable {
+            if let w = mouseHighlightOverlay { excludeIDs.append(CGWindowID(w.windowNumber)) }
+            if let w = keystrokeOverlay { excludeIDs.append(CGWindowID(w.windowNumber)) }
+            // The camera records to its own file when its frames can be
+            // tapped; otherwise it stays in the pixels as before.
+            if let webcam = webcamOverlay {
+                let recorder = VideoCameraRecorder()
+                if webcam.startFrameTap({ sample, host in recorder.append(sample, hostTime: host) }) {
+                    engine.cameraRecorder = recorder
+                    engine.onCameraFinished = { [weak webcam] in webcam?.stopFrameTap() }
+                    excludeIDs.append(CGWindowID(webcam.windowNumber))
+                }
+            }
+        }
+        let cameraWindowID = engine.cameraRecorder != nil ? webcamOverlay.map { CGWindowID($0.windowNumber) } : nil
+        engine.onTelemetryStarted = { [weak self] telemetry in
+            guard editable else { return }
+            self?.keystrokeOverlay?.onKey = { [weak telemetry] code, mods, text in
+                telemetry?.recordKey(down: true, keyCode: code, modifiers: mods, characters: text)
+            }
+        }
 
         // Start recording
-        engine.startRecording(rect: rect, screen: screen, fpsOverride: fpsOverride, excludeWindowNumbers: excludeIDs)
+        engine.startRecording(rect: rect, screen: screen, fpsOverride: fpsOverride, excludeWindowNumbers: excludeIDs,
+                              editablePointer: editable, cameraWindowID: cameraWindowID)
     }
 
     func overlayDidRequestStopRecording(_ controller: OverlayWindowController) {
@@ -3359,7 +3392,7 @@ extension AppDelegate: NSMenuDelegate {
         }
 
         for (i, entry) in entries.enumerated() {
-            let title = "\(entry.pixelWidth) \u{00D7} \(entry.pixelHeight)  —  \(entry.timeAgoString)"
+            let title = "\(entry.pixelWidth) \u{00D7} \(entry.pixelHeight)  ·  \(entry.timeAgoString)"
             let item = NSMenuItem(title: title, action: #selector(copyHistoryEntry(_:)), keyEquivalent: "")
             item.target = self
             item.tag = i

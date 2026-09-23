@@ -12,6 +12,8 @@ enum GIFExporter {
         let timeRange: CMTimeRange
         let outputURL: URL
         let sourceLease: TemporaryMediaLease?
+        /// Extra video tracks the composition reads (a separately recorded camera).
+        nonisolated(unsafe) var additionalVideoTracks: [AVAssetTrack] = []
     }
 
     enum ExportError: LocalizedError {
@@ -52,7 +54,7 @@ enum GIFExporter {
         let encoder = try GIFEncoder(url: save.stagingURL)
         let reader = try AVAssetReader(asset: request.asset)
         reader.timeRange = request.timeRange
-        let output = AVAssetReaderVideoCompositionOutput(videoTracks: [request.videoTrack], videoSettings: [
+        let output = AVAssetReaderVideoCompositionOutput(videoTracks: [request.videoTrack] + request.additionalVideoTracks, videoSettings: [
             kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA,
         ])
         output.videoComposition = request.composition

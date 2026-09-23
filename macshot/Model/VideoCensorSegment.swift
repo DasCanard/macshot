@@ -53,6 +53,19 @@ final class VideoCensorSegment: Codable {
         self.fadeOut = fadeOut
     }
 
+    private enum CodingKeys: String, CodingKey { case id, startTime, endTime, rect, style, fadeIn, fadeOut }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = c.decode(.id, or: UUID())
+        startTime = c.decode(.startTime, or: 0)
+        endTime = c.decode(.endTime, or: 0)
+        rect = VideoCensorSegment.clampedRect(c.decode(.rect, or: CGRect(x: 0.35, y: 0.35, width: 0.3, height: 0.3)))
+        style = c.decode(.style, or: .blur)
+        fadeIn = c.decode(.fadeIn, or: Self.defaultFade)
+        fadeOut = c.decode(.fadeOut, or: Self.defaultFade)
+    }
+
     var duration: Double { max(0, endTime - startTime) }
 
     static func autoFade(for duration: Double) -> Double { defaultFade }

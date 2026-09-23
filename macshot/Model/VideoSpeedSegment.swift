@@ -45,6 +45,17 @@ final class VideoSpeedSegment: Codable {
         self.speedFactor = VideoSpeedSegment.clampFactor(speedFactor)
     }
 
+    private enum CodingKeys: String, CodingKey { case id, startTime, endTime, speedFactor }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = c.decode(.id, or: UUID())
+        startTime = c.decode(.startTime, or: 0)
+        endTime = c.decode(.endTime, or: 0)
+        let factor = c.decode(.speedFactor, or: 2.0)
+        speedFactor = VideoSpeedSegment.clampFactor(factor.isFinite ? factor : 2)
+    }
+
     /// Source-asset duration of the segment (before speed scaling).
     var sourceDuration: Double { max(0, endTime - startTime) }
 

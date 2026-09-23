@@ -29,6 +29,8 @@ final class MP4WriterSession: @unchecked Sendable {
     private var finishWritingStarted = false
     private var maintenanceTimer: DispatchSourceTimer?
     private var startupDeadline: TimeInterval?
+    /// Called once, on the writer queue, with the first frame's time.
+    private let onSessionStart: ((CMTime) -> Void)?
 
     private var assetWriter: AVAssetWriter?
     private var videoInput: AVAssetWriterInput?
@@ -65,22 +67,26 @@ final class MP4WriterSession: @unchecked Sendable {
     /// Build on `queue` so the writer/inputs are created where they're used.
     static func make(queue: DispatchQueue, url: URL, width: Int, height: Int, fps: Int,
                      recordSystemAudio: Bool, recordMicAudio: Bool,
-                     onFailure: @escaping (Error) -> Void = { _ in }) throws -> MP4WriterSession {
+                     onFailure: @escaping (Error) -> Void = { _ in },
+                     onSessionStart: ((CMTime) -> Void)? = nil) throws -> MP4WriterSession {
         var result: Result<MP4WriterSession, Error>!
         queue.sync {
             result = Result {
                 try MP4WriterSession(queue: queue, url: url, width: width, height: height,
                                      fps: fps, recordSystemAudio: recordSystemAudio,
-                                     recordMicAudio: recordMicAudio, onFailure: onFailure)
+                                     recordMicAudio: recordMicAudio, onFailure: onFailure,
+                                     onSessionStart: onSessionStart)
             }
         }
         return try result.get()
     }
 
     private init(queue: DispatchQueue, url: URL, width: Int, height: Int, fps: Int,
-                 recordSystemAudio: Bool, recordMicAudio: Bool, onFailure: @escaping (Error) -> Void) throws {
+                 recordSystemAudio: Bool, recordMicAudio: Bool, onFailure: @escaping (Error) -> Void,
+                 onSessionStart: ((CMTime) -> Void)?) throws {
         self.queue = queue
         self.onFailure = onFailure
+        self.onSessionStart = onSessionStart
         self.frameDuration = CMTime(value: 1, timescale: CMTimeScale(fps))
         dispatchPrecondition(condition: .onQueue(queue))
 
@@ -368,6 +374,9 @@ final class MP4WriterSession: @unchecked Sendable {
             startTime = time
             writer.startSession(atSourceTime: time)
             sessionStarted = true
+            // Host time of media zero: the adjusted time plus any pause
+            // offset accumulated before the first frame.
+            onSessionStart?(CMTimeAdd(time, pauseOffset))
         }
         guard adaptor.append(pixelBuffer, withPresentationTime: time) else {
             fail(writer.error ?? WriterError.appendFailed); return false

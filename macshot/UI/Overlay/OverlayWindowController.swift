@@ -919,7 +919,7 @@ extension OverlayWindowController: OverlayViewDelegate {
                 #endif
                 DispatchQueue.main.async {
                     self.overlayView?.showOverlayError(
-                        "Background removal failed — no clear subject found.")
+                        "Background removal failed. No clear subject was found.")
                 }
             }
         }

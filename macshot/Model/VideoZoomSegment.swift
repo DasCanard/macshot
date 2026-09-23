@@ -35,6 +35,11 @@ final class VideoZoomSegment: Codable {
     var center: CGPoint
     var fadeIn: Double
     var fadeOut: Double
+    /// The camera follows the pointer (from recorded cursor data) instead of
+    /// holding `center`. `center` remains the starting focus.
+    var followsCursor: Bool
+    /// Created by auto-zoom from click data rather than by hand.
+    var isAutomatic: Bool
 
     init(id: UUID = UUID(),
          startTime: Double,
@@ -42,7 +47,9 @@ final class VideoZoomSegment: Codable {
          zoomLevel: CGFloat = 2.0,
          center: CGPoint = CGPoint(x: 0.5, y: 0.5),
          fadeIn: Double = defaultFade,
-         fadeOut: Double = defaultFade) {
+         fadeOut: Double = defaultFade,
+         followsCursor: Bool = false,
+         isAutomatic: Bool = false) {
         self.id = id
         self.startTime = startTime
         self.endTime = endTime
@@ -50,6 +57,28 @@ final class VideoZoomSegment: Codable {
         self.center = center
         self.fadeIn = fadeIn
         self.fadeOut = fadeOut
+        self.followsCursor = followsCursor
+        self.isAutomatic = isAutomatic
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, startTime, endTime, zoomLevel, center, fadeIn, fadeOut, followsCursor, isAutomatic
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = c.decode(.id, or: UUID())
+        startTime = c.decode(.startTime, or: 0)
+        endTime = c.decode(.endTime, or: 0)
+        let level = c.decode(.zoomLevel, or: CGFloat(2))
+        zoomLevel = level.isFinite ? min(Self.maxZoom, max(Self.minZoom, level)) : 2
+        let point = c.decode(.center, or: CGPoint(x: 0.5, y: 0.5))
+        center = point.x.isFinite && point.y.isFinite
+            ? CGPoint(x: min(1, max(0, point.x)), y: min(1, max(0, point.y))) : CGPoint(x: 0.5, y: 0.5)
+        fadeIn = c.decode(.fadeIn, or: Self.defaultFade)
+        fadeOut = c.decode(.fadeOut, or: Self.defaultFade)
+        followsCursor = c.decode(.followsCursor, or: false)
+        isAutomatic = c.decode(.isAutomatic, or: false)
     }
 
     var duration: Double { max(0, endTime - startTime) }

@@ -128,25 +128,28 @@ final class VideoTextSegment: Codable {
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
-        id = try c.decode(UUID.self, forKey: .id)
-        startTime = try c.decode(Double.self, forKey: .startTime)
-        endTime = try c.decode(Double.self, forKey: .endTime)
-        rect = try c.decode(CGRect.self, forKey: .rect)
-        text = try c.decode(String.self, forKey: .text)
-        fontSize = try c.decode(CGFloat.self, forKey: .fontSize)
-        bold = try c.decode(Bool.self, forKey: .bold)
-        italic = try c.decode(Bool.self, forKey: .italic)
-        textColor = try c.decode(RGBA.self, forKey: .textColor)
-        bgStyle = try c.decode(BackgroundStyle.self, forKey: .bgStyle)
-        bgColor = try c.decode(RGBA.self, forKey: .bgColor)
-        alignment = try c.decode(Alignment.self, forKey: .alignment)
-        fadeIn = try c.decode(Double.self, forKey: .fadeIn)
-        fadeOut = try c.decode(Double.self, forKey: .fadeOut)
-        // Added later — absent in old archives, so fall back to defaults.
-        fontFamily = try c.decodeIfPresent(String.self, forKey: .fontFamily) ?? "System"
-        outlineEnabled = try c.decodeIfPresent(Bool.self, forKey: .outlineEnabled) ?? false
-        outlineColor = try c.decodeIfPresent(RGBA.self, forKey: .outlineColor) ?? .black
-        outlineWidth = try c.decodeIfPresent(CGFloat.self, forKey: .outlineWidth) ?? 2
+        // Projects persist these segments: a missing or damaged field falls
+        // back to its default rather than discarding the caption.
+        id = c.decode(.id, or: UUID())
+        startTime = c.decode(.startTime, or: 0)
+        endTime = c.decode(.endTime, or: 0)
+        rect = VideoTextSegment.clampedRect(c.decode(.rect, or: CGRect(x: 0.1, y: 0.78, width: 0.8, height: 0.14)))
+        text = c.decode(.text, or: "")
+        let size = c.decode(.fontSize, or: CGFloat(48))
+        fontSize = size.isFinite ? min(400, max(6, size)) : 48
+        bold = c.decode(.bold, or: false)
+        italic = c.decode(.italic, or: false)
+        textColor = c.decode(.textColor, or: .white)
+        bgStyle = c.decode(.bgStyle, or: .none)
+        bgColor = c.decode(.bgColor, or: .blackTransparent)
+        alignment = c.decode(.alignment, or: .center)
+        fadeIn = c.decode(.fadeIn, or: Self.defaultFade)
+        fadeOut = c.decode(.fadeOut, or: Self.defaultFade)
+        fontFamily = c.decode(.fontFamily, or: "System")
+        outlineEnabled = c.decode(.outlineEnabled, or: false)
+        outlineColor = c.decode(.outlineColor, or: .black)
+        let outline = c.decode(.outlineWidth, or: CGFloat(2))
+        outlineWidth = outline.isFinite ? min(40, max(0, outline)) : 2
     }
 
     func encode(to encoder: Encoder) throws {

@@ -7,7 +7,15 @@ struct RecordingSessionStore: Sendable {
     let mediaURL: URL
     private let createdAt: Date
 
+    #if VIDEO_EDITOR_PROBE
+    /// The isolated UI probe points the recording library at its fixtures.
+    nonisolated(unsafe) static var probeRoot: URL?
+    #endif
+
     nonisolated static var rootURL: URL {
+        #if VIDEO_EDITOR_PROBE
+        if let probeRoot { return probeRoot }
+        #endif
         let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support")
         return support.appendingPathComponent("com.sw33tlie.macshot/Recordings", isDirectory: true)

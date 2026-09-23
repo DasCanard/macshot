@@ -28,6 +28,30 @@ enum VideoCompositionRendering {
         return composition
     }
 
+    /// Framed-scene composition. The instruction carries the upright
+    /// (unscaled) source transform; the scene decides the canvas.
+    static func sceneComposition(asset: AVAsset, track: AVAssetTrack, frameDuration: CMTime,
+                                 timeMap: [EffectsCompositionInstruction.TimeMapEntry],
+                                 scene: VideoSceneSnapshot, censorSegments: [VideoCensorSnapshot],
+                                 textSnapshots: [EffectsCompositionInstruction.TextSnapshot]) throws -> AVMutableVideoComposition {
+        guard let upright = VideoRenderGeometry.layout(sourceSize: track.naturalSize,
+                                                       preferredTransform: track.preferredTransform) else {
+            throw RenderError.invalidGeometry
+        }
+        let instruction = EffectsCompositionInstruction(
+            timeRange: CMTimeRange(start: .zero, duration: asset.duration),
+            videoTrackID: track.trackID,
+            naturalSize: upright.uprightSize, renderSize: scene.layout.canvasSize,
+            baseTransform: upright.coreImageTransform, timeMap: timeMap,
+            zoomSegments: [], censorSegments: censorSegments, textSnapshots: textSnapshots, scene: scene)
+        let composition = AVMutableVideoComposition()
+        composition.customVideoCompositorClass = EffectsVideoCompositor.self
+        composition.instructions = [instruction]
+        composition.renderSize = scene.layout.canvasSize
+        composition.frameDuration = frameDuration
+        return composition
+    }
+
     static func scaleComposition(track: AVAssetTrack, renderSize: CGSize, duration: CMTime,
                                   frameDuration: CMTime? = nil) throws -> AVMutableVideoComposition {
         guard let layout = VideoRenderGeometry.layout(sourceSize: track.naturalSize,

@@ -2639,7 +2639,7 @@ class OverlayView: NSView {
     /// (e.g. 16 : 9, 3 : 1); otherwise a short decimal like "1.62 : 1". Never
     /// shows raw multi-digit pixel dims (which overflowed the column).
     private func ratioLabel(for aspect: CGFloat) -> String {
-        guard aspect > 0 else { return "—" }
+        guard aspect > 0 else { return "-" }
         let px = selectionPixelSize
         if px.w > 0, px.h > 0, abs(CGFloat(px.w) / CGFloat(px.h) - aspect) < 0.01 {
             let g = Self.gcd(px.w, px.h)

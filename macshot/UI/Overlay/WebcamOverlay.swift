@@ -56,6 +56,13 @@ class WebcamOverlay: NSPanel {
     private var previewLayer: AVCaptureVideoPreviewLayer?
     private var spinner: NSProgressIndicator?
 
+    private var frameOutput: AVCaptureVideoDataOutput?
+    private var frameDelegate: WebcamFrameDelegate?
+    private let frameQueue = DispatchQueue(label: "macshot.webcam-frames", qos: .userInitiated)
+    /// Starting, stopping and reconfiguring the session are serialized here:
+    /// `startRunning()` must never run between begin/commitConfiguration.
+    private let sessionQueue = DispatchQueue(label: "macshot.webcam-session", qos: .userInitiated)
+
     private var currentSize: CGFloat = WebcamSize.defaultPoints
     private var currentShape: WebcamShape = .circle
 
@@ -140,8 +147,8 @@ class WebcamOverlay: NSPanel {
         applyShapeMask()
         showSpinner()
 
-        // Start camera on background thread to avoid blocking UI
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+        // Start camera off the main thread to avoid blocking UI
+        sessionQueue.async { [weak self] in
             session.startRunning()
             // Give the preview layer a moment to receive the first frame
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
@@ -151,14 +158,15 @@ class WebcamOverlay: NSPanel {
     }
 
     func stopPreview() {
+        stopFrameTap()
         let session = captureSession
         captureSession = nil
         previewLayer?.removeFromSuperlayer()
         previewLayer = nil
         hideSpinner()
-        // Stop on background thread to avoid blocking UI
+        // Stop off the main thread to avoid blocking UI
         if let session = session {
-            DispatchQueue.global(qos: .userInitiated).async {
+            sessionQueue.async {
                 session.stopRunning()
             }
         }
@@ -188,6 +196,54 @@ class WebcamOverlay: NSPanel {
 
     func setDraggable(_ draggable: Bool) {
         ignoresMouseEvents = !draggable
+    }
+
+    // MARK: - Frame tap (separate camera recording)
+
+    /// Taps camera frames for recording at up to 720p. Times are converted
+    /// from the capture session's clock to the host clock the screen uses.
+    func startFrameTap(_ handler: @escaping @Sendable (CMSampleBuffer, Double) -> Void) -> Bool {
+        guard let session = captureSession, frameOutput == nil else { return false }
+        let output = AVCaptureVideoDataOutput()
+        output.alwaysDiscardsLateVideoFrames = true
+        output.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA]
+        let delegate = WebcamFrameDelegate { [weak session] sample in
+            let pts = CMSampleBufferGetPresentationTimeStamp(sample)
+            let clock = session?.synchronizationClock ?? CMClockGetHostTimeClock()
+            let host = CMSyncConvertTime(pts, from: clock, to: CMClockGetHostTimeClock())
+            guard host.isNumeric else { return }
+            handler(sample, host.seconds)
+        }
+        let queue = frameQueue
+        let added: Bool = sessionQueue.sync {
+            session.beginConfiguration()
+            defer { session.commitConfiguration() }
+            if session.canSetSessionPreset(.hd1280x720) { session.sessionPreset = .hd1280x720 }
+            guard session.canAddOutput(output) else { return false }
+            session.addOutput(output)
+            output.setSampleBufferDelegate(delegate, queue: queue)
+            return true
+        }
+        guard added else { return false }
+        frameOutput = output
+        frameDelegate = delegate
+        return true
+    }
+
+    func stopFrameTap() {
+        guard let output = frameOutput, let session = captureSession else {
+            frameOutput = nil
+            frameDelegate = nil
+            return
+        }
+        output.setSampleBufferDelegate(nil, queue: nil)
+        sessionQueue.async {
+            session.beginConfiguration()
+            session.removeOutput(output)
+            session.commitConfiguration()
+        }
+        frameOutput = nil
+        frameDelegate = nil
     }
 
     // MARK: - Static helpers
@@ -250,5 +306,17 @@ private class WebcamContainerView: NSView {
         origin.x += dx
         origin.y += dy
         panel.setFrameOrigin(origin)
+    }
+}
+
+
+extension WebcamOverlay: RecordingCameraSource {}
+
+private final class WebcamFrameDelegate: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
+    private let handler: (CMSampleBuffer) -> Void
+    init(_ handler: @escaping (CMSampleBuffer) -> Void) { self.handler = handler }
+    func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer,
+                       from connection: AVCaptureConnection) {
+        handler(sampleBuffer)
     }
 }

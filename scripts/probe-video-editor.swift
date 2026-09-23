@@ -51,8 +51,13 @@ typealias S3Uploader = DisabledProbeUploader
         appMenu.addItem(NSMenuItem(title: "Quit Probe", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         appItem.submenu = appMenu
         NSApp.mainMenu = menu
+        let env = ProcessInfo.processInfo.environment
+        if let root = env["PROBE_ROOT"] { RecordingSessionStore.probeRoot = URL(fileURLWithPath: root, isDirectory: true) }
         if Bundle.main.object(forInfoDictionaryKey: "AudioMergeProbe") as? Bool == true { openAudioMixer() }
-        else { VideoEditorWindowController.open(url: ProbeInput.url, deleteOnClose: false) }
+        else if let video = env["PROBE_VIDEO"] {
+            VideoEditorWindowController.open(url: URL(fileURLWithPath: video), deleteOnClose: false)
+        } else { VideoEditorWindowController.open(url: ProbeInput.url, deleteOnClose: false) }
+        if let commands = env["PROBE_COMMANDS"] { pollCommands(path: commands) }
     }
     @objc private func openAudioMixer() {
         guard audioMerge == nil else { return }
@@ -67,6 +72,26 @@ typealias S3Uploader = DisabledProbeUploader
             VideoEditorWindowController.open(url: result, deleteOnClose: false)
         }
     }
+    /// Scripted UI driving: each line appended to the file runs once.
+    private func pollCommands(path: String) {
+        var consumed = 0
+        Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { _ in
+            MainActor.assumeIsolated {
+                guard let text = try? String(contentsOfFile: path, encoding: .utf8) else { return }
+                let lines = text.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+                guard lines.count - 1 > consumed else { return }
+                let editor = NSApp.windows.compactMap { ($0 as? VideoEditorWindow)?.editor }.first
+                // One command per tick lets scheduled rebuilds and layout run
+                // between commands, as they would between user actions.
+                let line = lines[consumed]
+                consumed += 1
+                guard !line.isEmpty else { return }
+                let result = editor?.probe(line) ?? "no editor"
+                FileHandle.standardOutput.write(Data((result + "\n").utf8))
+            }
+        }
+    }
+
     private func log(_ values: [String: Any]) {
         guard var data = try? JSONSerialization.data(withJSONObject: values, options: [.sortedKeys]) else { return }
         data.append(10)

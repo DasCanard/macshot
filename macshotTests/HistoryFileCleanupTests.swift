@@ -109,7 +109,7 @@ final class HistoryFileCleanupTests: XCTestCase {
         for value in [Double.nan, .infinity, -.infinity, 1e200] {
             let entry = HistoryEntry(id: UUID().uuidString, fileExtension: "png",
                 timestamp: Date(timeIntervalSince1970: value), pixelWidth: 1, pixelHeight: 1)
-            XCTAssertEqual(entry.timeAgoString, "—")
+            XCTAssertEqual(entry.timeAgoString, "-")
         }
     }
 }

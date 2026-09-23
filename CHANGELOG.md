@@ -1,5 +1,22 @@
 # Changelog
 
+## [4.4.0-beta.1] - 2026-09-23
+
+### Added
+
+- **Redesigned video editor (Studio)**: a larger window with a sidebar for Background, Pointer, Zoom, Keystrokes, Camera and Captions, a new multi-lane timeline with thumbnails, waveform, snapping and pinch zoom, plus undo/redo and autosaved projects.
+- **Editable pointer**: recordings that open in the editor save pointer, click and keystroke data beside the video, so the cursor can be restyled (macOS, dot or ring), resized, smoothed, hidden when idle or typing, given motion blur and sway, and click effects can be changed after recording. Recordings sent elsewhere keep the cursor in the video as before.
+- **Auto Zoom**: zooms generated from your clicks and typing, zooms that follow the pointer, smooth pans between nearby zooms and zoom motion blur.
+- **Backgrounds and framing**: gradients, macOS wallpapers, solid colors or your own image, with blur, padding, rounded corners, shadow, aspect ratio presets and crop.
+- **Webcam as a separate track**: change the camera's shape, size and position after recording; it shrinks during zooms.
+- **Keystroke labels and captions**: keystrokes are restyled after recording; captions are transcribed on your Mac and can be exported as SRT.
+
+### Improved and fixed
+
+- Preview and every export (MP4 High, Medium, Low and GIF) share one renderer, so what you see is what you export, including the webcam.
+- The last timeline ruler label no longer clips at the edge of the window.
+- Em dashes removed from interface text in every language, and a Finnish translation fix.
+
 ## [4.3.0] - 2026-09-23
 
 ### Added

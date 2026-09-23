@@ -43,7 +43,12 @@ final class EffectsCompositionInstruction: NSObject, AVVideoCompositionInstructi
     let timeRange: CMTimeRange
     let enablePostProcessing: Bool = false
     let containsTweening: Bool = true
-    var requiredSourceTrackIDs: [NSValue]? { [NSNumber(value: videoTrackID)] }
+    var requiredSourceTrackIDs: [NSValue]? {
+        if let webcamTrackID = scene?.webcam?.trackID {
+            return [NSNumber(value: videoTrackID), NSNumber(value: webcamTrackID)]
+        }
+        return [NSNumber(value: videoTrackID)]
+    }
     let passthroughTrackID: CMPersistentTrackID = kCMPersistentTrackID_Invalid
 
     // MARK: Our payload
@@ -59,6 +64,10 @@ final class EffectsCompositionInstruction: NSObject, AVVideoCompositionInstructi
     /// shaping or NSAttributedString work — we just composite the cached
     /// image. Built on the main actor at snapshot time and never mutated.
     let textSnapshots: [TextSnapshot]
+    /// Framed scene (background, camera, cursor…). When present `renderSize`
+    /// is the canvas size and `baseTransform` yields the upright source at
+    /// its natural size.
+    let scene: VideoSceneSnapshot?
 
     /// Pre-rasterized text overlay paired with timing/positioning.
     /// `image` extent is in pixels; the compositor scales it to the segment's
@@ -89,7 +98,8 @@ final class EffectsCompositionInstruction: NSObject, AVVideoCompositionInstructi
          timeMap: [TimeMapEntry],
          zoomSegments: [VideoZoomSnapshot],
          censorSegments: [VideoCensorSnapshot],
-         textSnapshots: [TextSnapshot] = []) {
+         textSnapshots: [TextSnapshot] = [],
+         scene: VideoSceneSnapshot? = nil) {
         self.timeRange = timeRange
         self.videoTrackID = videoTrackID
         self.naturalSize = naturalSize
@@ -99,6 +109,7 @@ final class EffectsCompositionInstruction: NSObject, AVVideoCompositionInstructi
         self.zoomSegments = zoomSegments
         self.censorSegments = censorSegments
         self.textSnapshots = textSnapshots
+        self.scene = scene
         super.init()
     }
 }
@@ -211,6 +222,11 @@ final class EffectsVideoCompositor: NSObject, AVVideoCompositing {
             }
             return compTime
         }()
+        if let scene = instruction.scene {
+            renderScene(request: request, instruction: instruction, scene: scene, sourceBuffer: sourceBuffer,
+                        outBuf: outBuf, assetTime: assetTime)
+            return
+        }
         let renderSize = instruction.renderSize
         let naturalSize = instruction.naturalSize
 
@@ -310,6 +326,31 @@ final class EffectsVideoCompositor: NSObject, AVVideoCompositing {
             ?? CGColorSpace(name: CGColorSpace.sRGB)
             ?? CGColorSpaceCreateDeviceRGB()
         ciContext.render(image, to: outBuf, bounds: renderRect, colorSpace: sourceColorSpace)
+        request.finish(withComposedVideoFrame: outBuf)
+    }
+
+    /// Framed-scene rendering. Output buffers may be smaller than the canvas
+    /// (preview render scale); the whole scene is scaled to fit.
+    private func renderScene(request: AVAsynchronousVideoCompositionRequest,
+                             instruction: EffectsCompositionInstruction, scene: VideoSceneSnapshot,
+                             sourceBuffer: CVPixelBuffer, outBuf: CVPixelBuffer, assetTime: Double) {
+        let content = CIImage(cvPixelBuffer: sourceBuffer).transformed(by: instruction.baseTransform)
+        var webcamFrame: CIImage?
+        if let webcam = scene.webcam, let buffer = request.sourceFrame(byTrackID: webcam.trackID) {
+            webcamFrame = CIImage(cvPixelBuffer: buffer).transformed(by: webcam.uprightTransform)
+        }
+        var image = VideoSceneRenderer.render(content: content, time: assetTime, scene: scene,
+                                              censors: instruction.censorSegments, texts: instruction.textSnapshots,
+                                              webcamFrame: webcamFrame)
+        let canvas = scene.layout.canvasSize
+        let outW = CGFloat(CVPixelBufferGetWidth(outBuf)), outH = CGFloat(CVPixelBufferGetHeight(outBuf))
+        if abs(outW - canvas.width) > 0.5 || abs(outH - canvas.height) > 0.5, canvas.width > 0, canvas.height > 0 {
+            image = image.transformed(by: CGAffineTransform(scaleX: outW / canvas.width, y: outH / canvas.height))
+        }
+        let bounds = CGRect(x: 0, y: 0, width: outW, height: outH)
+        let colorSpace = CVImageBufferGetColorSpace(sourceBuffer)?.takeUnretainedValue()
+            ?? CGColorSpace(name: CGColorSpace.sRGB) ?? CGColorSpaceCreateDeviceRGB()
+        ciContext.render(image.cropped(to: bounds), to: outBuf, bounds: bounds, colorSpace: colorSpace)
         request.finish(withComposedVideoFrame: outBuf)
     }
 

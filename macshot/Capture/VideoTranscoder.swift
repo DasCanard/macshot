@@ -15,12 +15,16 @@ enum VideoTranscoder {
         let decodedSize: CGSize?
         let outputTransform: CGAffineTransform
         var sourceFrameDuration: CMTime? = nil
+        /// Extra video tracks the composition reads (a separately recorded camera).
+        nonisolated(unsafe) var additionalVideoTracks: [AVAssetTrack] = []
 
         nonisolated func writing(to url: URL) -> Request {
-            Request(asset: asset, videoTrack: videoTrack, audioTracks: audioTracks,
-                    composition: composition, timeRange: timeRange, outputURL: url,
-                    videoSettings: videoSettings, decodedSize: decodedSize, outputTransform: outputTransform,
-                    sourceFrameDuration: sourceFrameDuration)
+            var copy = Request(asset: asset, videoTrack: videoTrack, audioTracks: audioTracks,
+                               composition: composition, timeRange: timeRange, outputURL: url,
+                               videoSettings: videoSettings, decodedSize: decodedSize, outputTransform: outputTransform,
+                               sourceFrameDuration: sourceFrameDuration)
+            copy.additionalVideoTracks = additionalVideoTracks
+            return copy
         }
     }
 
@@ -55,7 +59,7 @@ enum VideoTranscoder {
         videoInput.transform = request.outputTransform
         let videoOutput: AVAssetReaderOutput
         if let composition = request.composition {
-            let output = AVAssetReaderVideoCompositionOutput(videoTracks: [request.videoTrack], videoSettings: [
+            let output = AVAssetReaderVideoCompositionOutput(videoTracks: [request.videoTrack] + request.additionalVideoTracks, videoSettings: [
                 kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA,
             ])
             output.videoComposition = composition

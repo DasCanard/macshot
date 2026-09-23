@@ -17,7 +17,7 @@ struct HistoryEntry {
 
     var timeAgoString: String {
         guard timestamp.timeIntervalSinceReferenceDate.isFinite,
-              timestamp >= .distantPast, timestamp <= .distantFuture else { return "—" }
+              timestamp >= .distantPast, timestamp <= .distantFuture else { return "-" }
         let seconds = SafeNumerics.int((-timestamp.timeIntervalSinceNow).rounded(.towardZero))
         if seconds < 5 { return L("just now") }
         if seconds < 60 { return String(format: L("%ds ago"), seconds) }
