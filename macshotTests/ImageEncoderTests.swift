@@ -152,6 +152,78 @@ final class ImageEncoderTests: XCTestCase {
         }
     }
 
+    // MARK: - Clipboard flavors (#309, #373, #393)
+
+    private func clipboardTypes(format: ImageEncoder.Format, optIn: Bool) throws -> [NSPasteboard.PasteboardType] {
+        var prepared: ImageEncoder.PreparedImage?
+        try withDefaults(["imageFormat": format.rawValue]) {
+            prepared = try ImageEncoder.PreparedImage(ImageProbe.quadrantImage(width: 16, height: 12))
+        }
+        let representations = ImageEncoder.clipboardRepresentations(for: try XCTUnwrap(prepared), includeConfiguredFormat: optIn)
+        for representation in representations {
+            XCTAssertNotNil(NSImage(data: representation.data), "\(representation.type.rawValue) must decode")
+        }
+        return representations.map(\.type)
+    }
+
+    func testClipboardDefaultsToPNGAndTIFFOnlyForEveryFormat() throws {
+        for format in ImageEncoder.availableFormats {
+            XCTAssertEqual(try clipboardTypes(format: format, optIn: false), [.png, .tiff], "\(format)")
+        }
+    }
+
+    func testClipboardOptInPutsConfiguredFormatFirstAndKeepsPNGAndTIFF() throws {
+        for format in ImageEncoder.availableFormats where format != .png {
+            let expected = NSPasteboard.PasteboardType(format.utType.identifier)
+            XCTAssertEqual(try clipboardTypes(format: format, optIn: true), [expected, .png, .tiff], "\(format)")
+        }
+        XCTAssertEqual(try clipboardTypes(format: .png, optIn: true), [.png, .tiff], "PNG is never listed twice")
+    }
+
+    func testClipboardWriteKeepsFlavorOrderAndDataWithoutAFileURL() throws {
+        var prepared: ImageEncoder.PreparedImage?
+        try withDefaults(["imageFormat": "jpeg"]) {
+            prepared = try ImageEncoder.PreparedImage(ImageProbe.quadrantImage(width: 16, height: 12))
+        }
+        let representations = ImageEncoder.clipboardRepresentations(for: try XCTUnwrap(prepared), includeConfiguredFormat: true)
+        let pasteboard = NSPasteboard(name: NSPasteboard.Name("macshot.tests.\(UUID().uuidString)"))
+        defer { pasteboard.releaseGlobally() }
+        pasteboard.setString("stale", forType: .string)
+        ImageEncoder.writeImagePasteboard(pasteboard, representations: representations)
+        // AppKit adds legacy aliases (e.g. "Apple PNG pasteboard type"); the UTIs keep our order.
+        let utis = (pasteboard.types ?? []).filter { $0.rawValue.hasPrefix("public.") }
+        XCTAssertEqual(utis, [NSPasteboard.PasteboardType("public.jpeg"), .png, .tiff])
+        XCTAssertNil(pasteboard.string(forType: .fileURL), "a sandbox file URL breaks Teams and RDP paste")
+        for representation in representations {
+            XCTAssertEqual(pasteboard.data(forType: representation.type), representation.data)
+        }
+    }
+
+    func testWebPKeepsSemiTransparentColorsInsteadOfDarkeningThem() throws {
+        let translucent = ImageProbe.solidImage(width: 16, height: 16,
+                                                color: CGColor(srgbRed: 1, green: 0.5, blue: 0, alpha: 0.5))
+        let png = try XCTUnwrap(NSImage(data: try encode(format: .png, image: translucent)))
+        let webp = try XCTUnwrap(NSImage(data: try encode(format: .webp, quality: 1.0, image: translucent)))
+        let expected = try XCTUnwrap(ImageProbe.pixelColor(png, x: 8, y: 8)?.usingColorSpace(.sRGB))
+        let actual = try XCTUnwrap(ImageProbe.pixelColor(webp, x: 8, y: 8)?.usingColorSpace(.sRGB))
+        XCTAssertEqual(actual.alphaComponent, expected.alphaComponent, accuracy: 0.02)
+        XCTAssertEqual(actual.redComponent, expected.redComponent, accuracy: 0.05, "premultiplied bytes darken WebP edges")
+        XCTAssertEqual(actual.greenComponent, expected.greenComponent, accuracy: 0.05)
+    }
+
+    func testWebPRefusesImagesBeyondItsSizeLimitInsteadOfAllocating() {
+        let tall = ImageProbe.solidImage(width: 2, height: ImageEncoder.webPMaximumDimension + 1)
+        withDefaults(["imageFormat": "webp"]) { XCTAssertNil(ImageEncoder.encode(tall)) }
+        let edge = ImageProbe.solidImage(width: 2, height: ImageEncoder.webPMaximumDimension)
+        withDefaults(["imageFormat": "webp"]) { XCTAssertNotNil(ImageEncoder.encode(edge)) }
+    }
+
+    func testUnpremultiplyRestoresStraightAlpha() {
+        var pixels: [UInt8] = [128, 64, 0, 128,  10, 20, 30, 255,  0, 0, 0, 0,  255, 255, 255, 255]
+        pixels.withUnsafeMutableBufferPointer { ImageEncoder.unpremultiplyRGBA($0) }
+        XCTAssertEqual(pixels, [255, 128, 0, 128,  10, 20, 30, 255,  0, 0, 0, 0,  255, 255, 255, 255])
+    }
+
     // MARK: - Retina downscaling
 
     func testRetinaDownscaleHalvesATwoTimesCapture() throws {

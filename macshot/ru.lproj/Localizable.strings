@@ -249,6 +249,8 @@
 "Replace (show only latest)" = "Заменять (только последнее)";
 "Output" = "Вывод";
 "Image format:" = "Формат изображения:";
+"Also copy to the clipboard in this format" = "Также копировать в буфер обмена в этом формате";
+"PNG is always included so every app can paste" = "PNG всегда добавляется, чтобы вставка работала в любом приложении";
 "Quality:" = "Качество:";
 "%d%%" = "%d%%";
 "Save at standard resolution (1x)" = "Сохранять в стандартном разрешении (1x)";

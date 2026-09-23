@@ -233,6 +233,8 @@
 "Replace (show only latest)" = "교체 (최신만 표시)";
 "Output" = "출력";
 "Image format:" = "이미지 포맷:";
+"Also copy to the clipboard in this format" = "이 형식으로도 클립보드에 복사";
+"PNG is always included so every app can paste" = "모든 앱에서 붙여넣을 수 있도록 PNG는 항상 포함됩니다";
 "Quality:" = "품질:";
 "%d%%" = "%d%%";
 "Save at standard resolution (1x)" = "표준 해상도(1x)로 저장";

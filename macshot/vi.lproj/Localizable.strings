@@ -256,6 +256,8 @@
 "Replace (show only latest)" = "Thay thế (chỉ hiển thị mới nhất)";
 "Output" = "Đầu ra";
 "Image format:" = "Định dạng ảnh:";
+"Also copy to the clipboard in this format" = "Sao chép vào bảng nhớ tạm ở định dạng này nữa";
+"PNG is always included so every app can paste" = "Luôn kèm PNG để mọi ứng dụng đều dán được";
 "Quality:" = "Chất lượng:";
 "%d%%" = "%d%%";
 "Save at standard resolution (1x)" = "Lưu ở độ phân giải tiêu chuẩn (1x)";

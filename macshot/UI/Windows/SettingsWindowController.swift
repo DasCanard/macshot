@@ -105,6 +105,7 @@ class SettingsWindowController: NSWindowController, NSToolbarDelegate, NSWindowD
     private var quickCaptureOpenEditorCheckbox: NSButton!
     private var closeEditorAfterCopyCheckbox: NSButton!
     private var imageFormatPopup: NSPopUpButton!
+    private var clipboardFormatCheckbox: NSButton!
     private var qualitySlider: NSSlider!
     private var qualityLabel: NSTextField!
     private var qualityRowLabel: NSTextField!
@@ -957,6 +958,17 @@ class SettingsWindowController: NSWindowController, NSToolbarDelegate, NSWindowD
         imageFormatPopup.action = #selector(imageFormatChanged(_:))
 
         stack.addArrangedSubview(labeledRow(L("Image format:"), controls: [imageFormatPopup]))
+        stack.setCustomSpacing(6, after: stack.arrangedSubviews.last!)
+
+        clipboardFormatCheckbox = NSButton(checkboxWithTitle: L("Also copy to the clipboard in this format"),
+                                           target: self, action: #selector(clipboardFormatChanged(_:)))
+        stack.addArrangedSubview(indented(clipboardFormatCheckbox))
+        stack.setCustomSpacing(2, after: stack.arrangedSubviews.last!)
+
+        let clipboardFormatNote = NSTextField(labelWithString: L("PNG is always included so every app can paste"))
+        clipboardFormatNote.font = NSFont.systemFont(ofSize: 10)
+        clipboardFormatNote.textColor = .tertiaryLabelColor
+        stack.addArrangedSubview(indented(clipboardFormatNote))
         stack.setCustomSpacing(8, after: stack.arrangedSubviews.last!)
 
         // Quality (applies to lossy formats: JPEG, HEIC, WebP, AVIF)
@@ -2703,6 +2715,7 @@ class SettingsWindowController: NSWindowController, NSToolbarDelegate, NSWindowD
         closeEditorAfterCopyCheckbox.state = UserDefaults.standard.bool(forKey: "closeEditorAfterCopy") ? .on : .off
 
         selectImageFormat(ImageEncoder.format)
+        clipboardFormatCheckbox.state = ImageEncoder.clipboardIncludesImageFormat ? .on : .off
 
         let quality = Int(ImageEncoder.quality * 100)
         qualitySlider.integerValue = quality
@@ -2764,6 +2777,8 @@ class SettingsWindowController: NSWindowController, NSToolbarDelegate, NSWindowD
         qualitySlider.isEnabled = hasQuality
         qualityLabel.textColor = hasQuality ? .labelColor : .tertiaryLabelColor
         qualityRowLabel.textColor = hasQuality ? .labelColor : .tertiaryLabelColor
+        // PNG is already on the clipboard, so the option only matters for other formats.
+        clipboardFormatCheckbox.isEnabled = raw.flatMap(ImageEncoder.Format.init(rawValue:)).map { $0 != .png } ?? false
     }
 
     private func selectImageFormat(_ format: ImageEncoder.Format) {
@@ -2879,6 +2894,9 @@ class SettingsWindowController: NSWindowController, NSToolbarDelegate, NSWindowD
     @objc private func qualityChanged(_ sender: NSSlider) {
         qualityLabel.stringValue = String(format: L("%d%%"), sender.integerValue)
         UserDefaults.standard.set(Double(sender.integerValue) / 100.0, forKey: "imageQuality")
+    }
+    @objc private func clipboardFormatChanged(_ sender: NSButton) {
+        UserDefaults.standard.set(sender.state == .on, forKey: "clipboardIncludesImageFormat")
     }
     @objc private func downscaleRetinaChanged(_ sender: NSButton) {
         UserDefaults.standard.set(sender.state == .on, forKey: "downscaleRetina")

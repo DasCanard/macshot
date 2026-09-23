@@ -249,6 +249,8 @@
 "Replace (show only latest)" = "Nahradiť (zobraziť len posledný)";
 "Output" = "Výstup";
 "Image format:" = "Formát obrázka:";
+"Also copy to the clipboard in this format" = "Kopírovať do schránky aj v tomto formáte";
+"PNG is always included so every app can paste" = "PNG je vždy zahrnuté, aby sa dalo vložiť do každej aplikácie";
 "Quality:" = "Kvalita:";
 "%d%%" = "%d%%";
 "Save at standard resolution (1x)" = "Uložiť v štandardnom rozlíšení (1x)";

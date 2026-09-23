@@ -247,6 +247,8 @@
 "Move down" = "Mozgatás lefelé";
 "Output" = "Kimenet";
 "Image format:" = "Képformátum:";
+"Also copy to the clipboard in this format" = "Másolás a vágólapra ebben a formátumban is";
+"PNG is always included so every app can paste" = "A PNG mindig benne van, így bármely alkalmazás be tudja illeszteni";
 "Quality:" = "Minőség:";
 "%d%%" = "%d%%";
 "Save at standard resolution (1x)" = "Mentés szabványos felbontásban (1x)";

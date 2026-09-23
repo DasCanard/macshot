@@ -239,6 +239,8 @@
 "Move down" = "Mută în jos";
 "Output" = "Ieșire";
 "Image format:" = "Format imagine:";
+"Also copy to the clipboard in this format" = "Copiază în clipboard și în acest format";
+"PNG is always included so every app can paste" = "PNG este inclus mereu, ca orice aplicație să poată lipi";
 "Quality:" = "Calitate:";
 "%d%%" = "%d%%";
 "Save at standard resolution (1x)" = "Salvează la rezoluție standard (1x)";

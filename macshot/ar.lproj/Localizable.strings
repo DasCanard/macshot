@@ -239,6 +239,8 @@
 "Move down" = "نقل للأسفل";
 "Output" = "الإخراج";
 "Image format:" = "صيغة الصورة:";
+"Also copy to the clipboard in this format" = "انسخ أيضًا إلى الحافظة بهذه الصيغة";
+"PNG is always included so every app can paste" = "يتم تضمين PNG دائمًا ليتمكن أي تطبيق من اللصق";
 "Quality:" = "الجودة:";
 "%d%%" = "%d%%";
 "Save at standard resolution (1x)" = "حفظ بالدقة القياسية (1x)";

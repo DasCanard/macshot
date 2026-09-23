@@ -239,6 +239,8 @@
 "Move down" = "הזז למטה";
 "Output" = "פלט";
 "Image format:" = "פורמט תמונה:";
+"Also copy to the clipboard in this format" = "להעתיק ללוח גם בפורמט הזה";
+"PNG is always included so every app can paste" = "PNG תמיד כלול כדי שכל אפליקציה תוכל להדביק";
 "Quality:" = "איכות:";
 "%d%%" = "%d%%";
 "Save at standard resolution (1x)" = "שמור ברזולוציה רגילה (1x)";

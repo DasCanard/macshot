@@ -1,5 +1,17 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- **S3 date folders**: use `{year}`, `{month}` and `{day}` in the S3 path prefix to sort uploads by date. Thanks @DasCanard. (#417)
+- **Clipboard in your image format**: an opt-in Output setting also copies screenshots in the selected format (for example AVIF or HEIC). PNG is always included, so apps that only read PNG, like Teams, keep working. (#373)
+
+### Fixed
+
+- **System audio recordings stopped right away** with "Audio encoding could not keep up". The audio buffer measured macOS's system audio by a size it always reported as zero, so every recording with system audio failed within a moment of starting. It now measures by duration.
+- **WebP transparency**: semi-transparent pixels (for example the edges of a removed background) no longer come out darker in WebP files.
+
 ## [4.4.0-beta.1] - 2026-09-23
 
 ### Added

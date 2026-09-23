@@ -241,6 +241,8 @@
 "Move down" = "Omlaag verplaatsen";
 "Output" = "Uitvoer";
 "Image format:" = "Afbeeldingsformaat:";
+"Also copy to the clipboard in this format" = "Ook in dit formaat naar het klembord kopiëren";
+"PNG is always included so every app can paste" = "PNG wordt altijd meegestuurd, zodat elke app kan plakken";
 "Quality:" = "Kwaliteit:";
 "%d%%" = "%d%%";
 "Save at standard resolution (1x)" = "Opslaan op standaardresolutie (1x)";

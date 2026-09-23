@@ -239,6 +239,8 @@
 "Move down" = "Aşağı taşı";
 "Output" = "Çıktı";
 "Image format:" = "Görsel biçimi:";
+"Also copy to the clipboard in this format" = "Panoya bu biçimde de kopyala";
+"PNG is always included so every app can paste" = "Her uygulamanın yapıştırabilmesi için PNG her zaman eklenir";
 "Quality:" = "Kalite:";
 "%d%%" = "%%%d";
 "Save at standard resolution (1x)" = "Standart çözünürlükte kaydet (1x)";

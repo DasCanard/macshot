@@ -249,6 +249,8 @@
 "Replace (show only latest)" = "Замена (прикажи само најновије)";
 "Output" = "Излаз";
 "Image format:" = "Формат слике:";
+"Also copy to the clipboard in this format" = "Копирај у привремену меморију и у овом формату";
+"PNG is always included so every app can paste" = "PNG је увек укључен да би свака апликација могла да налепи";
 "Quality:" = "Квалитет:";
 "%d%%" = "%d%%";
 "Save at standard resolution (1x)" = "Сачувај у стандардној резолуцији (1x)";

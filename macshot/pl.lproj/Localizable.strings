@@ -238,6 +238,8 @@
 "  Position:" = "  Położenie:";
 "Output" = "Wyjście";
 "Image format:" = "Format obrazu:";
+"Also copy to the clipboard in this format" = "Kopiuj do schowka także w tym formacie";
+"PNG is always included so every app can paste" = "PNG jest zawsze dołączany, aby każda aplikacja mogła wkleić";
 "Quality:" = "Jakość:";
 "Aspect ratio & resolution presets" = "Ustawienia proporcji i rozdzielczości";
 "Aspect ratio" = "Proporcje";

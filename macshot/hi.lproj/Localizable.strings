@@ -243,6 +243,8 @@
 "Move down" = "नीचे ले जाएँ";
 "Output" = "आउटपुट";
 "Image format:" = "छवि प्रारूप:";
+"Also copy to the clipboard in this format" = "क्लिपबोर्ड पर इस फ़ॉर्मैट में भी कॉपी करें";
+"PNG is always included so every app can paste" = "PNG हमेशा शामिल रहता है ताकि हर ऐप पेस्ट कर सके";
 "Quality:" = "गुणवत्ता:";
 "%d%%" = "%d%%";
 "Save at standard resolution (1x)" = "मानक रिज़ॉल्यूशन (1x) में सहेजें";

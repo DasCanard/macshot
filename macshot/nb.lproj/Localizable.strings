@@ -243,6 +243,8 @@
 "Replace (show only latest)" = "Erstatt (vis kun siste)";
 "Output" = "Utdata";
 "Image format:" = "Bildeformat:";
+"Also copy to the clipboard in this format" = "Kopier også til utklippstavlen i dette formatet";
+"PNG is always included so every app can paste" = "PNG er alltid med, så alle apper kan lime inn";
 "Quality:" = "Kvalitet:";
 "%d%%" = "%d%%";
 "Save at standard resolution (1x)" = "Lagre med standard oppl\U00F8sning (1x)";

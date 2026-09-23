@@ -249,6 +249,8 @@
 "Replace (show only latest)" = "Заміна (показувати лише останній)";
 "Output" = "Вивід";
 "Image format:" = "Формат зображення:";
+"Also copy to the clipboard in this format" = "Також копіювати в буфер обміну в цьому форматі";
+"PNG is always included so every app can paste" = "PNG завжди додається, щоб вставлення працювало в будь-якій програмі";
 "Quality:" = "Якість:";
 "%d%%" = "%d%%";
 "Save at standard resolution (1x)" = "Зберігати в стандартній роздільності (1x)";

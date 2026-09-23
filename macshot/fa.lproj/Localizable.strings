@@ -239,6 +239,8 @@
 "Move down" = "انتقال به پایین";
 "Output" = "خروجی";
 "Image format:" = "فرمت تصویر:";
+"Also copy to the clipboard in this format" = "در کلیپ‌بورد با این قالب هم کپی شود";
+"PNG is always included so every app can paste" = "PNG همیشه گنجانده می‌شود تا هر برنامه‌ای بتواند جای‌گذاری کند";
 "Quality:" = "کیفیت:";
 "%d%%" = "%d%%";
 "Save at standard resolution (1x)" = "ذخیره با وضوح استاندارد (1x)";

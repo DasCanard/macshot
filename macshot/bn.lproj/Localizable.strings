@@ -242,6 +242,8 @@
 "Move down" = "নিচে সরান";
 "Output" = "আউটপুট";
 "Image format:" = "ছবির ফরম্যাট:";
+"Also copy to the clipboard in this format" = "এই ফরম্যাটেও ক্লিপবোর্ডে কপি করুন";
+"PNG is always included so every app can paste" = "PNG সবসময় যুক্ত থাকে, যাতে যেকোনো অ্যাপ পেস্ট করতে পারে";
 "Quality:" = "গুণমান:";
 "%d%%" = "%d%%";
 "Save at standard resolution (1x)" = "স্ট্যান্ডার্ড রেজোলিউশনে সংরক্ষণ (1x)";

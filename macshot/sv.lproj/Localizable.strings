@@ -243,6 +243,8 @@
 "Replace (show only latest)" = "Ers\U00E4tt (visa bara senaste)";
 "Output" = "Utdata";
 "Image format:" = "Bildformat:";
+"Also copy to the clipboard in this format" = "Kopiera även till urklipp i det här formatet";
+"PNG is always included so every app can paste" = "PNG ingår alltid så att alla appar kan klistra in";
 "Quality:" = "Kvalitet:";
 "%d%%" = "%d%%";
 "Save at standard resolution (1x)" = "Spara i standarduppl\U00F6sning (1x)";

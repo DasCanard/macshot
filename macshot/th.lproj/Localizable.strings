@@ -256,6 +256,8 @@
 "Replace (show only latest)" = "แทนที่ (แสดงล่าสุดเท่านั้น)";
 "Output" = "ผลลัพธ์";
 "Image format:" = "รูปแบบภาพ:";
+"Also copy to the clipboard in this format" = "คัดลอกไปยังคลิปบอร์ดในรูปแบบนี้ด้วย";
+"PNG is always included so every app can paste" = "มี PNG รวมอยู่เสมอ เพื่อให้ทุกแอปวางได้";
 "Quality:" = "คุณภาพ:";
 "%d%%" = "%d%%";
 "Save at standard resolution (1x)" = "บันทึกที่ความละเอียดมาตรฐาน (1x)";

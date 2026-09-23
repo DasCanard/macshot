@@ -235,6 +235,8 @@
 "Move down" = "Mou avall";
 "Output" = "Sortida";
 "Image format:" = "Format d'imatge:";
+"Also copy to the clipboard in this format" = "Copia també al porta-retalls en aquest format";
+"PNG is always included so every app can paste" = "Sempre s'inclou PNG perquè qualsevol app pugui enganxar";
 "Quality:" = "Qualitat:";
 "%d%%" = "%d%%";
 "Save at standard resolution (1x)" = "Desar a resolució estàndard (1x)";

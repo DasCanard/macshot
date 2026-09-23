@@ -247,6 +247,8 @@
 "Move down" = "கீழே நகர்த்து";
 "Output" = "வெளியீடு";
 "Image format:" = "பட வடிவம்:";
+"Also copy to the clipboard in this format" = "இந்த வடிவத்திலும் கிளிப்போர்டுக்கு நகலெடு";
+"PNG is always included so every app can paste" = "எந்த ஆப்பிலும் ஒட்ட முடியும் வகையில் PNG எப்போதும் சேர்க்கப்படும்";
 "Quality:" = "தரம்:";
 "%d%%" = "%d%%";
 "Save at standard resolution (1x)" = "நிலையான தெளிவுத்திறனில் சேமி (1x)";

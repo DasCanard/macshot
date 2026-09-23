@@ -249,6 +249,8 @@
 "Move down" = "Déplacer vers le bas";
 "Output" = "Sortie";
 "Image format:" = "Format d'image :";
+"Also copy to the clipboard in this format" = "Copier aussi dans le presse-papiers dans ce format";
+"PNG is always included so every app can paste" = "Le PNG est toujours inclus pour que toutes les apps puissent coller";
 "Quality:" = "Qualité :";
 "%d%%" = "%d%%";
 "Save at standard resolution (1x)" = "Enregistrer en résolution standard (1x)";

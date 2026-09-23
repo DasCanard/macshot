@@ -253,6 +253,8 @@
 "Replace (show only latest)" = "Palitan (ipakita lang ang pinakabago)";
 "Output" = "Output";
 "Image format:" = "Format ng larawan:";
+"Also copy to the clipboard in this format" = "Kopyahin din sa clipboard sa format na ito";
+"PNG is always included so every app can paste" = "Laging kasama ang PNG para makapag-paste ang anumang app";
 "Quality:" = "Kalidad:";
 "%d%%" = "%d%%";
 "Save at standard resolution (1x)" = "I-save sa standard na resolusyon (1x)";

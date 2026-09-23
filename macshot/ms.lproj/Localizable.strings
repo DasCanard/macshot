@@ -253,6 +253,8 @@
 "Replace (show only latest)" = "Ganti (tunjuk terkini sahaja)";
 "Output" = "Output";
 "Image format:" = "Format imej:";
+"Also copy to the clipboard in this format" = "Salin juga ke papan klip dalam format ini";
+"PNG is always included so every app can paste" = "PNG sentiasa disertakan supaya semua apl boleh menampal";
 "Quality:" = "Kualiti:";
 "%d%%" = "%d%%";
 "Save at standard resolution (1x)" = "Simpan pada resolusi standard (1x)";

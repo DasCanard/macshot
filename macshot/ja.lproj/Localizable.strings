@@ -233,6 +233,8 @@
 "Replace (show only latest)" = "置き換え (最新のみ表示)";
 "Output" = "出力";
 "Image format:" = "画像形式:";
+"Also copy to the clipboard in this format" = "この形式でもクリップボードにコピー";
+"PNG is always included so every app can paste" = "どのアプリでもペーストできるよう、PNG は常に含まれます";
 "Quality:" = "品質:";
 "%d%%" = "%d%%";
 "Save at standard resolution (1x)" = "標準解像度 (1x) で保存";

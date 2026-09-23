@@ -243,6 +243,8 @@
 "Replace (show only latest)" = "Korvaa (näytä vain viimeisin)";
 "Output" = "Tuloste";
 "Image format:" = "Kuvamuoto:";
+"Also copy to the clipboard in this format" = "Kopioi leikepöydälle myös tässä muodossa";
+"PNG is always included so every app can paste" = "PNG on aina mukana, jotta mikä tahansa sovellus voi liittää";
 "Quality:" = "Laatu:";
 "%d%%" = "%d%%";
 "Save at standard resolution (1x)" = "Tallenna vakiotarkkuudella (1x)";

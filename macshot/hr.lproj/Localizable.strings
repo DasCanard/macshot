@@ -249,6 +249,8 @@
 "Replace (show only latest)" = "Zamijeni (prikaži samo najnovije)";
 "Output" = "Izlaz";
 "Image format:" = "Format slike:";
+"Also copy to the clipboard in this format" = "Kopiraj u međuspremnik i u ovom formatu";
+"PNG is always included so every app can paste" = "PNG je uvijek uključen kako bi svaka aplikacija mogla zalijepiti";
 "Quality:" = "Kvaliteta:";
 "%d%%" = "%d%%";
 "Save at standard resolution (1x)" = "Spremi u standardnoj razlučivosti (1x)";

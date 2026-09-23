@@ -256,6 +256,8 @@
 "Replace (show only latest)" = "取代（僅顯示最新）";
 "Output" = "輸出";
 "Image format:" = "影像格式：";
+"Also copy to the clipboard in this format" = "同時以此格式拷貝到剪貼板";
+"PNG is always included so every app can paste" = "一律包含 PNG，確保所有 App 都能貼上";
 "Quality:" = "品質：";
 "%d%%" = "%d%%";
 "Save at standard resolution (1x)" = "以標準解析度 (1x) 儲存";

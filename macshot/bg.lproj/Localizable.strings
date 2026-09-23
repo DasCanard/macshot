@@ -249,6 +249,8 @@
 "Replace (show only latest)" = "Заместване (показване само на последния)";
 "Output" = "Изход";
 "Image format:" = "Формат на изображение:";
+"Also copy to the clipboard in this format" = "Копиране в клипборда и в този формат";
+"PNG is always included so every app can paste" = "PNG винаги се включва, за да може всяко приложение да поставя";
 "Quality:" = "Качество:";
 "%d%%" = "%d%%";
 "Save at standard resolution (1x)" = "Запазване в стандартна резолюция (1x)";

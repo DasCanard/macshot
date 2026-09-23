@@ -251,6 +251,8 @@
 "Move down" = "Μετακίνηση κάτω";
 "Output" = "Έξοδος";
 "Image format:" = "Μορφή εικόνας:";
+"Also copy to the clipboard in this format" = "Αντιγραφή στο πρόχειρο και σε αυτή τη μορφή";
+"PNG is always included so every app can paste" = "Το PNG περιλαμβάνεται πάντα, ώστε κάθε εφαρμογή να μπορεί να κάνει επικόλληση";
 "Quality:" = "Ποιότητα:";
 "%d%%" = "%d%%";
 "Save at standard resolution (1x)" = "Αποθήκευση σε τυπική ανάλυση (1x)";
