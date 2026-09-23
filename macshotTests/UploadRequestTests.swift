@@ -58,10 +58,10 @@ final class UploadRequestTests: XCTestCase {
     private func respond(_ handler: @escaping (URLRequest, Data) throws -> UploadFixtureProtocol.Reply) {
         UploadFixtureProtocol.lock.lock(); UploadFixtureProtocol.handler = handler; UploadFixtureProtocol.lock.unlock()
     }
-    private func s3() -> S3Uploader {
+    private func s3(pathPrefix: String = "folder+name") -> S3Uploader {
         S3Uploader(session: session, config: .init(endpoint: "https://upload.example:9443/proxy path", region: "us-east-1",
             bucket: "shots", accessKeyID: "fixture-key", secretAccessKey: "fixture-secret",
-            publicURLBase: "https://cdn.example", pathPrefix: "folder+name", publicRead: true))
+            publicURLBase: "https://cdn.example", pathPrefix: pathPrefix, publicRead: true))
     }
     private func drive(expired: Bool = false) throws -> GoogleDriveUploader {
         let tokens = directory.appendingPathComponent("tokens.json")
@@ -100,6 +100,32 @@ final class UploadRequestTests: XCTestCase {
         let link = try await upload(s3(), .data(data), name: "a+b%?.mp4")
         XCTAssertEqual(link, "https://cdn.example/folder%2Bname/a%2Bb%25%3F.mp4")
         await fulfillment(of: [received], timeout: 5)
+        await MediaExportCoordinator.shared.waitUntilIdle()
+    }
+
+    func testS3ExpandsDatePrefixInRequestAndPublicLink() async throws {
+        let received = expectation(description: "S3 dated paths")
+        received.expectedFulfillmentCount = 2
+        let lock = NSLock()
+        var expectedLinks: [String] = []
+        respond { request, _ in
+            let path = try XCTUnwrap(URLComponents(url: request.url!, resolvingAgainstBaseURL: false)?.percentEncodedPath)
+            XCTAssertNotNil(path.range(of: #"^/proxy%20path/shots/folder%2Bname/[0-9]{4}/[0-9]{2}/[0-9]{2}/a%2Bb%25%3F.mp4$"#,
+                                       options: .regularExpression))
+            lock.lock()
+            expectedLinks.append("https://cdn.example/" + path.dropFirst("/proxy%20path/shots/".count))
+            lock.unlock()
+            received.fulfill()
+            return .init(status: 200, body: Data())
+        }
+        var links: [String] = []
+        for suffix in ["", "/"] {
+            let uploader = s3(pathPrefix: "folder+name/{year}/{month}/{day}" + suffix)
+            let link = try await upload(uploader, .data(Data([1])), name: "a+b%?.mp4")
+            links.append(link)
+        }
+        await fulfillment(of: [received], timeout: 5)
+        XCTAssertEqual(links, expectedLinks)
         await MediaExportCoordinator.shared.waitUntilIdle()
     }
 

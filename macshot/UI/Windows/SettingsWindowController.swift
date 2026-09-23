@@ -2022,12 +2022,19 @@ class SettingsWindowController: NSWindowController, NSToolbarDelegate, NSWindowD
         stack.addArrangedSubview(indented(publicURLNote))
 
         s3PathPrefixField = NSTextField()
-        s3PathPrefixField.placeholderString = "screenshots/"
+        s3PathPrefixField.placeholderString = "screenshots/{year}/{month}/{day}/"
         s3PathPrefixField.font = NSFont.monospacedSystemFont(ofSize: 11, weight: .regular)
         s3PathPrefixField.stringValue = UserDefaults.standard.string(forKey: "s3PathPrefix") ?? ""
         s3PathPrefixField.target = self
         s3PathPrefixField.action = #selector(s3FieldChanged(_:))
         stack.addArrangedSubview(labeledRow(L("Path Prefix:"), controls: [s3PathPrefixField]))
+        stack.setCustomSpacing(4, after: stack.arrangedSubviews.last!)
+
+        let pathPrefixNote = NSTextField(labelWithString:
+            "{year}/{month}/{day} → " + S3Uploader.Config.expandDatePlaceholders(in: "{year}/{month}/{day}"))
+        pathPrefixNote.font = NSFont.monospacedSystemFont(ofSize: 10, weight: .regular)
+        pathPrefixNote.textColor = .secondaryLabelColor
+        stack.addArrangedSubview(indented(pathPrefixNote))
         stack.setCustomSpacing(8, after: stack.arrangedSubviews.last!)
 
         s3PublicReadCheckbox = NSButton(checkboxWithTitle: L("Make uploads publicly readable"), target: self, action: #selector(s3PublicReadChanged(_:)))
