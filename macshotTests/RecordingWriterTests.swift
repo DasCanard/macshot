@@ -47,6 +47,52 @@ enum RecordingMediaFixture {
         return buffer
     }
 
+    /// ScreenCaptureKit system audio: non-interleaved stereo Float32 built from
+    /// an AudioBufferList. Frame i holds i (left) and -i (right) so trims can be checked.
+    static func planarAudio(frames: Int, pts: CMTime, firstValue: Int = 0) throws -> CMSampleBuffer {
+        var asbd = AudioStreamBasicDescription(mSampleRate: 48_000, mFormatID: kAudioFormatLinearPCM,
+            mFormatFlags: kAudioFormatFlagIsFloat | kAudioFormatFlagIsPacked | kAudioFormatFlagIsNonInterleaved,
+            mBytesPerPacket: 4, mFramesPerPacket: 1, mBytesPerFrame: 4, mChannelsPerFrame: 2,
+            mBitsPerChannel: 32, mReserved: 0)
+        var format: CMAudioFormatDescription?
+        XCTAssertEqual(CMAudioFormatDescriptionCreate(allocator: nil, asbd: &asbd, layoutSize: 0, layout: nil,
+            magicCookieSize: 0, magicCookie: nil, extensions: nil, formatDescriptionOut: &format), noErr)
+        var sample: CMSampleBuffer?
+        XCTAssertEqual(CMAudioSampleBufferCreateWithPacketDescriptions(allocator: nil, dataBuffer: nil,
+            dataReady: false, makeDataReadyCallback: nil, refcon: nil, formatDescription: try XCTUnwrap(format),
+            sampleCount: frames, presentationTimeStamp: pts, packetDescriptions: nil, sampleBufferOut: &sample), noErr)
+        let buffer = try XCTUnwrap(sample)
+        let list = AudioBufferList.allocate(maximumBuffers: 2)
+        defer { free(list.unsafeMutablePointer) }
+        var planes: [UnsafeMutablePointer<Float>] = []
+        for channel in 0..<2 {
+            let plane = UnsafeMutablePointer<Float>.allocate(capacity: frames)
+            for frame in 0..<frames {
+                let value = Float(firstValue + frame) / 1_000_000
+                plane[frame] = channel == 0 ? value : -value
+            }
+            planes.append(plane)
+            list[channel] = AudioBuffer(mNumberChannels: 1, mDataByteSize: UInt32(frames * 4), mData: plane)
+        }
+        defer { planes.forEach { $0.deallocate() } }
+        XCTAssertEqual(CMSampleBufferSetDataBufferFromAudioBufferList(buffer, blockBufferAllocator: nil,
+            blockBufferMemoryAllocator: nil, flags: 0, bufferList: list.unsafePointer), noErr)
+        return buffer
+    }
+
+    static func planarChannels(_ sample: CMSampleBuffer) throws -> [[Float]] {
+        let list = AudioBufferList.allocate(maximumBuffers: 2)
+        defer { free(list.unsafeMutablePointer) }
+        var block: CMBlockBuffer?
+        XCTAssertEqual(CMSampleBufferGetAudioBufferListWithRetainedBlockBuffer(sample, bufferListSizeNeededOut: nil,
+            bufferListOut: list.unsafeMutablePointer, bufferListSize: AudioBufferList.sizeInBytes(maximumBuffers: 2),
+            blockBufferAllocator: nil, blockBufferMemoryAllocator: nil, flags: 0, blockBufferOut: &block), noErr)
+        return try list.map { buffer in
+            let data = try XCTUnwrap(buffer.mData).assumingMemoryBound(to: Float.self)
+            return Array(UnsafeBufferPointer(start: data, count: Int(buffer.mDataByteSize) / 4))
+        }
+    }
+
     static func audio(samples: Int = 1024, rate: Int32 = 48_000, pts: CMTime,
                       frequency: Double = 440, phaseSample: Int = 0, amplitude: Double = 0.1,
                       rightFrequency: Double? = nil) throws -> CMSampleBuffer {
@@ -135,16 +181,52 @@ final class RecordingSampleValidationTests: XCTestCase {
         }
     }
 
+    func testBoundaryTrimKeepsTheExactTailOfNonInterleavedAudio() throws {
+        let pts = CMTime(value: 48_000, timescale: 48_000)
+        let sample = try RecordingMediaFixture.planarAudio(frames: 1024, pts: pts, firstValue: 7)
+        let start = CMTimeAdd(pts, CMTime(value: 400, timescale: 48_000))
+        let trimmed = try XCTUnwrap(RecordingSampleValidation.audio(sample, startingAt: start),
+                                    "planar audio straddling the first frame must be trimmed, not dropped")
+        XCTAssertEqual(trimmed.numSamples, 624)
+        XCTAssertEqual(trimmed.presentationTimeStamp, start)
+        let channels = try RecordingMediaFixture.planarChannels(trimmed)
+        XCTAssertEqual(channels.count, 2)
+        XCTAssertEqual(channels[0].count, 624)
+        XCTAssertEqual(channels[0].first, Float(7 + 400) / 1_000_000)
+        XCTAssertEqual(channels[0].last, Float(7 + 1023) / 1_000_000)
+        XCTAssertEqual(channels[1].first, -Float(7 + 400) / 1_000_000)
+    }
+
     func testAudioBufferBoundsDoNotGrowWithInputDuration() throws {
-        let sample = try RecordingMediaFixture.audio(samples: 128, pts: .zero)
-        var queue = RecordingAudioQueue(maximumBytes: 4096, maximumBuffers: 8)
+        let sample = try RecordingMediaFixture.audio(samples: 480, pts: .zero) // 10 ms
+        var queue = RecordingAudioQueue(maximumSeconds: 0.08, maximumBuffers: 100)
         for _ in 0..<100_000 {
             if !queue.append(sample) { queue.removeFirst(); XCTAssertTrue(queue.append(sample)) }
         }
-        XCTAssertEqual(queue.samples.count, 8)
-        XCTAssertEqual(queue.byteCount, 4096)
+        XCTAssertEqual(queue.count, 8)
+        XCTAssertEqual(queue.bufferedSeconds, 0.08, accuracy: 0.0001)
         queue.removeAll()
-        XCTAssertEqual(queue.byteCount, 0)
+        XCTAssertEqual(queue.bufferedSeconds, 0)
+        XCTAssertTrue(queue.isEmpty)
+    }
+
+    func testAudioQueueCountsDurationNotReportedBytes() throws {
+        // A large buffer is still only 21 ms of audio; bytes must not refuse it.
+        let big = try RecordingMediaFixture.audio(samples: 1024, pts: .zero, rightFrequency: 660)
+        var queue = RecordingAudioQueue()
+        for _ in 0..<400 { XCTAssertTrue(queue.append(big)) }
+        XCTAssertEqual(queue.bufferedSeconds, 400 * 1024 / 48_000, accuracy: 0.001)
+    }
+
+    func testAudioQueueDropsPreRollThatEndsBeforeTheFirstFrame() throws {
+        var queue = RecordingAudioQueue()
+        for index in 0..<10 {
+            XCTAssertTrue(queue.append(try RecordingMediaFixture.audio(samples: 480,
+                pts: CMTime(value: Int64(index * 480), timescale: 48_000))))
+        }
+        queue.removeSamples(endingBefore: CMTime(value: 2_400, timescale: 48_000)) // 50 ms
+        XCTAssertEqual(queue.count, 5)
+        XCTAssertEqual(queue.first?.presentationTimeStamp, CMTime(value: 2_400, timescale: 48_000))
     }
 }
 
@@ -322,6 +404,54 @@ final class RecordingWriterTests: XCTestCase {
         writer.requestStop(atSourceTime: CMTime(value: 102, timescale: 1))
         do { try await writer.finish(); XCTFail("Changed audio format must be reported") }
         catch { XCTAssertTrue(error is MP4WriterSession.WriterError) }
+    }
+
+    func testSystemAudioPreRollAndSteadyAudioDoNotReportOverload() async throws {
+        var failure: Error? // read and written only on the writer queue
+        let url = directory.appendingPathComponent("system-audio.mp4")
+        let writer = try MP4WriterSession.make(queue: queue, url: url, width: 64, height: 64, fps: 60,
+            recordSystemAudio: true, recordMicAudio: false, onFailure: { failure = $0 })
+        // Three seconds of audio before ScreenCaptureKit's first frame.
+        var frame = 0
+        func feed(until seconds: Double) throws {
+            while Double(frame) / 48_000 < seconds {
+                let sample = try RecordingMediaFixture.planarAudio(frames: 1024, pts: CMTime(value: Int64(4_800_000 + frame), timescale: 48_000))
+                queue.sync { writer.handleSystemAudioSample(sample) }
+                frame += 1024
+            }
+        }
+        try feed(until: 3)
+        let pixels = try RecordingMediaFixture.pixels()
+        for index in 0..<180 { // three seconds of 60 fps video with audio in step
+            try await append(writer, time: 103 + Double(index) / 60, buffer: pixels)
+            try feed(until: 3 + Double(index + 1) / 60)
+        }
+        queue.sync { XCTAssertNil(failure, "system audio must not be reported as overload") }
+        writer.requestStop(atSourceTime: CMTime(value: 106, timescale: 1))
+        try await writer.finish()
+        let track = try XCTUnwrap(AVAsset(url: url).tracks(withMediaType: .audio).first)
+        XCTAssertEqual(track.timeRange.duration.seconds, 3, accuracy: 0.03)
+    }
+
+    func testAudioQueuedBeforeALateFirstFrameIsKept() async throws {
+        let url = directory.appendingPathComponent("late-frame.mp4")
+        let writer = try MP4WriterSession.make(queue: queue, url: url, width: 64, height: 64, fps: 30,
+            recordSystemAudio: true, recordMicAudio: false)
+        // Audio for 100-103 s is delivered before the first frame, which was
+        // captured at 100 s but delivered late.
+        var frame = 0
+        while frame < 3 * 48_000 {
+            let sample = try RecordingMediaFixture.planarAudio(frames: 1024,
+                pts: CMTime(value: Int64(4_800_000 + frame), timescale: 48_000))
+            queue.sync { writer.handleSystemAudioSample(sample) }
+            frame += 1024
+        }
+        let pixels = try RecordingMediaFixture.pixels()
+        for index in 0..<90 { try await append(writer, time: 100 + Double(index) / 30, buffer: pixels) }
+        writer.requestStop(atSourceTime: CMTime(value: 103, timescale: 1))
+        try await writer.finish()
+        let track = try XCTUnwrap(AVAsset(url: url).tracks(withMediaType: .audio).first)
+        XCTAssertEqual(track.timeRange.duration.seconds, 3, accuracy: 0.05, "audio before a late frame was discarded")
     }
 
     func testStaticScreenHeartbeatsKeepAudioAndRecoveryFragmentsAdvancing() async throws {

@@ -286,7 +286,7 @@ final class MP4WriterSession: @unchecked Sendable {
             input.requestMediaDataWhenReady(on: queue) { [weak self] in
                 guard let self = self, !done, self.finalResult == nil else { return }
                 self.drainAudio(isMic: isMic)
-                let empty = isMic ? self.pendingMicSamples.samples.isEmpty : self.pendingAudioSamples.samples.isEmpty
+                let empty = isMic ? self.pendingMicSamples.isEmpty : self.pendingAudioSamples.isEmpty
                 guard empty || self.firstError != nil else { return }
                 done = true
                 input.markAsFinished()
@@ -374,6 +374,9 @@ final class MP4WriterSession: @unchecked Sendable {
             startTime = time
             writer.startSession(atSourceTime: time)
             sessionStarted = true
+            // Pre-roll that ends before the first frame would only be trimmed.
+            pendingAudioSamples.removeSamples(endingBefore: time)
+            pendingMicSamples.removeSamples(endingBefore: time)
             // Host time of media zero: the adjusted time plus any pause
             // offset accumulated before the first frame.
             onSessionStart?(CMTimeAdd(time, pauseOffset))
@@ -404,22 +407,29 @@ final class MP4WriterSession: @unchecked Sendable {
             return
         }
         if isMic { microphoneFormat = format } else { systemAudioFormat = format }
+        // Make room first: a sample must not be refused while earlier audio
+        // could still be handed to the encoder.
+        if sessionStarted { drainAudio(isMic: isMic) }
         var pending = isMic ? pendingMicSamples : pendingAudioSamples
-        if !pending.append(adjusted) {
-            if sessionStarted {
+        if sessionStarted {
+            if !pending.append(adjusted) {
                 fail(WriterError.audioOverload)
                 return
             }
+        } else {
             // Pre-roll is useful only near the first complete video frame.
-            // Keep the newest bounded window even if video never arrives.
-            while !pending.samples.isEmpty {
-                pending.removeFirst()
-                if pending.append(adjusted) { break }
-            }
+            // Keep the newest short window even if video never arrives.
+            while !pending.append(adjusted), pending.removeFirst() != nil {}
+            while pending.count > 1, pending.bufferedSeconds > Self.preRollSeconds { pending.removeFirst() }
         }
         if isMic { pendingMicSamples = pending } else { pendingAudioSamples = pending }
         if sessionStarted { drainAudio(isMic: isMic) }
     }
+
+    /// Audio kept before the first video frame. Generous because a first frame
+    /// can arrive late with an earlier capture time than audio already queued;
+    /// whatever ends before that frame is dropped once it arrives.
+    private static let preRollSeconds = 5.0
 
     private func drainAudio() {
         drainAudio(isMic: false)
