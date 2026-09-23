@@ -4,13 +4,32 @@
         <title>macshot Offline</title>
         <link>https://github.com/sw33tLie/macshot</link>
         <description>macshot Offline updates</description>
-<item>
+<item xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
     <title>v4.3.0</title>
     <pubDate>Wed, 23 Sep 2026 12:46:46 +0000</pubDate>
     <sparkle:version>106</sparkle:version>
     <sparkle:shortVersionString>4.3.0</sparkle:shortVersionString>
     <sparkle:minimumSystemVersion>12.3</sparkle:minimumSystemVersion>
 
+    <description>
+      &lt;style&gt;
+        body { font-family: -apple-system, sans-serif; font-size: 13px; padding: 12px; }
+        h3 { font-size: 14px; margin: 12px 0 6px 0; }
+        h3:first-child { margin-top: 0; }
+        ul { padding-left: 18px; margin: 4px 0; }
+        li { margin: 4px 0; line-height: 1.5; }
+      &lt;/style&gt;
+      &lt;h3&gt;Added&lt;/h3&gt;&lt;ul&gt;  &lt;li&gt;&lt;b&gt;Element snapping&lt;/b&gt; — press Tab to select buttons, fields, and panels, including in browsers and Electron apps. Requires Accessibility access. (#360)&lt;/li&gt; &lt;li&gt;&lt;b&gt;Video editing&lt;/b&gt; — style text overlays, add effects at the playhead, and preview zooms as they will export. GIFs have a 5–30 fps picker. (#296, #301, #307)&lt;/li&gt; &lt;li&gt;&lt;b&gt;Screenshot paths&lt;/b&gt; — Enter can save and copy the final full path; an optional Output setting does the same after any screenshot save. (#399)&lt;/li&gt; &lt;li&gt;&lt;b&gt;Capture and editor shortcuts&lt;/b&gt; — auto-adjust selections to visual edges; Cmd+D duplicates annotations. Optional settings fit wide captures in the thumbnail and close the editor after copying. (#317, #366, #394)&lt;/li&gt; &lt;li&gt;&lt;b&gt;Uploads&lt;/b&gt; — choose a Google Drive folder or enable public-read links on S3 services that support them. (#372, #352)&lt;/li&gt;  &lt;/ul&gt;&lt;h3&gt;Improved and fixed&lt;/h3&gt;&lt;ul&gt;  &lt;li&gt;&lt;b&gt;Screenshot saves and history&lt;/b&gt; — atomic writes prevent overwrites; failures are shown; older captures reopen with annotations and effects intact. See [downgrade and recovery notes](https://github.com/sw33tLie/macshot/blob/main/docs/history-recovery.md) before returning to an older version. (#344)&lt;/li&gt; &lt;li&gt;&lt;b&gt;Recording and export&lt;/b&gt; — fixes early stops, idle resumes, fractional cuts, Bluetooth mic audio, and GIF timing. Exports show progress, support cancellation, and preserve originals after failure. (#323, #326, #340)&lt;/li&gt; &lt;li&gt;&lt;b&gt;Clipboard compatibility&lt;/b&gt; — screenshots paste as images in Teams and remote desktop clients; video Copy provides playable MP4 data. (#309, #329, #337, #393)&lt;/li&gt; &lt;li&gt;&lt;b&gt;Scroll capture&lt;/b&gt; — Escape cancels; controls avoid the notch; padded image rows stitch correctly. (#153, #333)&lt;/li&gt; &lt;li&gt;&lt;b&gt;Capture and editor fixes&lt;/b&gt; — window shadows, effects on snapped windows, text undo, display disconnects, and sampling colors from annotations. (#88, #387)&lt;/li&gt;&lt;/ul&gt;
+    </description>
+    <enclosure url="https://github.com/sw33tLie/macshot/releases/download/v4.3.0/MacShot-Offline.dmg" length="7421744" type="application/octet-stream" sparkle:edSignature="DTaDCpqxyFLO/B0u87MPOEVSdpUOTh921h3njPMsJyuSm/2Fe4LLV5RxeSbBp/Kr1pwqd3DkY5iIiQVlctPqAw==" />
+</item>
+<item>
+    <title>v4.4.0-beta.1</title>
+    <pubDate>Wed, 23 Sep 2026 18:41:43 +0000</pubDate>
+    <sparkle:version>108</sparkle:version>
+    <sparkle:shortVersionString>4.4.0-beta.1</sparkle:shortVersionString>
+    <sparkle:minimumSystemVersion>12.3</sparkle:minimumSystemVersion>
+    <sparkle:channel>beta</sparkle:channel>
     <description><![CDATA[
       <style>
         body { font-family: -apple-system, sans-serif; font-size: 13px; padding: 12px; }
@@ -19,13 +38,13 @@
         ul { padding-left: 18px; margin: 4px 0; }
         li { margin: 4px 0; line-height: 1.5; }
       </style>
-      <h3>Added</h3><ul>  <li><b>Element snapping</b> — press Tab to select buttons, fields, and panels, including in browsers and Electron apps. Requires Accessibility access. (#360)</li> <li><b>Video editing</b> — style text overlays, add effects at the playhead, and preview zooms as they will export. GIFs have a 5–30 fps picker. (#296, #301, #307)</li> <li><b>Screenshot paths</b> — Enter can save and copy the final full path; an optional Output setting does the same after any screenshot save. (#399)</li> <li><b>Capture and editor shortcuts</b> — auto-adjust selections to visual edges; Cmd+D duplicates annotations. Optional settings fit wide captures in the thumbnail and close the editor after copying. (#317, #366, #394)</li> <li><b>Uploads</b> — choose a Google Drive folder or enable public-read links on S3 services that support them. (#372, #352)</li>  </ul><h3>Improved and fixed</h3><ul>  <li><b>Screenshot saves and history</b> — atomic writes prevent overwrites; failures are shown; older captures reopen with annotations and effects intact. See [downgrade and recovery notes](https://github.com/sw33tLie/macshot/blob/main/docs/history-recovery.md) before returning to an older version. (#344)</li> <li><b>Recording and export</b> — fixes early stops, idle resumes, fractional cuts, Bluetooth mic audio, and GIF timing. Exports show progress, support cancellation, and preserve originals after failure. (#323, #326, #340)</li> <li><b>Clipboard compatibility</b> — screenshots paste as images in Teams and remote desktop clients; video Copy provides playable MP4 data. (#309, #329, #337, #393)</li> <li><b>Scroll capture</b> — Escape cancels; controls avoid the notch; padded image rows stitch correctly. (#153, #333)</li> <li><b>Capture and editor fixes</b> — window shadows, effects on snapped windows, text undo, display disconnects, and sampling colors from annotations. (#88, #387)</li></ul>
+      <h3>Added</h3><ul>  <li><b>Redesigned video editor (Studio)</b>: a larger window with a sidebar for Background, Pointer, Zoom, Keystrokes, Camera and Captions, a new multi-lane timeline with thumbnails, waveform, snapping and pinch zoom, plus undo/redo and autosaved projects.</li> <li><b>Editable pointer</b>: recordings that open in the editor save pointer, click and keystroke data beside the video, so the cursor can be restyled (macOS, dot or ring), resized, smoothed, hidden when idle or typing, given motion blur and sway, and click effects can be changed after recording. Recordings sent elsewhere keep the cursor in the video as before.</li> <li><b>Auto Zoom</b>: zooms generated from your clicks and typing, zooms that follow the pointer, smooth pans between nearby zooms and zoom motion blur.</li> <li><b>Backgrounds and framing</b>: gradients, macOS wallpapers, solid colors or your own image, with blur, padding, rounded corners, shadow, aspect ratio presets and crop.</li> <li><b>Webcam as a separate track</b>: change the camera's shape, size and position after recording; it shrinks during zooms.</li> <li><b>Keystroke labels and captions</b>: keystrokes are restyled after recording; captions are transcribed on your Mac and can be exported as SRT.</li>  </ul><h3>Improved and fixed</h3><ul>  <li>Preview and every export (MP4 High, Medium, Low and GIF) share one renderer, so what you see is what you export, including the webcam.</li> <li>The last timeline ruler label no longer clips at the edge of the window.</li> <li>Em dashes removed from interface text in every language, and a Finnish translation fix.</li></ul>
     ]]></description>
     <enclosure
-        url="https://github.com/sw33tLie/macshot/releases/download/v4.3.0/MacShot-Offline.dmg"
-        length="7421744"
+        url="https://github.com/sw33tLie/macshot/releases/download/v4.4.0-beta.1/MacShot-Offline.dmg"
+        length="8296859"
         type="application/octet-stream"
-        sparkle:edSignature="DTaDCpqxyFLO/B0u87MPOEVSdpUOTh921h3njPMsJyuSm/2Fe4LLV5RxeSbBp/Kr1pwqd3DkY5iIiQVlctPqAw=="
+        sparkle:edSignature="bsDgtBMjuqQf4OYAVftjvxs6enKqCUroiW3Kd3ooTRqtQSWWNdsi1gvMOu7/4MSp0/1DS1aMa1wFQbkUvyb2CA=="
     />
 </item>
     </channel>
