@@ -25,7 +25,7 @@ final class S3Uploader {
         let accessKeyID: String
         let secretAccessKey: String
         let publicURLBase: String // e.g. "https://cdn.example.com" — used for the final link
-        let pathPrefix: String    // e.g. "screenshots/" — optional prefix within bucket
+        let pathPrefix: String    // e.g. "screenshots/{year}/{month}/{day}/" — optional prefix within bucket
         let publicRead: Bool      // send `x-amz-acl: public-read` so the object is world-readable
 
         var isValid: Bool {
@@ -40,6 +40,17 @@ final class S3Uploader {
         var effectiveRegion: String {
             let trimmed = region.trimmingCharacters(in: .whitespacesAndNewlines)
             return trimmed.isEmpty ? "auto" : trimmed
+        }
+
+        /// Expand only {year}, {month} and {day} using the local upload date.
+        /// Keep literal paths, slashes and unsupported placeholders unchanged.
+        func resolvedPathPrefix(date: Date = Date(), timeZone: TimeZone = .current) -> String {
+            var calendar = Calendar(identifier: .gregorian)
+            calendar.timeZone = timeZone
+            return pathPrefix
+                .replacingOccurrences(of: "{year}", with: String(format: "%04d", calendar.component(.year, from: date)))
+                .replacingOccurrences(of: "{month}", with: String(format: "%02d", calendar.component(.month, from: date)))
+                .replacingOccurrences(of: "{day}", with: String(format: "%02d", calendar.component(.day, from: date)))
         }
     }
 
@@ -91,7 +102,7 @@ final class S3Uploader {
         guard cfg.isValid else { completion(.failure(S3Error.notConfigured)); return }
         let session = self.session
         UploadJob.start(filename: filename, operation: {
-            var prefix = cfg.pathPrefix
+            var prefix = cfg.resolvedPathPrefix()
             if !prefix.isEmpty && !prefix.hasSuffix("/") { prefix += "/" }
             let key = prefix + filename.replacingOccurrences(of: " ", with: "_")
             guard var endpoint = URLComponents(string: cfg.endpoint),

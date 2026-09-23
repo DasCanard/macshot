@@ -43,6 +43,30 @@ final class S3ConfigTests: XCTestCase {
         XCTAssertEqual(config(region: "us-east-1").effectiveRegion, "us-east-1")
         XCTAssertEqual(config(region: " eu-west-2 ").effectiveRegion, "eu-west-2", "surrounding spaces are trimmed")
     }
+
+    func testPathPrefixPadsDateComponentsAndUsesCalendarYear() throws {
+        // January 1 belongs to the previous ISO week-year in 2021.
+        let date = try XCTUnwrap(ISO8601DateFormatter().date(from: "2021-01-01T12:00:00Z"))
+        let prefix = config(pathPrefix: "screenshots/{year}/{month}/{day}/{year}-{month}-{day}/")
+        XCTAssertEqual(prefix.resolvedPathPrefix(date: date, timeZone: TimeZone(secondsFromGMT: 0)!),
+                       "screenshots/2021/01/01/2021-01-01/")
+    }
+
+    func testPathPrefixUsesLocalDateAcrossMidnightAndLeapDay() throws {
+        let date = try XCTUnwrap(ISO8601DateFormatter().date(from: "2024-03-01T00:30:00Z"))
+        let prefix = config(pathPrefix: "{year}/{month}/{day}")
+        XCTAssertEqual(prefix.resolvedPathPrefix(date: date, timeZone: TimeZone(secondsFromGMT: -3600)!),
+                       "2024/02/29")
+        XCTAssertEqual(prefix.resolvedPathPrefix(date: date, timeZone: TimeZone(secondsFromGMT: 3600)!),
+                       "2024/03/01")
+    }
+
+    func testPathPrefixPreservesLiteralPathsAndUnsupportedTokens() {
+        for literal in ["", "screenshots/", "/folder+name//with spaces/", "yyyy/mm/dd",
+                        "%year%/%month%/%day%", "{date}/{time}/{random}/{window}/{index}", "{Year}/{MONTH}/{DAY}"] {
+            XCTAssertEqual(config(pathPrefix: literal).resolvedPathPrefix(), literal)
+        }
+    }
 }
 #endif
 
