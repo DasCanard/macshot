@@ -1,5 +1,23 @@
 # Changelog
 
+## [4.3.0] - 2026-09-23
+
+### Added
+
+- **Element snapping** — press Tab to select buttons, fields, and panels, including in browsers and Electron apps. Requires Accessibility access. (#360)
+- **Video editing** — style text overlays, add effects at the playhead, and preview zooms as they will export. GIFs have a 5–30 fps picker. (#296, #301, #307)
+- **Screenshot paths** — Enter can save and copy the final full path; an optional Output setting does the same after any screenshot save. (#399)
+- **Capture and editor shortcuts** — auto-adjust selections to visual edges; Cmd+D duplicates annotations. Optional settings fit wide captures in the thumbnail and close the editor after copying. (#317, #366, #394)
+- **Uploads** — choose a Google Drive folder or enable public-read links on S3 services that support them. (#372, #352)
+
+### Improved and fixed
+
+- **Screenshot saves and history** — atomic writes prevent overwrites; failures are shown; older captures reopen with annotations and effects intact. See [downgrade and recovery notes](https://github.com/sw33tLie/macshot/blob/main/docs/history-recovery.md) before returning to an older version. (#344)
+- **Recording and export** — fixes early stops, idle resumes, fractional cuts, Bluetooth mic audio, and GIF timing. Exports show progress, support cancellation, and preserve originals after failure. (#323, #326, #340)
+- **Clipboard compatibility** — screenshots paste as images in Teams and remote desktop clients; video Copy provides playable MP4 data. (#309, #329, #337, #393)
+- **Scroll capture** — Escape cancels; controls avoid the notch; padded image rows stitch correctly. (#153, #333)
+- **Capture and editor fixes** — window shadows, effects on snapped windows, text undo, display disconnects, and sampling colors from annotations. (#88, #387)
+
 ## [4.3.0-beta.1] - 2026-09-20
 
 ### Fixed
