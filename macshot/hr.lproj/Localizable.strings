@@ -398,6 +398,9 @@
 
 /* Permission Onboarding */
 "Welcome to macshot" = "Dobrodošli u macshot";
+"Welcome back to macshot" = "Dobro došli natrag u macshot";
+"Turn Screen Recording back on" = "Ponovno uključite snimanje zaslona";
+"After some updates, macOS asks you to allow macshot again. Your settings and captures are safe. If macshot is already on in the list, turn it off and on again." = "Nakon nekih ažuriranja macOS traži da ponovno dopustite macshot. Vaše postavke i snimke su sigurni. Ako je macshot već uključen na popisu, isključite ga i ponovno uključite.";
 "macshot needs one permission" = "macshot treba jednu dozvolu";
 "Screen Recording not yet granted" = "Snimanje zaslona još nije odobreno";
 "Screen Recording granted!" = "Snimanje zaslona odobreno!";

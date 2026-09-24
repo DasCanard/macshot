@@ -396,6 +396,9 @@
 
 /* Permission Onboarding */
 "Welcome to macshot" = "Tervetuloa macshot-sovellukseen";
+"Welcome back to macshot" = "Tervetuloa takaisin macshotiin";
+"Turn Screen Recording back on" = "Ota näytön tallennus uudelleen käyttöön";
+"After some updates, macOS asks you to allow macshot again. Your settings and captures are safe. If macshot is already on in the list, turn it off and on again." = "Joidenkin päivitysten jälkeen macOS pyytää sallimaan macshotin uudelleen. Asetuksesi ja kaappauksesi ovat tallessa. Jos macshot on jo päällä luettelossa, laita se pois päältä ja takaisin päälle.";
 "macshot needs one permission" = "macshot tarvitsee yhden luvan";
 "Screen Recording not yet granted" = "Ruudun nauhoituslupaa ei ole vielä myönnetty";
 "Screen Recording granted!" = "Ruudun nauhoituslupa myönnetty!";

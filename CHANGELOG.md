@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.4.0-beta.3] - 2026-09-24
+
+### Changed
+
+- **macshot has a new developer signature.** After this update, macOS may ask you once to allow Screen Recording for macshot again (and Accessibility or Input Monitoring if you use element snapping, keystrokes or click highlights). Your settings, history and recordings stay as they are. If macshot already looks switched on in System Settings but capturing does not work, switch it off and on again.
+- The permission window now explains this to returning users instead of greeting them as new.
+
 ## [4.4.0-beta.2] - 2026-09-24
 
 ### Added

@@ -387,6 +387,9 @@
 
 /* Permission Onboarding */
 "Welcome to macshot" = "Welkom bij macshot";
+"Welcome back to macshot" = "Welkom terug bij macshot";
+"Turn Screen Recording back on" = "Zet schermopname weer aan";
+"After some updates, macOS asks you to allow macshot again. Your settings and captures are safe. If macshot is already on in the list, turn it off and on again." = "Na sommige updates vraagt macOS je om macshot opnieuw toe te staan. Je instellingen en opnamen zijn veilig. Staat macshot al aan in de lijst, zet het dan uit en weer aan.";
 "macshot needs one permission" = "macshot heeft een toestemming nodig";
 "Screen Recording not yet granted" = "Schermopname nog niet toegestaan";
 "Screen Recording granted!" = "Schermopname toegestaan!";

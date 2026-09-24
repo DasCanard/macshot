@@ -398,6 +398,9 @@
 
 /* Permission Onboarding */
 "Welcome to macshot" = "Добро пожаловать в macshot";
+"Welcome back to macshot" = "С возвращением в macshot";
+"Turn Screen Recording back on" = "Снова включите запись экрана";
+"After some updates, macOS asks you to allow macshot again. Your settings and captures are safe. If macshot is already on in the list, turn it off and on again." = "После некоторых обновлений macOS просит снова разрешить доступ macshot. Ваши настройки и снимки на месте. Если macshot в списке уже включён, выключите его и включите снова.";
 "macshot needs one permission" = "macshot требуется одно разрешение";
 "Screen Recording not yet granted" = "Разрешение на запись экрана не предоставлено";
 "Screen Recording granted!" = "Разрешение на запись экрана получено!";

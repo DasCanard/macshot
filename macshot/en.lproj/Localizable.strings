@@ -406,6 +406,9 @@
 
 /* Permission Onboarding */
 "Welcome to macshot" = "Welcome to macshot";
+"Welcome back to macshot" = "Welcome back to macshot";
+"Turn Screen Recording back on" = "Turn Screen Recording back on";
+"After some updates, macOS asks you to allow macshot again. Your settings and captures are safe. If macshot is already on in the list, turn it off and on again." = "After some updates, macOS asks you to allow macshot again. Your settings and captures are safe. If macshot is already on in the list, turn it off and on again.";
 "macshot needs one permission" = "macshot needs one permission";
 "Screen Recording not yet granted" = "Screen Recording not yet granted";
 "Screen Recording granted!" = "Screen Recording granted!";

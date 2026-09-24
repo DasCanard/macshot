@@ -396,6 +396,9 @@
 
 /* Permission Onboarding */
 "Welcome to macshot" = "macshot க்கு வரவேற்கிறோம்";
+"Welcome back to macshot" = "macshot-க்கு மீண்டும் வரவேற்கிறோம்";
+"Turn Screen Recording back on" = "திரைப் பதிவை மீண்டும் இயக்கவும்";
+"After some updates, macOS asks you to allow macshot again. Your settings and captures are safe. If macshot is already on in the list, turn it off and on again." = "சில புதுப்பிப்புகளுக்குப் பிறகு, macshot-ஐ மீண்டும் அனுமதிக்குமாறு macOS கேட்கும். உங்கள் அமைப்புகளும் பிடிப்புகளும் பாதுகாப்பாக உள்ளன. பட்டியலில் macshot ஏற்கனவே இயக்கத்தில் இருந்தால், அதை அணைத்து மீண்டும் இயக்கவும்.";
 "macshot needs one permission" = "macshot க்கு ஒரு அனுமதி தேவை";
 "Screen Recording not yet granted" = "திரைப் பதிவு இன்னும் வழங்கப்படவில்லை";
 "Screen Recording granted!" = "திரைப் பதிவு வழங்கப்பட்டது!";

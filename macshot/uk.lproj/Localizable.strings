@@ -398,6 +398,9 @@
 
 /* Permission Onboarding */
 "Welcome to macshot" = "Ласкаво просимо до macshot";
+"Welcome back to macshot" = "З поверненням до macshot";
+"Turn Screen Recording back on" = "Знову ввімкніть запис екрана";
+"After some updates, macOS asks you to allow macshot again. Your settings and captures are safe. If macshot is already on in the list, turn it off and on again." = "Після деяких оновлень macOS просить знову дозволити macshot. Ваші налаштування та знімки збережено. Якщо macshot у списку вже ввімкнено, вимкніть його та ввімкніть знову.";
 "macshot needs one permission" = "macshot потребує один дозвіл";
 "Screen Recording not yet granted" = "Запис екрана ще не дозволено";
 "Screen Recording granted!" = "Запис екрана дозволено!";

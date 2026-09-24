@@ -396,6 +396,9 @@
 
 /* Permission Onboarding */
 "Welcome to macshot" = "Velkommen til macshot";
+"Welcome back to macshot" = "Velkommen tilbake til macshot";
+"Turn Screen Recording back on" = "Slå på skjermopptak igjen";
+"After some updates, macOS asks you to allow macshot again. Your settings and captures are safe. If macshot is already on in the list, turn it off and on again." = "Etter enkelte oppdateringer ber macOS deg om å tillate macshot på nytt. Innstillingene og opptakene dine er trygge. Hvis macshot allerede er slått på i listen, slår du det av og på igjen.";
 "macshot needs one permission" = "macshot trenger \U00E9n tillatelse";
 "Screen Recording not yet granted" = "Skjermopptak er ikke gitt enn\U00E5";
 "Screen Recording granted!" = "Skjermopptak er gitt!";

@@ -380,6 +380,9 @@
 
 /* Permission Onboarding */
 "Welcome to macshot" = "macshot へようこそ";
+"Welcome back to macshot" = "macshot へおかえりなさい";
+"Turn Screen Recording back on" = "画面収録をもう一度オンにしてください";
+"After some updates, macOS asks you to allow macshot again. Your settings and captures are safe. If macshot is already on in the list, turn it off and on again." = "一部のアップデートの後、macOS から macshot をもう一度許可するよう求められます。設定とキャプチャはそのまま残っています。リストで macshot がすでにオンになっている場合は、一度オフにしてからオンに戻してください。";
 "macshot needs one permission" = "macshot には1つの許可が必要です";
 "Screen Recording not yet granted" = "画面収録がまだ許可されていません";
 "Screen Recording granted!" = "画面収録が許可されました!";

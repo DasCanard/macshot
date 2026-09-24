@@ -391,6 +391,9 @@
 
 /* Permission Onboarding */
 "Welcome to macshot" = "به macshot خوش آمدید";
+"Welcome back to macshot" = "به macshot خوش برگشتید";
+"Turn Screen Recording back on" = "ضبط صفحه را دوباره روشن کنید";
+"After some updates, macOS asks you to allow macshot again. Your settings and captures are safe. If macshot is already on in the list, turn it off and on again." = "پس از برخی به‌روزرسانی‌ها، macOS دوباره از شما می‌خواهد به macshot اجازه دهید. تنظیمات و تصاویر شما امن هستند. اگر macshot از قبل در فهرست روشن است، آن را خاموش و دوباره روشن کنید.";
 "macshot needs one permission" = "macshot به یک مجوز نیاز دارد";
 "Screen Recording not yet granted" = "مجوز ضبط صفحه هنوز اعطا نشده";
 "Screen Recording granted!" = "مجوز ضبط صفحه اعطا شد!";

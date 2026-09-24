@@ -361,6 +361,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUUpdaterDelegate {
         PermissionOnboardingController.checkPermissionSync { [weak self] granted in
             guard let self = self else { return }
             if granted {
+                PermissionOnboardingController.rememberGranted()
                 self.markScreenCaptureURLsReady()
             } else {
                 self.showOnboarding()

@@ -398,6 +398,9 @@
 
 /* Permission Onboarding */
 "Welcome to macshot" = "Maligayang pagdating sa macshot";
+"Welcome back to macshot" = "Maligayang pagbabalik sa macshot";
+"Turn Screen Recording back on" = "Buksan muli ang Screen Recording";
+"After some updates, macOS asks you to allow macshot again. Your settings and captures are safe. If macshot is already on in the list, turn it off and on again." = "Pagkatapos ng ilang update, hinihiling ng macOS na payagan mo ulit ang macshot. Ligtas ang iyong mga setting at capture. Kung naka-on na ang macshot sa listahan, i-off ito at i-on ulit.";
 "macshot needs one permission" = "Kailangan ng macshot ang isang permission";
 "Screen Recording not yet granted" = "Hindi pa naibibigay ang Screen Recording";
 "Screen Recording granted!" = "Naibigay na ang Screen Recording!";

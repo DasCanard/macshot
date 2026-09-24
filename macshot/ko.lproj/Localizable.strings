@@ -380,6 +380,9 @@
 
 /* Permission Onboarding */
 "Welcome to macshot" = "macshot에 오신 것을 환영합니다";
+"Welcome back to macshot" = "macshot에 다시 오신 것을 환영합니다";
+"Turn Screen Recording back on" = "화면 기록을 다시 켜 주세요";
+"After some updates, macOS asks you to allow macshot again. Your settings and captures are safe. If macshot is already on in the list, turn it off and on again." = "일부 업데이트 후에는 macOS에서 macshot을 다시 허용하라고 요청합니다. 설정과 캡처는 안전하게 남아 있습니다. 목록에서 macshot이 이미 켜져 있다면 껐다가 다시 켜 주세요.";
 "macshot needs one permission" = "macshot에 권한 하나가 필요합니다";
 "Screen Recording not yet granted" = "화면 기록 권한이 아직 허용되지 않았습니다";
 "Screen Recording granted!" = "화면 기록 권한이 허용되었습니다!";

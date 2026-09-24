@@ -391,6 +391,9 @@
 
 /* Permission Onboarding */
 "Welcome to macshot" = "Bun venit în macshot";
+"Welcome back to macshot" = "Bine ai revenit în macshot";
+"Turn Screen Recording back on" = "Activează din nou înregistrarea ecranului";
+"After some updates, macOS asks you to allow macshot again. Your settings and captures are safe. If macshot is already on in the list, turn it off and on again." = "După unele actualizări, macOS îți cere să permiți din nou macshot. Setările și capturile tale sunt în siguranță. Dacă macshot este deja activat în listă, dezactivează-l și activează-l din nou.";
 "macshot needs one permission" = "macshot are nevoie de o permisiune";
 "Screen Recording not yet granted" = "Înregistrarea ecranului nu a fost încă acordată";
 "Screen Recording granted!" = "Înregistrarea ecranului a fost acordată!";

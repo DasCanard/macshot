@@ -397,6 +397,9 @@
 
 /* Permission Onboarding */
 "Welcome to macshot" = "Üdvözöl a macshot";
+"Welcome back to macshot" = "Üdv újra a macshotban";
+"Turn Screen Recording back on" = "Kapcsold be újra a képernyőfelvételt";
+"After some updates, macOS asks you to allow macshot again. Your settings and captures are safe. If macshot is already on in the list, turn it off and on again." = "Egyes frissítések után a macOS újra engedélyt kér a macshot számára. A beállításaid és a felvételeid megmaradtak. Ha a macshot már be van kapcsolva a listában, kapcsold ki, majd újra be.";
 "macshot needs one permission" = "A macshot-nak egy engedélyre van szüksége";
 "Screen Recording not yet granted" = "Képernyőfelvétel engedélye még nem adott";
 "Screen Recording granted!" = "Képernyőfelvétel engedélyezve!";

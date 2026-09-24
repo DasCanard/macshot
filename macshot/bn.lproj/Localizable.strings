@@ -395,6 +395,9 @@
 
 /* Permission Onboarding */
 "Welcome to macshot" = "macshot-এ স্বাগতম";
+"Welcome back to macshot" = "macshot-এ আবার স্বাগতম";
+"Turn Screen Recording back on" = "স্ক্রিন রেকর্ডিং আবার চালু করুন";
+"After some updates, macOS asks you to allow macshot again. Your settings and captures are safe. If macshot is already on in the list, turn it off and on again." = "কিছু আপডেটের পর macOS আবার macshot-কে অনুমতি দিতে বলে। আপনার সেটিংস ও ক্যাপচার নিরাপদ আছে। তালিকায় macshot আগে থেকেই চালু থাকলে, একবার বন্ধ করে আবার চালু করুন।";
 "macshot needs one permission" = "macshot-এর একটি অনুমতি প্রয়োজন";
 "Screen Recording not yet granted" = "স্ক্রিন রেকর্ডিং অনুমতি এখনো দেওয়া হয়নি";
 "Screen Recording granted!" = "স্ক্রিন রেকর্ডিং অনুমতি দেওয়া হয়েছে!";

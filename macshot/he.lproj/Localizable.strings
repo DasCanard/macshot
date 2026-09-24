@@ -391,6 +391,9 @@
 
 /* Permission Onboarding */
 "Welcome to macshot" = "ברוכים הבאים ל-macshot";
+"Welcome back to macshot" = "ברוכים השבים ל-macshot";
+"Turn Screen Recording back on" = "הפעילו שוב את הקלטת המסך";
+"After some updates, macOS asks you to allow macshot again. Your settings and captures are safe. If macshot is already on in the list, turn it off and on again." = "אחרי חלק מהעדכונים, macOS מבקש לאשר שוב את macshot. ההגדרות והצילומים שלכם שמורים. אם macshot כבר מופעל ברשימה, כבו אותו והפעילו אותו שוב.";
 "macshot needs one permission" = "macshot זקוק להרשאה אחת";
 "Screen Recording not yet granted" = "הרשאת הקלטת מסך טרם ניתנה";
 "Screen Recording granted!" = "הרשאת הקלטת מסך אושרה!";

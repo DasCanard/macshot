@@ -391,6 +391,9 @@
 
 /* Permission Onboarding */
 "Welcome to macshot" = "macshot'a Hoş Geldiniz";
+"Welcome back to macshot" = "macshot'a tekrar hoş geldin";
+"Turn Screen Recording back on" = "Ekran Kaydı'nı yeniden aç";
+"After some updates, macOS asks you to allow macshot again. Your settings and captures are safe. If macshot is already on in the list, turn it off and on again." = "Bazı güncellemelerden sonra macOS, macshot için erişimi yeniden onaylamanı ister. Ayarların ve görüntülerin güvende. macshot listede zaten açıksa kapatıp yeniden aç.";
 "macshot needs one permission" = "macshot bir izne ihtiyaç duyar";
 "Screen Recording not yet granted" = "Ekran Kaydı izni henüz verilmedi";
 "Screen Recording granted!" = "Ekran Kaydı izni verildi!";
