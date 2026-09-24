@@ -155,3 +155,27 @@ final class VideoSceneRendererTests: XCTestCase {
                                       fontSize: 40, maxWidth: 300, background: true))
     }
 }
+
+final class VideoIconButtonLayoutTests: XCTestCase {
+    /// Highlights fill `bounds`; if the frame outgrows the constrained size,
+    /// neighbouring rail buttons' hover and selection fills overlap.
+    func testIconButtonFrameMatchesItsConstrainedSize() {
+        let stack = NSStackView()
+        stack.orientation = .vertical
+        stack.spacing = 6
+        var buttons: [VideoIconButton] = []
+        for symbol in ["photo.on.rectangle", "cursorarrow.rays", "plus.magnifyingglass"] {
+            let button = VideoIconButton(symbol: symbol, size: 16, tooltip: symbol, target: nil, action: nil)
+            button.widthAnchor.constraint(equalToConstant: 38).isActive = true
+            button.heightAnchor.constraint(equalToConstant: 38).isActive = true
+            stack.addArrangedSubview(button)
+            buttons.append(button)
+        }
+        stack.frame = NSRect(x: 0, y: 0, width: 60, height: 300)
+        stack.layoutSubtreeIfNeeded()
+        for button in buttons { XCTAssertEqual(button.frame.size, NSSize(width: 38, height: 38)) }
+        for (upper, lower) in zip(buttons, buttons.dropFirst()) {
+            XCTAssertEqual(abs(upper.frame.minY - lower.frame.maxY), 6, accuracy: 0.01, "highlights must not touch")
+        }
+    }
+}

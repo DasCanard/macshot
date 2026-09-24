@@ -92,15 +92,25 @@ final class VideoStageView: NSView {
         overlay.needsDisplay = true
     }
 
-    /// Spatial edits show the whole canvas: the camera would move the content
-    /// out from under the handles.
+    /// Playback always shows the final result; editing aids appear only while
+    /// paused (the convention in Screen Studio, Final Cut and CapCut).
+    var isPlaying = false {
+        didSet {
+            guard isPlaying != oldValue else { return }
+            updateCameraSuspension()
+            overlay.needsDisplay = true
+        }
+    }
+
+    /// Paused spatial edits show the whole canvas: the camera would move the
+    /// content out from under the handles.
     private func updateCameraSuspension() {
         let spatial: Bool
         switch document.selection {
         case .zoom?, .censor?, .text?: spatial = true
         default: spatial = false
         }
-        let suspend = spatial || isCropping
+        let suspend = (spatial && !isPlaying) || isCropping
         if playback.options.suspendCamera != suspend {
             var options = playback.options
             options.suspendCamera = suspend
@@ -114,6 +124,8 @@ final class VideoStageView: NSView {
     }
 
     override func mouseDown(with event: NSEvent) {
+        // While playing, a click pauses: editing happens on a still frame.
+        if isPlaying, !isCropping { playback.pause(); return }
         // Clicking the empty stage clears the selection.
         overlay.endTextEditing(commit: true)
         if !isCropping { document.select(nil) }
@@ -198,7 +210,7 @@ final class VideoStageOverlay: NSView {
     // MARK: Drawing
 
     override func draw(_ dirtyRect: NSRect) {
-        guard let (rect, color, label) = currentRect() else { return }
+        guard !hidesForPlayback, let (rect, color, label) = currentRect() else { return }
         let r = viewRect(normalized: rect)
         if mode == .crop || (document.selection.map { if case .zoom = $0 { return true }; return false } ?? false) {
             // Dim everything outside the box.
@@ -259,7 +271,11 @@ final class VideoStageOverlay: NSView {
 
     // MARK: Input
 
+    /// Handles are hidden during playback, where the camera moves the content.
+    private var hidesForPlayback: Bool { mode == .selection && stage?.isPlaying == true }
+
     override func hitTest(_ point: NSPoint) -> NSView? {
+        if hidesForPlayback { return nil }
         let local = convert(point, from: superview)
         if let textEditorScroll, textEditorScroll.frame.contains(local) { return super.hitTest(point) }
         guard let (rect, _, _) = currentRect() else { return nil }

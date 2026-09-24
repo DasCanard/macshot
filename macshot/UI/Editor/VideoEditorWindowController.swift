@@ -204,7 +204,10 @@ final class VideoEditorWindowController: NSWindowController, NSWindowDelegate {
         ])
 
         playback.onTime = { [weak self] t in self?.timeChanged(t) }
-        playback.onPlayStateChange = { [weak self] playing in self?.transport.setPlaying(playing) }
+        playback.onPlayStateChange = { [weak self] playing in
+            self?.transport.setPlaying(playing)
+            self?.stage.isPlaying = playing
+        }
         playback.onError = { [weak self] message in self?.showStatus(message, isError: true) }
         observerID = editorDocument.observe { [weak self] change in self?.documentChanged(change) }
         topBar.titleLabel.stringValue = window.title

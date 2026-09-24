@@ -129,6 +129,10 @@ final class VideoIconButton: NSButton {
     override func mouseEntered(with event: NSEvent) { hovering = true }
     override func mouseExited(with event: NSEvent) { hovering = false }
 
+    // NSButton pads its frame beyond the constrained size; highlights fill
+    // `bounds`, so neighbouring buttons' hover and selection fills would touch.
+    override var alignmentRectInsets: NSEdgeInsets { NSEdgeInsetsZero }
+
     override func draw(_ dirtyRect: NSRect) {
         if isActive {
             VideoEditorStyle.accent.withAlphaComponent(0.22).setFill()
