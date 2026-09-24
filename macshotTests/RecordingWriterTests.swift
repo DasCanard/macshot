@@ -181,6 +181,26 @@ final class RecordingSampleValidationTests: XCTestCase {
         }
     }
 
+    func testOwnedCopyKeepsPCMAndTimingWithoutSharingTheCaptureBuffer() throws {
+        let pts = CMTime(value: 96_000, timescale: 48_000)
+        for sample in [try RecordingMediaFixture.planarAudio(frames: 1024, pts: pts, firstValue: 3),
+                       try RecordingMediaFixture.audio(samples: 1024, pts: pts, rightFrequency: 660)] {
+            let copy = try XCTUnwrap(RecordingSampleValidation.ownedCopy(sample))
+            XCTAssertEqual(copy.numSamples, sample.numSamples)
+            XCTAssertEqual(copy.presentationTimeStamp, pts)
+            XCTAssertEqual(copy.duration, sample.duration)
+            XCTAssertTrue(CMFormatDescriptionEqual(try XCTUnwrap(copy.formatDescription),
+                                                   otherFormatDescription: try XCTUnwrap(sample.formatDescription)))
+            XCTAssertFalse(copy.dataBuffer === sample.dataBuffer, "the capture buffer must be released")
+            var original = [UInt8](repeating: 0, count: CMBlockBufferGetDataLength(try XCTUnwrap(sample.dataBuffer)))
+            var copied = [UInt8](repeating: 1, count: CMBlockBufferGetDataLength(try XCTUnwrap(copy.dataBuffer)))
+            XCTAssertEqual(original.count, copied.count)
+            CMBlockBufferCopyDataBytes(try XCTUnwrap(sample.dataBuffer), atOffset: 0, dataLength: original.count, destination: &original)
+            CMBlockBufferCopyDataBytes(try XCTUnwrap(copy.dataBuffer), atOffset: 0, dataLength: copied.count, destination: &copied)
+            XCTAssertEqual(original, copied)
+        }
+    }
+
     func testBoundaryTrimKeepsTheExactTailOfNonInterleavedAudio() throws {
         let pts = CMTime(value: 48_000, timescale: 48_000)
         let sample = try RecordingMediaFixture.planarAudio(frames: 1024, pts: pts, firstValue: 7)
@@ -431,6 +451,70 @@ final class RecordingWriterTests: XCTestCase {
         try await writer.finish()
         let track = try XCTUnwrap(AVAsset(url: url).tracks(withMediaType: .audio).first)
         XCTAssertEqual(track.timeRange.duration.seconds, 3, accuracy: 0.03)
+    }
+
+    /// A capture clock slightly faster than the sample count makes every
+    /// buffer overlap its predecessor after about a second. Audio must keep
+    /// going for the whole take instead of stopping at that point.
+    func testDriftingSystemAudioClockKeepsAudioForTheWholeTake() async throws {
+        let url = directory.appendingPathComponent("drift.mp4")
+        let writer = try MP4WriterSession.make(queue: queue, url: url, width: 64, height: 64, fps: 30,
+            recordSystemAudio: true, recordMicAudio: false)
+        let pixels = try RecordingMediaFixture.pixels()
+        try await append(writer, time: 100, buffer: pixels)
+        // PTS spacing is 0.3 samples short of the 1024-sample buffer length.
+        let spacing = (1024.0 - 0.3) / 48_000
+        var videoIndex = 1
+        for index in 0..<470 { // about 10 s
+            let pts = CMTime(seconds: 100 + Double(index) * spacing, preferredTimescale: 1_000_000_000)
+            let sample = try RecordingMediaFixture.planarAudio(frames: 1024, pts: pts)
+            queue.sync { writer.handleSystemAudioSample(sample) }
+            while Double(videoIndex) / 30 < Double(index + 1) * spacing {
+                try await append(writer, time: 100 + Double(videoIndex) / 30, buffer: pixels)
+                videoIndex += 1
+            }
+        }
+        writer.requestStop(atSourceTime: CMTime(value: 110, timescale: 1))
+        try await writer.finish()
+        let track = try XCTUnwrap(AVAsset(url: url).tracks(withMediaType: .audio).first)
+        XCTAssertEqual(track.timeRange.duration.seconds, 10, accuracy: 0.1, "audio stopped part way through")
+    }
+
+    /// Audio that ends early (as when capture stopped delivering it) must not
+    /// break exports whose trim starts after it: an all-empty audio track makes
+    /// AVFoundation fail the whole export.
+    func testTrimStartingAfterTheAudioEndsStillExports() async throws {
+        let url = directory.appendingPathComponent("short-audio.mp4")
+        let writer = try MP4WriterSession.make(queue: queue, url: url, width: 64, height: 64, fps: 30,
+            recordSystemAudio: true, recordMicAudio: false)
+        let pixels = try RecordingMediaFixture.pixels()
+        for index in 0..<120 { // 4 s of video, audio only for the first second
+            try await append(writer, time: 100 + Double(index) / 30, buffer: pixels)
+            if index < 30 {
+                let sample = try RecordingMediaFixture.planarAudio(frames: 1600,
+                    pts: CMTime(value: Int64(4_800_000 + index * 1600), timescale: 48_000))
+                queue.sync { writer.handleSystemAudioSample(sample) }
+            }
+        }
+        writer.requestStop(atSourceTime: CMTime(value: 104, timescale: 1))
+        try await writer.finish()
+        let asset = AVAsset(url: url)
+
+        let overlapping = try VideoCompositionBuilder.build(asset: asset,
+            pieces: [.init(kind: .normal, srcStart: 0.5, srcEnd: 3.5, compositionDuration: 3)], includeAudio: true)
+        XCTAssertEqual(overlapping.audioTracks.count, 1)
+
+        let silent = try VideoCompositionBuilder.build(asset: asset,
+            pieces: [.init(kind: .normal, srcStart: 2, srcEnd: 3.5, compositionDuration: 1.5)], includeAudio: true)
+        XCTAssertTrue(silent.audioTracks.isEmpty)
+        XCTAssertTrue(silent.composition.tracks(withMediaType: .audio).isEmpty)
+        let out = directory.appendingPathComponent("trimmed.mp4")
+        let session = try XCTUnwrap(AVAssetExportSession(asset: silent.composition, presetName: AVAssetExportPresetHighestQuality))
+        session.outputURL = out
+        session.outputFileType = .mp4
+        await session.export()
+        XCTAssertEqual(session.status, .completed, String(describing: session.error))
+        XCTAssertEqual(AVAsset(url: out).duration.seconds, 1.5, accuracy: 0.05)
     }
 
     func testAudioQueuedBeforeALateFirstFrameIsKept() async throws {

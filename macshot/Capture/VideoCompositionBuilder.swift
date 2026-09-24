@@ -128,7 +128,15 @@ enum VideoCompositionBuilder {
                              factor: piece.kind == .freeze ? 0 : sourceRange.duration.seconds / duration.seconds))
             cursor = end
         }
-        return Result(composition: composition, videoTrack: video, audioTracks: audio,
+        // A track holding only empty edits (e.g. a trim that starts after the
+        // recorded audio ends) makes AVFoundation fail the whole export with
+        // -11800, so drop tracks that carry no audio.
+        let audible = audio.filter { track in
+            if track.segments.contains(where: { !$0.isEmpty }) { return true }
+            composition.removeTrack(track)
+            return false
+        }
+        return Result(composition: composition, videoTrack: video, audioTracks: audible,
                       timeMap: map, frameDuration: frameDuration, cameraTrack: cameraTrack)
     }
 

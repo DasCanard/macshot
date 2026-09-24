@@ -1,5 +1,6 @@
 import Foundation
 import AVFoundation
+import os
 
 // MARK: - MP4 writer session (queue-confined)
 
@@ -310,6 +311,7 @@ final class MP4WriterSession: @unchecked Sendable {
     private func complete(_ result: Result<Void, Error>) {
         guard finalResult == nil else { return }
         finalResult = result
+        Self.log.notice("Recording audio: trimmed=\(self.audioStats.trimmed, privacy: .public) retimed=\(self.audioStats.retimed, privacy: .public) dropped=\(self.audioStats.droppedBeforeBoundary, privacy: .public) invalid=\(self.audioStats.invalid, privacy: .public) ignored=\(self.audioStats.ignored, privacy: .public) received=\(self.audioStats.received, privacy: .public) systemEnd=\(self.lastAudioEnd.seconds - self.startTime.seconds, privacy: .public) micEnd=\(self.lastMicEnd.seconds - self.startTime.seconds, privacy: .public)")
         mode = .finished
         maintenanceTimer?.cancel()
         maintenanceTimer = nil
@@ -397,9 +399,22 @@ final class MP4WriterSession: @unchecked Sendable {
     private func handleAudio(_ sample: CMSampleBuffer, isMic: Bool) {
         dispatchPrecondition(condition: .onQueue(queue))
         guard mode == .recording, firstError == nil,
-              (isMic ? micAudioInput : audioInput) != nil,
-              RecordingSampleValidation.isValidAudio(sample),
-              let adjusted = SampleBufferTiming.shifted(sample, by: CMTimeMultiply(pauseOffset, multiplier: -1)) else { return }
+              (isMic ? micAudioInput : audioInput) != nil else {
+            // Expected during stop and after a reported failure; counted only.
+            audioStats.ignored += 1
+            return
+        }
+        audioStats.received += 1
+        guard RecordingSampleValidation.isValidAudio(sample),
+              let owned = RecordingSampleValidation.ownedCopy(sample),
+              let adjusted = SampleBufferTiming.shifted(owned, by: CMTimeMultiply(pauseOffset, multiplier: -1)) else {
+            audioStats.invalid += 1
+            if !audioStats.loggedInvalid {
+                audioStats.loggedInvalid = true
+                Self.log.error("Audio sample rejected (\(isMic ? "mic" : "system", privacy: .public)): \(RecordingSampleValidation.describe(sample), privacy: .public)")
+            }
+            return
+        }
         let format = CMSampleBufferGetFormatDescription(sample)
         if let previous = isMic ? microphoneFormat : systemAudioFormat, let format = format,
            !CMFormatDescriptionEqual(previous, otherFormatDescription: format) {
@@ -444,7 +459,7 @@ final class MP4WriterSession: @unchecked Sendable {
             guard let sample = sample else { break }
             let lastEnd = isMic ? lastMicEnd : lastAudioEnd
             let boundary = lastEnd.isNumeric ? CMTimeMaximum(startTime, lastEnd) : startTime
-            guard let clipped = RecordingSampleValidation.audio(sample, startingAt: boundary) else { continue }
+            guard let clipped = alignedAudio(sample, startingAt: boundary, isMic: isMic) else { continue }
             guard input.append(clipped) else {
                 fail(assetWriter?.error ?? WriterError.appendFailed); return
             }
@@ -452,6 +467,38 @@ final class MP4WriterSession: @unchecked Sendable {
             if isMic { lastMicEnd = end } else { lastAudioEnd = end }
         }
     }
+
+    /// Aligns a queued buffer to the end of the audio already written.
+    /// Capture clocks drift against the sample count, so after a second or so
+    /// every buffer overlaps its predecessor by a sample or two; trimming keeps
+    /// sync. If a buffer can't be trimmed it is moved to the boundary instead:
+    /// silently dropping it would lose all audio from that point on.
+    private func alignedAudio(_ sample: CMSampleBuffer, startingAt boundary: CMTime, isMic: Bool) -> CMSampleBuffer? {
+        let pts = CMSampleBufferGetPresentationTimeStamp(sample)
+        guard CMTimeCompare(pts, boundary) < 0 else { return sample }
+        let end = CMTimeAdd(pts, CMSampleBufferGetDuration(sample))
+        guard CMTimeCompare(end, boundary) > 0 else {
+            audioStats.droppedBeforeBoundary += 1
+            return nil
+        }
+        if let trimmed = RecordingSampleValidation.audio(sample, startingAt: boundary) {
+            audioStats.trimmed += 1
+            return trimmed
+        }
+        audioStats.retimed += 1
+        if !audioStats.loggedTrimFailure {
+            audioStats.loggedTrimFailure = true
+            Self.log.error("Audio trim failed (\(isMic ? "mic" : "system", privacy: .public)): \(RecordingSampleValidation.describe(sample), privacy: .public) overlap=\(CMTimeSubtract(boundary, pts).seconds, privacy: .public)")
+        }
+        return SampleBufferTiming.retimed(sample, to: boundary)
+    }
+
+    private struct AudioStats {
+        var trimmed = 0, retimed = 0, droppedBeforeBoundary = 0, invalid = 0, ignored = 0, received = 0
+        var loggedTrimFailure = false, loggedInvalid = false
+    }
+    private var audioStats = AudioStats()
+    private static let log = Logger(subsystem: "com.sw33tlie.macshot", category: "RecordingWriter")
 
     private func adjustedTime(_ time: CMTime) -> CMTime { CMTimeSubtract(time, pauseOffset) }
 }
