@@ -15,7 +15,7 @@ on:
 jobs:
   release:
     runs-on: macos-26        # Xcode 26 + macOS 26 SDK (needed for NSGlassEffectView / Liquid Glass)
-    timeout-minutes: 90
+    timeout-minutes: 180
 
     steps:
       # ── 1. Checkout ────────────────────────────────────────────────────────
@@ -288,12 +288,14 @@ jobs:
             > ~/.appstoreconnect/private_keys/AuthKey_${ASC_API_KEY_ID}.p8
 
           for dmg in MacShot.dmg MacShot-Offline.dmg; do
+            # A new developer team's first submissions can take far longer
+            # than the usual few minutes while Apple runs extra checks.
             xcrun notarytool submit "$dmg" \
               --key ~/.appstoreconnect/private_keys/AuthKey_${ASC_API_KEY_ID}.p8 \
               --key-id "$ASC_API_KEY_ID" \
               --issuer "$ASC_API_ISSUER_ID" \
               --wait \
-              --timeout 20m
+              --timeout 60m
 
             # Apple's ticket service sometimes throttles right after acceptance
             # (stapler error 68 with a retry-after); the ticket still exists.
