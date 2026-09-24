@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [4.4.0-beta.2] - 2026-09-24
 
 ### Added
 
@@ -9,7 +9,10 @@
 
 ### Fixed
 
-- **System audio recordings stopped right away** with "Audio encoding could not keep up". The audio buffer measured macOS's system audio by a size it always reported as zero, so every recording with system audio failed within a moment of starting. It now measures by duration.
+- **System audio recordings** stopped right away with "Audio encoding could not keep up". System audio now records for the whole take: the recorder measures queued audio by duration and copies each audio buffer as it arrives, since macOS stops delivering audio to apps that hold on to its capture buffers. The microphone uses the same path.
+- **Copy and Save of trimmed videos** failed with "The operation could not be completed" when the trim started after the recorded audio ended. Silent audio tracks are now left out of the export.
+- **Zoom preview while playing**: selecting a zoom, blur or text item no longer turns zooms off during playback. Playback always shows the final result; the full frame with editing handles appears only while paused, and clicking the preview while playing pauses it.
+- **Video editor sidebar**: hover and selection highlights on neighbouring buttons no longer touch.
 - **WebP transparency**: semi-transparent pixels (for example the edges of a removed background) no longer come out darker in WebP files.
 
 ## [4.4.0-beta.1] - 2026-09-23
