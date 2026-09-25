@@ -363,8 +363,15 @@ jobs:
           pending=0
           for pair in "MacShot.dmg:$MAIN" "MacShot-Offline.dmg:$OFFLINE"; do
             dmg=${pair%%:*}; id=${pair#*:}
-            status=$(xcrun notarytool info "$id" "${AUTH[@]}" --output-format json \
-              | python3 -c 'import json,sys; print(json.load(sys.stdin)["status"])')
+            # Retry: a brief network drop on the runner must not fail the run.
+            status=""
+            for try in 1 2 3 4 5 6; do
+              status=$(xcrun notarytool info "$id" "${AUTH[@]}" --output-format json 2>/dev/null \
+                | python3 -c 'import json,sys; print(json.load(sys.stdin)["status"])' 2>/dev/null) && break
+              echo "Could not read the status of $dmg (attempt $try), retrying in 30 s"
+              sleep 30
+            done
+            [ -n "$status" ] || status="In Progress"
             echo "$dmg ($id): $status"
             case "$status" in
               Accepted) ;;
