@@ -15,7 +15,7 @@ on:
 jobs:
   release:
     runs-on: macos-26        # Xcode 26 + macOS 26 SDK (needed for NSGlassEffectView / Liquid Glass)
-    timeout-minutes: 180
+    timeout-minutes: 360
 
     steps:
       # ── 1. Checkout ────────────────────────────────────────────────────────
@@ -287,16 +287,37 @@ jobs:
           echo "$ASC_API_KEY_BASE64" | base64 --decode \
             > ~/.appstoreconnect/private_keys/AuthKey_${ASC_API_KEY_ID}.p8
 
-          for dmg in MacShot.dmg MacShot-Offline.dmg; do
-            # A new developer team's first submissions can take far longer
-            # than the usual few minutes while Apple runs extra checks.
-            xcrun notarytool submit "$dmg" \
-              --key ~/.appstoreconnect/private_keys/AuthKey_${ASC_API_KEY_ID}.p8 \
-              --key-id "$ASC_API_KEY_ID" \
-              --issuer "$ASC_API_ISSUER_ID" \
-              --wait \
-              --timeout 60m
+          KEY=~/.appstoreconnect/private_keys/AuthKey_${ASC_API_KEY_ID}.p8
+          AUTH=(--key "$KEY" --key-id "$ASC_API_KEY_ID" --issuer "$ASC_API_ISSUER_ID")
 
+          # Submit both images first, then wait for them together: a new
+          # developer team's early submissions can take an hour or more each
+          # while Apple runs extra checks, and waiting in turn doubles that.
+          submit() {
+            xcrun notarytool submit "$1" "${AUTH[@]}" --output-format json \
+              | python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])'
+          }
+          ID_MAIN=$(submit MacShot.dmg)
+          ID_OFFLINE=$(submit MacShot-Offline.dmg)
+          echo "Submitted MacShot.dmg: $ID_MAIN, MacShot-Offline.dmg: $ID_OFFLINE"
+          xcrun notarytool wait "$ID_MAIN" "${AUTH[@]}" --timeout 150m & PID_MAIN=$!
+          xcrun notarytool wait "$ID_OFFLINE" "${AUTH[@]}" --timeout 150m & PID_OFFLINE=$!
+          wait_failed=0
+          wait "$PID_MAIN" || wait_failed=1
+          wait "$PID_OFFLINE" || wait_failed=1
+          for pair in "MacShot.dmg:$ID_MAIN" "MacShot-Offline.dmg:$ID_OFFLINE"; do
+            dmg=${pair%%:*}; id=${pair#*:}
+            status=$(xcrun notarytool info "$id" "${AUTH[@]}" --output-format json \
+              | python3 -c 'import json,sys; print(json.load(sys.stdin)["status"])')
+            echo "$dmg: $status"
+            if [ "$status" != "Accepted" ]; then
+              xcrun notarytool log "$id" "${AUTH[@]}" || true
+              exit 1
+            fi
+          done
+          [ "$wait_failed" = 0 ] || echo "A wait ended early but both submissions are Accepted"
+
+          for dmg in MacShot.dmg MacShot-Offline.dmg; do
             # Apple's ticket service sometimes throttles right after acceptance
             # (stapler error 68 with a retry-after); the ticket still exists.
             for attempt in 1 2 3 4 5 6 7 8; do
